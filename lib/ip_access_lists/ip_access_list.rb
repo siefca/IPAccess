@@ -2,9 +2,13 @@
 class IPAccessList < IPAddrList
 
   def initialize(*args)
-    super(obj_to_ip6(*args))
+    super(obj_to_ip6(*args), :BinarySearch)
     self.extend(Addon)
-    self
+    return self
+  end
+  
+  def dup
+    self.class.new(self)
   end
 
   def <<(*args); self.add(*args) end
@@ -221,7 +225,7 @@ class IPAccessList < IPAddrList
   # ensures that all objects in resulting array are
   # holding IPv6 information. All IPAddr objects
   # containing IPv4 addresses are replaced by newly
-  # created IPAddr IPv6 objects that are IPv4-mapped.
+  # created IPAddr IPv6 objects that are IPv4-compatible.
   # 
   # It is usefull when you want to keep all data in
   # the same format and be able to compare addresses
@@ -231,7 +235,7 @@ class IPAccessList < IPAddrList
   def obj_to_ip6(*args)
     args = obj_to_ip(*args)
     args.map! do |ipaddr|
-      ipaddr.ipv6? ? ipaddr : ipaddr.ipv4_mapped
+      ipaddr.ipv6? ? ipaddr : ipaddr.ipv4_compat
     end
     return args
   end
@@ -304,11 +308,10 @@ class IPAccessList < IPAddrList
     alias_method :search_strict, :grep_strict
     
     # This method check if this list contains exact IP
-    # address and mask combination.
+    # address/mask combination(s).
     
-    def have_exact_addr?(addr)
-      return false
-      grep_strict(addr) { |matching| return true }
+    def have_exact_addr?(*addr)
+      grep_strict(*addr) { |m| return true }
       return false
     end
     
@@ -353,16 +356,14 @@ class IPAccessList < IPAddrList
     # Returns new list containing elements from this object and objects passed as an argument.
     
     def +(*args)
-      obj = self.dup
-      obj.add(args)
-      return obj
+      self.dup << args
     end
     
     # Returns new list with removed IPAddr objects which are exactly the same as objects passed as an argument.
     
     def -(*args)
-      other = self.class.new(*args) unless (args.size == 1 && args.first.is_a?(self.class))
-      newobj = select { |addr| other.have_exact_addr?(our_ipaddr) }
+      other = self.class.new(*args)
+      newobj = select { |addr| !other.have_exact_addr?(addr) }
       return newobj
     end
     
@@ -372,6 +373,12 @@ class IPAccessList < IPAddrList
       @ip_list.map do |addr|
         addr.native.inspect.split[1].chomp('>')[5..-1]
       end.join(sep)
+    end
+    
+    # This method returns string containing elements of the list separated by commas.
+    
+    def to_s
+      join(', ')
     end
     
     # Deletes specified addresses from the list. Returns an array of deleted elements.
