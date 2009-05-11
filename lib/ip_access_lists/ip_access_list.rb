@@ -1,15 +1,46 @@
+# encoding: utf-8
+#
+# Easy to manage and fast IP access lists.
+#
+# Author::    Paweł Wilk (mailto:pw@gnu.org)
+# Copyright:: Copyright (c) 2009 Paweł Wilk
+# License::   LGPL
+# 
+# Classes contained in this library allows you to create and manage
+# IP access lists in an easy way. You may use IPAccess class to maintain
+# black list and white list and validate connections against it. You
+# also may use IPAccessList class directly to build your own lists.
+# 
+# This classes use IPAddr objects to store data, IPAddrList class to
+# create lists with binary search capabilities and Resolv class to
+# map names to IP addresses if there is a need.
+ 
+# This class creates easy to manage IP access list based on IPAddrList object
+# which uses binary tree to speed up searching. It keeps IPAddr objects and
+# allows to add, remove and search them.
+#
+# See IPAccessList::Operations for operations provided by this class.
 
 class IPAccessList < IPAddrList
 
+  # Creates new IPAccessList object. It uses obj_to_ip6 method for fetching
+  # initial elements. See obj_to_ip description for more info on how to pass
+  # arguments.
+
   def initialize(*args)
     super(obj_to_ip6(*args), :BinarySearch)
-    self.extend(Addon)
+    self.extend(Operations)
     return self
   end
+  
+  # This method creates new IPAccessList object with same contents as object
+  # for which it is called.
   
   def dup
     self.class.new(self)
   end
+
+  # This operator calls add method.
 
   def <<(*args); self.add(*args) end
 
@@ -230,7 +261,8 @@ class IPAccessList < IPAddrList
   # It is usefull when you want to keep all data in
   # the same format and be able to compare addresses
   # without creating family-based lists or monkey-patching
-  # IPAddr.
+  # IPAddr. Most of IPAccessList's methods use it to
+  # obtain information about IP addresses.
   
   def obj_to_ip6(*args)
     args = obj_to_ip(*args)
@@ -240,12 +272,20 @@ class IPAccessList < IPAddrList
     return args
   end
   
-  module Addon
+  # This module contains operations that class IPAccessList
+  # provides. This class creates easy to manage IP access list
+  # based on IPAddrList object which uses binary tree to speed
+  # up searching. It keeps IPAddr objects and allows to add,
+  # remove and search them.
+      
+  module Operations
     
-    # This method adds new element(s) to list. You can pass any
-    # object that obj_to_ip6 method can understand. If address/mask
+    # This method adds new element(s) to list. If address/mask
     # is already present it won't be added to list. This method
     # returns reference to IPAccessList object.
+    #
+    # See IPAccessList#obj_to_ip description for more info about arguments
+    # you may pass to it.
     
     def add(*args)
       args = obj_to_ip6(*args)
@@ -263,6 +303,9 @@ class IPAccessList < IPAddrList
     #
     # Ba aware that it may call the block for same object twice
     # if you'll pass two matching addresses.
+    #
+    # See IPAccessList#obj_to_ip description for more info about arguments
+    # you may pass to it.
     
     def grep(*args)
       out_ary = []
@@ -289,6 +332,9 @@ class IPAccessList < IPAddrList
     #
     # Ba aware that it may call the block for same object twice
     # if you'll pass two matching addresses.
+    #
+    # See IPAccessList#obj_to_ip description for more info about arguments
+    # you may pass to it.
     
     def grep_strict(*args)
       out_ary = []
@@ -309,6 +355,9 @@ class IPAccessList < IPAddrList
     
     # This method check if this list contains exact IP
     # address/mask combination(s).
+    #
+    # See IPAccessList#obj_to_ip description for more info about arguments
+    # you may pass to it.
     
     def have_exact_addr?(*addr)
       grep_strict(*addr) { |m| return true }
@@ -325,6 +374,9 @@ class IPAccessList < IPAddrList
     # This methid returns +true+ if at least one of the given
     # objects containing IP information are on the list. Otherwise
     # it returns +false+.
+    #
+    # See IPAccessList#obj_to_ip description for more info about arguments
+    # you may pass to it.
     
     def include?(*args)
       addrs = obj_to_ip6(*args)
@@ -340,6 +392,9 @@ class IPAccessList < IPAddrList
     # This methid returns +true+ if all of the given
     # objects containing IP information are on the list.
     # Otherwise it returns +false+.
+    #
+    # See IPAccessList#obj_to_ip description for more info about arguments
+    # you may pass to it.
     
     def include_all?(*args)
       addrs = obj_to_ip6(*args)
@@ -354,12 +409,18 @@ class IPAccessList < IPAddrList
     def map;      self.class.new(super)   end
     
     # Returns new list containing elements from this object and objects passed as an argument.
+    #
+    # See IPAccessList#obj_to_ip description for more info about arguments
+    # you may pass to it.
     
     def +(*args)
       self.dup << args
     end
     
     # Returns new list with removed IPAddr objects which are exactly the same as objects passed as an argument.
+    #
+    # See IPAccessList#obj_to_ip description for more info about arguments
+    # you may pass to it.
     
     def -(*args)
       other = self.class.new(*args)
@@ -382,6 +443,9 @@ class IPAccessList < IPAddrList
     end
     
     # Deletes specified addresses from the list. Returns an array of deleted elements.
+    #
+    # See IPAccessList#obj_to_ip description for more info about arguments
+    # you may pass to it.
     
     def del(*args)
       addrs = obj_to_ip6(*args)
