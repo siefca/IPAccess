@@ -1,0 +1,7 @@
+--spec-only
+--output coverage
+--exclude examples
+--exclude gems
+--exclude spec
+--exclude coverage
+--exclude 00*
