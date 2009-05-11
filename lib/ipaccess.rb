@@ -20,4 +20,4 @@ require 'socket'
 require 'resolv'
 require 'ipaddr_list'
 
-require 'ip_access/ip_access_list'
+require 'ipaccess/ip_access_list'
