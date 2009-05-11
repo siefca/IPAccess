@@ -6,15 +6,15 @@
 # Copyright:: Copyright (c) 2009 Paweł Wilk
 # License::   LGPL
 # 
-# Classes contained in this library allows you to create and manage
-# IP access lists in an easy way. You may use IPAccess class to maintain
-# black list and white list and validate connections against it. You
-# also may use IPAccessList class directly to build your own lists.
-# 
-# This classes use IPAddr objects to store data, IPAddrList class to
-# create lists with binary search capabilities and Resolv class to
-# map names to IP addresses if there is a need.
- 
+# Classes contained in this library allow you to create
+# and manage IP access lists in an easy way. You may use
+# IPAccess class to maintain black list and white list
+# and validate connections against it. You also may use
+# IPAccessList class directly to build your own lists.
+#
+# The classes use IPAddr objects to store data and IPAddrList
+# to create lists with binary search capabilities.
+
 # This class creates easy to manage IP access list based on IPAddrList object
 # which uses binary tree to speed up searching. It keeps IPAddr objects and
 # allows to add, remove and search them.
@@ -26,7 +26,13 @@ class IPAccessList < IPAddrList
   # Creates new IPAccessList object. It uses obj_to_ip6 method for fetching
   # initial elements. See obj_to_ip description for more info on how to pass
   # arguments.
-
+  #
+  # Examples:
+  #     
+  #     IPAccessList.new '192.168.0.0/16', '127.0.0.1/255.0.0.0'
+  #     IPAccessList.new :private, :local
+  #     IPAccessList.new "randomseed.pl", :nonpublic
+  
   def initialize(*args)
     super(obj_to_ip6(*args), :BinarySearch)
     self.extend(Operations)
