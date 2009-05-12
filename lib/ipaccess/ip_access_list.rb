@@ -364,9 +364,9 @@ class IPAddrList
         end
         protected :ip_unique_hash
 
-        # This methid returns +true+ if at least one of the given
-        # objects containing IP information are on the list. Otherwise
-        # it returns +false+.
+        # This method returns matching IPAddr rule if at least one
+        # of the given objects containing IP information are on the list.
+        # Otherwise it returns +false+.
         # 
         # See obj_to_ip description for more info about arguments
         # you may pass to it.
@@ -375,7 +375,8 @@ class IPAddrList
           return false if @ip_list.empty?
           addrs = obj_to_ip6(*args)
           addrs.each do |addr|
-            return true if include_ipaddr6(addr)
+            rule = include_ipaddr6(addr)
+            return rule if rule
           end
           return false
         end
@@ -383,9 +384,9 @@ class IPAddrList
         alias_method :include_one?,     :include?
         alias_method :include_one_of?,  :include?
         
-        # This methid returns +true+ if all of the given
-        # objects containing IP information are on the list.
-        # Otherwise it returns +false+.
+        # This method returns array of matching IPAddr rules
+        # if all of the given objects containing IP information
+        # are on the list. Otherwise it returns +false+.
         #
         # See obj_to_ip description for more info about arguments
         # you may pass to it.
@@ -393,14 +394,15 @@ class IPAddrList
         def include_all?(*args)
           return false if @ip_list.empty?
           addrs = obj_to_ip6(*args)
-          to_find = addrs.size
+          found = []
           addrs.each do |addr|
-            to_find -= 1 if include_ipaddr6?(addr)
+            rule = include_ipaddr6?(addr)
+            found.push rule if rule
           end
-          return to_find.zero?
+          return found.size == addrs.size ? found : false
         end
-
-        # This methid returns +true+ if the given IP address
+        
+        # This method returns matching IPAddr rule if the given IP address
         # (expressed as string or IPAddr object) is on the list.
         # Otherwise it returns +false+.
 
@@ -409,18 +411,23 @@ class IPAddrList
           addr = IPAddr.new(addr) unless addr.is_a?(IPAddr)
           return include_ipaddr6?(addr.ipv6? ? addr : addr.ipv4_compat)
         end
-
-        # This methid returns +true+ if the given IPv6 address
-        # (expressed as IPAddr object) is on the list.
-        # Otherwise it returns +false+.
+        
+        # This method returns matching IPAddr rule if the given IPv6 address
+        # (expressed as IPAddr object) is on the list. Otherwise it returns +false+.
         #
-        # Note that IPv4 addresses should be passed here as IPv4-compatible.
+        # Note that IPv4 addresses should be passed here as IPv4-compatible IPv6
+        # addresses.
 
         def include_ipaddr6?(addr)
           return false if @ip_list.empty?
           binary_search addr do |ipaddr, range|
-            range.any? {|idx| @ip_list[idx].include? ipaddr }
+            range.any? do |idx|
+              if @ip_list[idx].include? ipaddr
+                return @ip_list[idx]
+              end
+            end
           end
+          return false
         end
 
         def select;   self.class.new(super)   end
@@ -470,7 +477,7 @@ class IPAddrList
           to_delete = []
           binary_search(addr) do |ipaddr, range|
             range.any? do |idx|
-              to_delete << idx if @ip_list[idx] == ipaddr
+              to_delete.push idx if @ip_list[idx] == ipaddr
             end
           end
           return [] if to_delete.empty?
@@ -523,7 +530,7 @@ class IPAccessList < IPAddrList
   #     IPAccessList.new "randomseed.pl", :nonpublic
   
   def initialize(*args)
-    super(*args, :IPv6BinarySearch)
+    super(args, :IPv6BinarySearch)
     return self
   end
   

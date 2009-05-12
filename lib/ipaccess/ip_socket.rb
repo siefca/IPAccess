@@ -45,6 +45,7 @@ class TCPServer
   def access
     @access || IPAccess::In
   end
+  
   alias_method :acl, :access
   
   # This method enables usage of internal IP access list for object.
@@ -81,9 +82,10 @@ class TCPServer
     return socket if alist.empty?
     lookup_prev = socket.do_not_reverse_lookup
     peer_ip     = IPAddr(socket.peeraddr[3])
-    peer_ip     = peer_ip.ipv4_compat if peer_ipv4?
+    peer_ip     = peer_ip.ipv4_compat if peer_ip.ipv4?
     socket.do_not_reverse_lookup = lookup_prev
-    if rule=alist.ipaddr6_denied?(peer_ip)
+    rule        = alist.ipaddr6_denied?(peer_ip)
+    if rule
       # place for a block if any
       socket.close
       raise IPAccessDenied::Input.new(peer_ip, alist, rule)
@@ -102,7 +104,8 @@ class TCPServer
     peer_ip     = IPAddr.new(socket.peeraddr[3])
     peer_ip     = peer_ip.ipv4_compat if peer_ip.ipv4?
     socket.do_not_reverse_lookup = lookup_prev
-    if rule=alist.ipaddr6_denied?(peer_ip)
+    rule        = alist.ipaddr6_denied?(peer_ip)
+    if rule
       # place for a block if any
       socket.close
       raise IPAccessDenied::Input.new(peer_ip, alist, rule)
@@ -138,6 +141,8 @@ class TCPServer
 end
 
 # TCPServer.send(:include, IPSocketAccess)
+
+
 
 serv = TCPServer.new(2202)
 #serv.access = "127.0.0.1"

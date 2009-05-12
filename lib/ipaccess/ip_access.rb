@@ -47,7 +47,7 @@ class IPAccess
     return self
   end
   
-  # Returns matching IPAddr rules if access is denied and +false+ otherwise.
+  # Returns matching IPAddr rule if access is denied and +false+ otherwise.
   # Access is denied if black list contains one of the addresses
   # and white list doesn't contain it. If access is denied for
   # at least one of the passed elements this method returns +true+.
@@ -56,7 +56,8 @@ class IPAccess
     return false if @blacklist.empty?
     addrs = @blacklist.obj_to_ip6(*addrs)
     addrs.each do |addr|
-      return addr if (@blacklist.include_ipaddr6?(addr) && !@whitelist.include_ipaddr6?(addr))
+      rule = @blacklist.include_ipaddr6?(addr)
+      return rule if (rule && !@whitelist.include_ipaddr6?(addr))
     end
     return false
   end
@@ -69,7 +70,8 @@ class IPAccess
     return false if @blacklist.empty?
     addrs = @blacklist.obj_to_ip6(*addr).first
     addrs.each do |addr|
-      return addr if (@blacklist.include_ipaddr6?(addr) && !@whitelist.include_ipaddr6?(addr))
+      rule = @blacklist.include_ipaddr6?(addr)
+      return rule if (rule && !@whitelist.include_ipaddr6?(addr))
     end
     return false
   end
@@ -80,7 +82,8 @@ class IPAccess
   
   def ipaddr6_denied?(addr)
     return false if @blacklist.empty?
-    return addr if (@blacklist.include_ipaddr6?(addr) && !@whitelist.include_ipaddr6?(addr))
+    rule = @blacklist.include_ipaddr6?(addr)
+    return rule if (rule && !@whitelist.include_ipaddr6?(addr))
     return false
   end
   
@@ -113,6 +116,8 @@ class IPAccess
   def grant(*addrs)
     @whitelist.add(*addrs)
   end
+  
+  alias_method :allow, :grant
   
   # This method is an alias for IPAccessList#add on blacklist.
   
