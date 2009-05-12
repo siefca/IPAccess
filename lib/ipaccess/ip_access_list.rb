@@ -283,9 +283,9 @@ class IPAddrList
           args.each do |addr|
             unless have_exact_addr?(addr)
               @ip_list.push(addr)
-              @ip_list = @ip_list.sort
             end
           end
+          @ip_list.sort!
           return self
         end
         
@@ -483,15 +483,24 @@ class IPAddrList
           return [] if to_delete.empty?
           deleted = []
           to_delete.each { |idx| deleted.push delete_at(idx) }
-          @ip_list = @ip_list.sort
+          @ip_list.sort!
           return deleted
         end
         
         alias_method :delete, :del
         alias_method :remove, :del
         
-        # This method creates new IPAddrList object with same contents as object
-        # for which it is called.
+        # This method erases all elements in list.
+        
+        def clear
+          @ip_list.clear
+          return self
+        end
+        
+        alias_method :erase, :clear
+        
+        # This method creates new IPAddrList object with the same
+        # contents as object for which it is called.
 
         def dup
           self.class.new(self)

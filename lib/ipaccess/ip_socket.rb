@@ -82,9 +82,8 @@ class TCPServer
     return socket if alist.empty?
     lookup_prev = socket.do_not_reverse_lookup
     peer_ip     = IPAddr(socket.peeraddr[3])
-    peer_ip     = peer_ip.ipv4_compat if peer_ip.ipv4?
     socket.do_not_reverse_lookup = lookup_prev
-    rule        = alist.ipaddr6_denied?(peer_ip)
+    rule = alist.ipaddr6_denied? ( peer_ip.ipv4? ? peer_ip.ipv4_compat : peer_ip )
     if rule
       # place for a block if any
       socket.close
@@ -102,9 +101,8 @@ class TCPServer
     socket      = IPSocket.for_fd(fd)
     lookup_prev = socket.do_not_reverse_lookup
     peer_ip     = IPAddr.new(socket.peeraddr[3])
-    peer_ip     = peer_ip.ipv4_compat if peer_ip.ipv4?
     socket.do_not_reverse_lookup = lookup_prev
-    rule        = alist.ipaddr6_denied?(peer_ip)
+    rule = alist.ipaddr6_denied? ( peer_ip.ipv4? ? peer_ip.ipv4_compat : peer_ip )
     if rule
       # place for a block if any
       socket.close
@@ -146,7 +144,9 @@ end
 
 serv = TCPServer.new(2202)
 #serv.access = "127.0.0.1"
-IPAccess::In.deny "127.0.0.1/8"
+IPAccess::In.deny   :localhost, :all
+
+#IPAccess::In.allow  "127.0.0.1", :localhost
 serv.access
      begin
        sock = serv.sysaccept #_nonblock
@@ -154,8 +154,3 @@ serv.access
        #IO.select([serv])
        retry
      end
-
-
-
-
-

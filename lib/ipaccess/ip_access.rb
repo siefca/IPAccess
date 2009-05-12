@@ -91,17 +91,21 @@ class IPAccess
   # of the given objects. Otherwise it returns +false+.
   # It has opposite behaviour to method denied_all?
   
-  def granted_all?(*addrs)
+  def allowed_all?(*addrs)
     not denied_one?(*addrs)
   end
+  
+  alias_method :granted_all?, :allowed_all?
 
   # This method returns +true+ if access may be granted to IP
   # obtained from the given objects. Otherwise it returns +false+.
   # It has opposite behaviour to method denied?
   
-  def granted?(addr)
+  def allowed?(addr)
     not denied?(addr)
   end
+  
+  alias_method :granted?, :allowed?
   
   # This method returns +true+ if access may be granted to IPv6 address
   # from the given IPAddr object. Otherwise it returns +false+.
@@ -113,17 +117,47 @@ class IPAccess
   
   # This method is an alias for IPAccessList#add on whitelist.
 
-  def grant(*addrs)
+  def allow(*addrs)
     @whitelist.add(*addrs)
   end
   
-  alias_method :allow, :grant
+  alias_method :permit, :allow
+  alias_method :tolerate, :allow
+  
+  # This method is an alias for IPAccessList#del on whitelist.
+
+  def disallow(*addrs)
+    @whitelist.del(*addrs)
+  end
+  
+  alias_method :unallow, :disallow
+  alias_method :untolerate, :disallow
   
   # This method is an alias for IPAccessList#add on blacklist.
   
   def deny(*addrs)
     @blacklist.add(*addrs)
   end
+  
+  alias_method :block, :deny
+
+  # This method is an alias for IPAccessList#del on blacklist.
+  
+  def undeny(*addrs)
+    @blacklist.del(*addrs)
+  end
+
+  alias_method :takein, :undeny
+  alias_method :unblock, :undeny
+  
+  # This method erases all rules.
+  
+  def clear
+    @blacklist.clear
+    @whitelist.clear
+  end
+  
+  alias_method :erase, :clear
   
   # This method returns +true+ if blacklist is empty.
   def empty?
