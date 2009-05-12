@@ -15,6 +15,11 @@
 # The classes use IPAddr objects to store data and IPAddrList
 # to create lists with binary search capabilities.
 
+$LOAD_PATH.unshift '..'
+
+require 'ipaddr_list'
+require 'ipaccess/ip_access_list'
+
 # This class creates two lists, black and white, in order
 # manage IP access.
 
@@ -22,38 +27,85 @@ class IPAccess
   
   # This is the list that keeps IPAccessList object that keeps information
   # about blocked IP addresses.
+  
   attr_accessor :blacklist
   
   # This is the IPAccessList object for creating exceptions from black list.
+  
   attr_accessor :whitelist
-    
+  
+  # Descriptive name of this object. Used in error reporting.
+  
+  attr_accessor :name
+  
   # This method creates new IPAccess object.
   
-  def initialize
-    @whitelist = IPAccessList.new
-    @blacklist = IPAccessList.new
+  def initialize(blacklist=[], whitelist=[])
+    @name = nil
+    @blacklist = IPAccessList.new(blacklist)
+    @whitelist = IPAccessList.new(whitelist)
     return self
   end
   
-  # Returns +true+ if access is denied and +false+ otherwise.
+  # Returns matching IPAddr rules if access is denied and +false+ otherwise.
   # Access is denied if black list contains one of the addresses
   # and white list doesn't contain it. If access is denied for
   # at least one of the passed elements this method returns +true+.
   
-  def denied?(*addrs)
+  def denied_one?(*addrs)
+    return false if @blacklist.empty?
     addrs = @blacklist.obj_to_ip6(*addrs)
     addrs.each do |addr|
-      return true if (@blacklist.include?(addr) && !@whitelist.include?(addr))
+      return addr if (@blacklist.include_ipaddr6?(addr) && !@whitelist.include_ipaddr6?(addr))
     end
+    return false
+  end
+  
+  # Returns matching IPAddr rule if access is denied and +false+ otherwise.
+  # Access is denied if black list contains the address
+  # and white list doesn't contain it.
+  
+  def denied?(addr)
+    return false if @blacklist.empty?
+    addrs = @blacklist.obj_to_ip6(*addr).first
+    addrs.each do |addr|
+      return addr if (@blacklist.include_ipaddr6?(addr) && !@whitelist.include_ipaddr6?(addr))
+    end
+    return false
+  end
+  
+  # Returns matching IPAddr rule if access is denied and +false+ otherwise.
+  # Access is denied if black list contains the IP address
+  # from passed IPv6 IPAddr object and white list doesn't contain it.
+  
+  def ipaddr6_denied?(addr)
+    return false if @blacklist.empty?
+    return addr if (@blacklist.include_ipaddr6?(addr) && !@whitelist.include_ipaddr6?(addr))
     return false
   end
   
   # This method returns +true+ if access may be granted to all
   # of the given objects. Otherwise it returns +false+.
+  # It has opposite behaviour to method denied_all?
+  
+  def granted_all?(*addrs)
+    not denied_one?(*addrs)
+  end
+
+  # This method returns +true+ if access may be granted to IP
+  # obtained from the given objects. Otherwise it returns +false+.
   # It has opposite behaviour to method denied?
   
-  def granted?(*addrs)
-    not denied?(*addrs)
+  def granted?(addr)
+    not denied?(addr)
+  end
+  
+  # This method returns +true+ if access may be granted to IPv6 address
+  # from the given IPAddr object. Otherwise it returns +false+.
+  # It has opposite behaviour to method ipaddr6_denied?
+  
+  def ipaddr6_granted?(addr)
+    not ipaddr6_denied?(addr)
   end
   
   # This method is an alias for IPAccessList#add on whitelist.
@@ -67,6 +119,12 @@ class IPAccess
   def deny(*addrs)
     @blacklist.add(*addrs)
   end
-
+  
+  # This method returns +true+ if blacklist is empty.
+  def empty?
+    @blacklist.empty?
+  end
+  
 end
+
 

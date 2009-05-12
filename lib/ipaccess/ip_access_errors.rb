@@ -26,24 +26,27 @@ class IPAccessDenied < Errno::EACCES
   # object containing address of denied connection.
   # Second argument should be an access list object.
 
-  def initialize(addr, access_list=nil)
+  def initialize(addr, access_list=nil, rule=nil)
     @peer_ip = addr.native
     @access_list = access_list
+    @rule = rule
   end
   
   # Shows error message.
   
   def message
     list_name = ""
-    list_name = "#{@access_list.name} " unless (@access_list.nil? || @access_list.name.to_s.empty?)
-    return "connection from #{@peer_ip.to_s} denied by #{list_name}access list"
+    rule = ""
+    list_name = "#{@access_list.name} " if (@access_list.is_a?(IPAccess) && !@access_list.name.to_s.empty?)
+    rule = ", rule: #{@rule.native.inspect.split[1].chomp('>')[5..-1]}" if @rule.is_a?(IPAddr)
+    return "connection from #{@peer_ip.to_s} denied by #{list_name}access list#{rule}"
   end
   
 end
 
 # This class handles IP access denied exceptions for incomming connections/datagrams.
 
-class IPAccessDeniedIn < IPAccessDenied
+class IPAccessDenied::Input < IPAccessDenied
 
   def message
     return "incomming " + super
@@ -53,7 +56,7 @@ end
 
 # This class handles IP access denied exceptions for outgoing connections/datagrams.
 
-class IPAccessDeniedOut < IPAccessDenied
+class IPAccessDenied::Output < IPAccessDenied
 
   def message
     return "outgoing" + super
