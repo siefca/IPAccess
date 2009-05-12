@@ -21,3 +21,4 @@ require 'resolv'
 require 'ipaddr_list'
 
 require 'ipaccess/ip_access_list'
+require 'ipaccess/ip_access'
