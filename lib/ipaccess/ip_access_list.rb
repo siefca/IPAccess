@@ -16,7 +16,7 @@
 # to create lists with binary search capabilities.
 
 # This class creates easy to manage IP access list based on IPAddrList object
-# which uses binary tree to speed up searching. It keeps IPAddr objects and
+# which uses binary search to speed up searching. It keeps IPAddr objects and
 # allows to add, remove and search them.
 #
 # See IPAccessList::Operations for operations provided by this class.
@@ -280,7 +280,7 @@ class IPAccessList < IPAddrList
   
   # This module contains operations that class IPAccessList
   # provides. This class creates easy to manage IP access list
-  # based on IPAddrList object which uses binary tree to speed
+  # based on IPAddrList object which uses binary search to speed
   # up searching. It keeps IPAddr objects and allows to add,
   # remove and search them.
       
@@ -317,7 +317,7 @@ class IPAccessList < IPAddrList
       out_ary = []
       addrs = obj_to_ip6(*args)
       addrs.each do |addr|
-        binary_search addr do |ipaddr, range|
+        binary_search(addr) do |ipaddr, range|
           range.any? do |idx|
             if @ip_list[idx].include?(ipaddr)
               out_ary.push( block_given? ? yield(@ip_list[idx]) : @ip_list[idx]) 
@@ -346,7 +346,7 @@ class IPAccessList < IPAddrList
       out_ary = []
       addrs = obj_to_ip6(*args)
       addrs.each do |addr|
-        binary_search addr do |ipaddr, range|
+        binary_search(addr) do |ipaddr, range|
           range.any? do |idx|
             if @ip_list[idx] == ipaddr
               out_ary.push( block_given? ? yield(@ip_list[idx]) : @ip_list[idx]) 
