@@ -15,12 +15,29 @@
 # The classes use IPAddr objects to store data and IPAddrList
 # to create lists with binary search capabilities.
 
+require 'socket'
+
+# This class handles access denied exceptions.
+ 
+class IPAccessDenied < Errno::EACCES; end
+
 # This version of IPSocket class uses IPAccess to control
 # incomming and outgoing connections.
 
-class IPSocket
-  def open(*args)
-    # learn pawel, learn more...
+module IPSocketAccess
+
+  def initialize(*args)
+    @in_access = nil
+    @out_access = nil
+    return super(*args)
+  end
+
+  def accept(*args)
+    ret = super(*args)
+    p "mam #{ret}"
+    return ret
   end
 end
-        
+
+IPSocket.send(:include, IPSocketAccess)
+
