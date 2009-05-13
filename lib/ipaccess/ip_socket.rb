@@ -23,31 +23,16 @@ require 'ipaddr_list'
 require 'ipaccess/ip_access'
 require 'ipaccess/ip_access_errors'
 
-IPAccess::In        = IPAccess.new
-IPAccess::Out       = IPAccess.new
+IPAccess::In        = IPAccess.new IPAccessDenied::Input
+IPAccess::Out       = IPAccess.new IPAccessDenied::Output
 IPAccess::In.name   = 'global'
 IPAccess::Out.name  = 'global'
 
-# This version of IPSocket class uses IPAccess
-# to control incomming and outgoing connections.
+# This module patches classes to use IP-access control
+# by using IPAccess object.
 
-#module IPSocketAccess
+module IPSocketAccess
 
-class TCPServer
-  
-  alias orig_initialize       initialize
-  alias orig_accept           accept
-  alias orig_accept_nonblock  accept_nonblock
-  alias orig_sysaccept        sysaccept
-  
-  # This method returns currently used IP access list.
-  
-  def access
-    @access || IPAccess::In
-  end
-  
-  alias_method :acl, :access
-  
   # This method enables usage of internal IP access list for object.
   # If argument is IPAccess object then it is used. If argument is other
   # kind it is assumed that it should be converted to IPAccess object
@@ -67,90 +52,84 @@ class TCPServer
   #     socket.access = nil                           # disables IP access list for socket
   #                                                   # (global IP access lists may be still in use!)
   
-  def access=(obj)
+  def acl=(obj)
     if (obj.nil? || obj.is_a?(IPAccess))
-      @access = obj
+      @acl = obj
     else
-      @access = IPAccess.new(obj, [])
+      @acl = IPAccess.new(obj, [])
     end
-  end
-  
-  # This method check IP access.
-  
-  def acl_check(socket)
-    alist = @access || IPAccess::In
-    return socket if alist.empty?
-    lookup_prev = socket.do_not_reverse_lookup
-    peer_ip     = IPAddr(socket.peeraddr[3])
-    socket.do_not_reverse_lookup = lookup_prev
-    rule = alist.ipaddr6_denied? ( peer_ip.ipv4? ? peer_ip.ipv4_compat : peer_ip )
-    if rule
-      # place for a block if any
-      socket.close
-      raise IPAccessDenied::Input.new(peer_ip, alist, rule)
-    end
-    return socket
-  end
-  private :acl_check
-  
-  # This method check IP access but bases on file descriptor.
-  
-  def acl_check_fd(fd)
-    alist = @access || IPAccess::In
-    return fd if alist.empty?
-    socket      = IPSocket.for_fd(fd)
-    lookup_prev = socket.do_not_reverse_lookup
-    peer_ip     = IPAddr.new(socket.peeraddr[3])
-    socket.do_not_reverse_lookup = lookup_prev
-    rule = alist.ipaddr6_denied? ( peer_ip.ipv4? ? peer_ip.ipv4_compat : peer_ip )
-    if rule
-      # place for a block if any
-      socket.close
-      raise IPAccessDenied::Input.new(peer_ip, alist, rule)
-    end
-    return fd
-  end
-  private :acl_check_fd
-  
-  
-  def initialize(*args)
-    @access = nil
-    return orig_initialize(*args)
-  end
-  
-  # Accept on steroids.
-
-  def accept(*args)
-    acl_check orig_accept(*args)
-  end
-  
-  # Sysaccept on steroids.
-  
-  def sysaccept(*args)
-    acl_check_fd orig_sysaccept(*args)
-  end
-  
-  # Accept_nonblock on steroids.
-  
-  def accept_nonblock(*args)
-    acl_check orig_accept_nonblock(*args)
   end
   
 end
 
-# TCPServer.send(:include, IPSocketAccess)
+# TCPServer class with IP access control.
 
+class TCPServer
+  
+  alias orig_initialize       initialize
+  alias orig_accept           accept
+  alias orig_accept_nonblock  accept_nonblock
+  alias orig_sysaccept        sysaccept
+  
+  include IPSocketAccess
 
+  def initialize(*args)
+    @acl = nil
+    return orig_initialize(*args)
+  end
+  
+  # accept on steroids.
+  def accept(*args)
+    acl = @acl || IPAccess::In
+    acl.check_so orig_accept(*args)
+  end
+  
+  # accept_nonblock on steroids.
+  def accept_nonblock(*args)
+    acl = @acl || IPAccess::In
+    acl.check_so orig_accept_nonblock(*args)
+  end
+  
+  # sysaccept on steroids.    
+  def sysaccept(*args)
+    acl = @acl || IPAccess::In
+    acl.check_fd orig_sysaccept(*args)
+  end
 
-serv = TCPServer.new(2202)
-#serv.access = "127.0.0.1"
-IPAccess::In.deny   :localhost, :all
+end
 
-#IPAccess::In.allow  "127.0.0.1", :localhost
-serv.access
-     begin
-       sock = serv.sysaccept #_nonblock
-     rescue Errno::EAGAIN, Errno::ECONNABORTED, Errno::EPROTO, Errno::EINTR
-       #IO.select([serv])
-       retry
-     end
+# TCPSocket class with IP access control.
+
+class TCPSocket
+  
+  alias orig_initialize         initialize
+  
+  include IPSocketAccess
+  
+  def initialize(hostName, port, accessList=nil)
+    @acl  = accessList
+    acl   = @acl || IPAccess::Out
+    addr  = self.class.getaddress(hostName)
+    acl.check_addrinfo addr
+    orig_initialize(addr, port)
+    return self
+  end
+
+end
+
+IPAccess::Out.deny   'wykop.pl'
+
+s = TCPSocket.new('wykop.pl', 80)
+
+#serv = TCPServer.new(2202)
+##serv.access = "127.0.0.1"
+#IPAccess::In.deny   :all
+#
+##IPAccess::In.allow  "127.0.0.1", :localhost
+#p serv.access
+#     begin
+#       sock = serv.sysaccept #_nonblock
+#     rescue Errno::EAGAIN, Errno::ECONNABORTED, Errno::EPROTO, Errno::EINTR
+#       #IO.select([serv])
+#       retry
+#     end

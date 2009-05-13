@@ -15,6 +15,7 @@
 # The classes use IPAddr objects to store data and IPAddrList
 # to create lists with binary search capabilities.
 
+require 'resolv'
 require 'ipaddr_list'
 
 class IPAddrList
@@ -513,7 +514,7 @@ class IPAddrList
         # This operator calls add method.
 
         def <<(*args); self.add(*args) end
-    
+            
     end # module IPv6BinarySearch
     
   end # module Algorithm
@@ -539,9 +540,17 @@ class IPAccessList < IPAddrList
   #     IPAccessList.new "randomseed.pl", :nonpublic
   
   def initialize(*args)
+    args = [] if args == [nil]
     super(args, :IPv6BinarySearch)
     return self
   end
   
+  def self.nice_ip(ipaddr)
+    ipaddr = ipaddr.native
+    mask = ipaddr.inspect.split[1].chomp('>')[5..-1].split('/')[1]
+    addr = ipaddr.to_s
+    mask = mask
+    return "#{addr}/#{mask}"
 end
+
 

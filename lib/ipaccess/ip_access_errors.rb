@@ -32,14 +32,30 @@ class IPAccessDenied < Errno::EACCES
     @rule = rule
   end
   
-  # Shows error message.
+  # Returns string representation of access list name rule.
+  
+  def list_desc
+    if (@access_list.is_a?(IPAccess) && !@access_list.name.to_s.empty?)
+      "#{@access_list.name} "
+    else
+      ""
+    end
+  end
+  
+  # Returns string representation of rule.
+  
+  def rule_desc
+    if @rule.is_a?(IPAddr)
+      " rule: #{@rule.native.inspect.split[1].chomp('>')[5..-1]}"
+    else
+      ""
+    end
+  end
+    
+  # Shows an error message.
   
   def message
-    list_name = ""
-    rule = ""
-    list_name = "#{@access_list.name} " if (@access_list.is_a?(IPAccess) && !@access_list.name.to_s.empty?)
-    rule = ", rule: #{@rule.native.inspect.split[1].chomp('>')[5..-1]}" if @rule.is_a?(IPAddr)
-    return "connection from #{@peer_ip.to_s} denied by #{list_name}access list#{rule}"
+    return "connection with #{@peer_ip.to_s} denied by #{list_desc}access list#{rule_desc}"
   end
   
 end
@@ -49,7 +65,7 @@ end
 class IPAccessDenied::Input < IPAccessDenied
 
   def message
-    return "incomming " + super
+    return "incomming connection from #{@peer_ip.to_s} denied by #{list_desc}access list#{rule_desc}"
   end
 
 end
@@ -59,7 +75,7 @@ end
 class IPAccessDenied::Output < IPAccessDenied
 
   def message
-    return "outgoing" + super
+    return "outgoing connection to #{@peer_ip.to_s} denied by #{list_desc}access list#{rule_desc}"
   end
   
 end
