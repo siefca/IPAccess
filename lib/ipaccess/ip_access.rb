@@ -12,8 +12,9 @@
 # and validate connections against it. You also may use
 # IPAccessList class directly to build your own lists.
 #
-# The classes use IPAddr objects to store data and IPAddrList
-# to create lists with binary search capabilities.
+# The classes use NetAddr::CIDR objects to store IP
+# addresses/masks and NetAddr::Tree to maintain
+# access lists.
 
 $LOAD_PATH.unshift '..'
 
