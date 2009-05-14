@@ -64,7 +64,10 @@ module NetAddr
                                   :Mask => @netmask << 96,
                                   :Version => 6)
     end
-
+    
+    alias_method :ipv6,     :ipv4_mapped
+    alias_method :to_ipv6,  :ipv4_mapped
+    
     # Returns a new NetAddr::CIDRv6 object built by converting
     # the native IPv4 address to an IPv4-compatible IPv6 address.
     # Mask is also converted.
@@ -74,22 +77,28 @@ module NetAddr
                                   :Mask => @netmask << 96,
                                   :Version => 6)
     end
-    
+        
   end # class CIDRv4
 
   class CIDRv6
   
     def ipv4
-      unless ipv4_compliant?
+      if ipv4_mapped?
+        ip = @ip ^ 0xffff00000000
+      elsif ipv4_compat?
+        ip = @ip
+      else
         raise VersionError, "Attempted to create version 4 CIDR " +
                              "with non-compliant CIDR item in version #{@version}."
       end
-      return NetAddr::CIDR.create(@ip,
+      return NetAddr::CIDR.create(ip,
                                   :Mask => @netmask >> 96,
                                   :Version => 4)
     end
-  
+    
+    alias_method :to_ipv4, :ipv4
+    
   end # class CIDRv4
-
+  
 end # module NetAddr
 
