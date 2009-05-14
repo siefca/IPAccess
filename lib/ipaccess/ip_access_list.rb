@@ -19,6 +19,7 @@
 require 'ipaddr'
 require 'resolv'
 require 'netaddr'
+require 'ipaccess/netaddr_patch'
 
 # This class creates easy to manage IP access list based on IPAddrList object
 # which uses binary search to speed up seeking. It stores data in IPAddr objects
@@ -27,8 +28,8 @@ require 'netaddr'
 
 class IPAccessList < NetAddr::Tree
 
-  # Creates new IPAccessList object. It uses obj_to_ip6 method for fetching
-  # initial elements. See obj_to_ip description for more info on how to pass
+  # Creates new IPAccessList object. It uses obj_to_cidr method for fetching
+  # initial elements. See obj_to_cidr description for more info on how to pass
   # arguments.
   # 
   # Examples:
@@ -39,32 +40,32 @@ class IPAccessList < NetAddr::Tree
   
   def initialize(*args)
     args = [] if args == [nil]
-    args = obj_to_ip6(*args)
+    args = obj_to_cidr(*args)
     super
-    add!('192.168.1.0/24')
+    args.each { |addr| add!(addr) }
     return self
   end
   
-  # This method converts names to IPAddr objects. It returns array of IPAddr objects.
+  # This method converts names to NetAddr::CIDR objects. It returns array of CIDR objects.
   # 
   # Allowed input: string(s) (DNS names or IP addresses optionally with masks), number(s) (IP address representation),
   # IPSocket object(s), URI object(s), IPAddr object(s), Net::HTTP object(s), IPAddrList object(s), IPAccessList object(s),
-  # symbol(s), object(s) that contain file descriptors bound to socket(s) and arrays of those.
+  # symbol(s), object(s) that contain file descriptors bound to socket(s), and arrays of these.
   #
   # ==== Examples
   # 
-  #     obj_to_ip("127.0.0.1")                # uses IP address
-  #     obj_to_ip(2130706433)                 # uses numeric representation of 127.0.0.1
-  #     obj_to_ip(:private, "localhost")      # uses special symbol and DNS hostname
-  #     obj_to_ip(:private, :localhost)       # uses special symbols
-  #     obj_to_ip [:private, :auto]           # other way to write the above
-  #     obj_to_ip "10.0.0.0/8"                # uses masked IP address
-  #     obj_to_ip "10.0.0.0/255.0.0.0"        # uses masked IP address
-  #     obj_to_ip IPSocket.new("www.pl", 80)  # uses socket
-  #     obj_to_ip IPAddr("10.0.0.1")          # uses IPAddr object
-  #     obj_to_ip :"randomseed.pl"            # uses symbol that hasn't special meaning
-  #     obj_to_ip URI('http://www.pl/')       # uses URI
-  #     obj_to_ip 'http://www.pl/'            # uses extracted host string
+  #     obj_to_cidr("127.0.0.1")                # uses IP address
+  #     obj_to_cidr(2130706433)                 # uses numeric representation of 127.0.0.1
+  #     obj_to_cidr(:private, "localhost")      # uses special symbol and DNS hostname
+  #     obj_to_cidr(:private, :localhost)       # uses special symbols
+  #     obj_to_cidr [:private, :auto]           # other way to write the above
+  #     obj_to_cidr "10.0.0.0/8"                # uses masked IP address
+  #     obj_to_cidr "10.0.0.0/255.0.0.0"        # uses masked IP address
+  #     obj_to_cidr IPSocket.new("www.pl", 80)  # uses socket
+  #     obj_to_cidr IPAddr("10.0.0.1")          # uses IPAddr object
+  #     obj_to_cidr :"randomseed.pl"            # uses symbol that hasn't special meaning
+  #     obj_to_cidr URI('http://www.pl/')       # uses URI
+  #     obj_to_cidr 'http://www.pl/'            # uses extracted host string
   # 
   # ==== Special symbols
   #
@@ -141,7 +142,7 @@ class IPAccessList < NetAddr::Tree
   #     – :reserved
   #     – :multicast
   
-  def obj_to_ip(*obj)
+  def obj_to_cidr(*obj)
     if obj.size == 1 && obj.first.is_a?(NetAddr::CIDR)
       return obj
     end
@@ -151,7 +152,7 @@ class IPAccessList < NetAddr::Tree
      obj = obj.first
    else
      ary = []
-     obj.each { |o| ary += obj_to_ip(o) }
+     obj.each { |o| ary += obj_to_cidr(o) }
      ary.flatten!
      return ary
    end
@@ -220,7 +221,7 @@ class IPAccessList < NetAddr::Tree
                 "223.255.255.0/24",
                 "240.0.0.0/4" ]
       when :strange, :unusual, :nonpublic, :unpublic
-        return obj_to_ip(:local, :auto, :private, :reserved, :multicast)
+        return obj_to_cidr(:local, :auto, :private, :reserved, :multicast)
       else
         obj = obj.to_s
       end
@@ -284,13 +285,13 @@ class IPAccessList < NetAddr::Tree
   # Ba aware that it may call the block for same object twice
   # if you'll pass two matching addresses.
   #
-  # See obj_to_ip description for more info about arguments
+  # See obj_to_cidr description for more info about arguments
   # you may pass to it.
 
   def grep(*args)
     return [] if @ip_list.empty?
     out_ary = []
-    addrs = obj_to_ip6(*args)
+    addrs = obj_to_cidr(*args)
     addrs.each do |addr|
       m = longest_match(addr)
       if (m.to_i.nonzero? && m.matches(addr))
@@ -311,13 +312,13 @@ class IPAccessList < NetAddr::Tree
   # each matching element is passed to it, and the block‘s
   # result is stored in the output array.
   # 
-  # See obj_to_ip description for more info about arguments
+  # See obj_to_cidr description for more info about arguments
   # you may pass to it.
 
   def grep_strict(*args)
     return [] if @ip_list.empty?
     out_ary = []
-    addrs = obj_to_ip6(*args)
+    addrs = obj_to_cidr(*args)
     addrs.each do |addr|
       m = longest_match(addr)
       if (m == addr)
@@ -332,7 +333,7 @@ class IPAccessList < NetAddr::Tree
   # This method check if this list contains exact IP
   # address/mask combination(s).
   #
-  # See obj_to_ip description for more info about arguments
+  # See obj_to_cidr description for more info about arguments
   # you may pass to it.
 
   def have_exact_addr?(*addr)
@@ -340,24 +341,17 @@ class IPAccessList < NetAddr::Tree
     return false
   end
 
-  # This method returns unique hash of given IPAddr object.
-
-  def ip_unique_hash(obj)
-    obj.inspect.split[1].chomp('>')[5..-1].hash
-  end
-  protected :ip_unique_hash
-
-  # This method returns matching IPAddr rule if at least one
-  # of the given objects containing IP information are on the list.
+  # This method returns matching CIDR if at least one
+  # of the given objects containing IP information is on the list.
   # Otherwise it returns +false+.
   # 
-  # See obj_to_ip description for more info about arguments
+  # See obj_to_cidr description for more info about arguments
   # you may pass to it.
 
   def include?(*args)
-    addrs = obj_to_ip6(*args)
+    addrs = obj_to_cidr(*args)
     addrs.each do |addr|
-      rule = include_addr(addr)
+      rule = include_cidr(addr)
       return rule if rule
     end
     return false
@@ -370,15 +364,15 @@ class IPAccessList < NetAddr::Tree
   # if all of the given objects containing IP information
   # are on the list. Otherwise it returns +false+.
   #
-  # See obj_to_ip description for more info about arguments
+  # See obj_to_cidr description for more info about arguments
   # you may pass to it.
   
   def include_all?(*args)
     return false if empty?
-    addrs = obj_to_ip6(*args)
+    addrs = obj_to_cidr(*args)
     found = []
     addrs.each do |addr|
-      rule = include_addr?(addr)
+      rule = include_cidr?(addr)
       found.push rule if rule
     end
     return found.size == addrs.size ? found : false
@@ -391,7 +385,7 @@ class IPAccessList < NetAddr::Tree
   def include_simple?(addr)
     return false if empty?
     addr = IPAddr.new(addr) unless addr.is_a?(IPAddr)
-    return include_addr?(addr.ipv6? ? addr : addr.ipv4_compat)
+    return include_cidr?(addr.ipv6? ? addr : addr.ipv4_compat)
   end
   
   # This method returns matching IPAddr rule if the given IPv6 address
@@ -400,7 +394,7 @@ class IPAccessList < NetAddr::Tree
   # Note that IPv4 addresses should be passed here as IPv4-compatible IPv6
   # addresses.
   
-  def include_addr?(addr)
+  def include_cidr?(addr)
     m = longest_match(addr)
     return (m.to_i.nonzero? && m.matches(addr))
   end
@@ -410,7 +404,7 @@ class IPAccessList < NetAddr::Tree
   
   # Returns new list containing elements from this object and objects passed as an argument.
   #
-  # See obj_to_ip description for more info about arguments
+  # See obj_to_cidr description for more info about arguments
   # you may pass to it.
   
   def +(*args)
@@ -419,7 +413,7 @@ class IPAccessList < NetAddr::Tree
   
   # Returns new list with removed IPAddr objects which are exactly the same as objects passed as an argument.
   #
-  # See obj_to_ip description for more info about arguments
+  # See obj_to_cidr description for more info about arguments
   # you may pass to it.
   
   def -(*args)

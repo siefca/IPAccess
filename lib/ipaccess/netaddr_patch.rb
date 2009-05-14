@@ -23,7 +23,7 @@ require 'netaddr'
 
 module NetAddr
   
-  class CDIR
+  class CIDR
   
     # Returns +true+ if the IP address is an IPv4-mapped IPv6 address.
 

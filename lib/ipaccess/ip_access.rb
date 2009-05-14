@@ -87,8 +87,8 @@ class IPAccess
   # converted – resistance is futile.
   
   def scream!(peer_ip=nil, rule=nil)
-    peer_ip = @blacklist.obj_to_ip6(peer_ip) unless (peer_ip.to_s.empty? || peer_ip.is_a?(IPAddr))
-    rule = @blacklist.obj_to_ip6(rule) unless (peer_ip.to_s.empty? || peer_ip.is_a?(IPAddr))
+    peer_ip = @blacklist.obj_to_cidr(peer_ip) unless (peer_ip.to_s.empty? || peer_ip.is_a?(IPAddr))
+    rule = @blacklist.obj_to_cidr(rule) unless (peer_ip.to_s.empty? || peer_ip.is_a?(IPAddr))
     raise default_exception.new(peer_ip, self, rule)
   end
   
@@ -99,7 +99,7 @@ class IPAccess
   
   def denied_one?(*addrs)
     return false if @blacklist.empty?
-    addrs = @blacklist.obj_to_ip6(*addrs)
+    addrs = @blacklist.obj_to_cidr(*addrs)
     addrs.each do |addr|
       rule = @blacklist.include_ipaddr6?(addr)
       return rule if (rule && !@whitelist.include_ipaddr6?(addr))
@@ -113,7 +113,7 @@ class IPAccess
   
   def denied?(addr)
     return false if @blacklist.empty?
-    addrs = @blacklist.obj_to_ip6(*addr).first
+    addrs = @blacklist.obj_to_cidr(*addr).first
     addrs.each do |addr|
       rule = @blacklist.include_ipaddr6?(addr)
       return rule if (rule && !@whitelist.include_ipaddr6?(addr))

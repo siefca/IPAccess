@@ -18,7 +18,8 @@
 require 'ipaddr'
 require 'socket'
 require 'resolv'
-require 'ipaddr_list'
+require 'netaddr'
 
+require 'ipaccess/netaddr_patch'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access'
