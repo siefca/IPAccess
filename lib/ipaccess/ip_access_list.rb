@@ -22,7 +22,7 @@ require 'netaddr'
 require 'ipaccess/netaddr_patch'
 
 # This class creates easy to manage IP access list based on IPAddrList object
-# which uses binary search to speed up seeking. It stores data in IPAddr objects
+# which uses binary search to speed up seeking. It stores data in CIDR objects
 # and allows to add, remove and search through them.
 #
 
@@ -268,14 +268,6 @@ class IPAccessList < NetAddr::Tree
     return obj.is_a?(self.class) ? [obj] : [self.class.create(obj.to_s)]
   end
   
-
-  def seek(addr)
-    m = longest_match(addr)
-    return false if m.to_i.zero?
-    m.matches?(addr)
-  end
-  
-  
   # This method finds all matching addresses in the list
   # and returns an array containing these addresses.
   # If the optional block is supplied, each matching element
@@ -340,6 +332,18 @@ class IPAccessList < NetAddr::Tree
     grep_strict(*addr) { |m| return true }
     return false
   end
+  
+  alias add! orig_add!
+  
+  # This method adds new element to access list.
+  
+  def add!(*args)
+    addrs = obj_to_cidr(*args)
+    addrs.each do |addr|
+      orig_add!(addr.ipv4_compliant? ? addr.ipv4 : addr)
+    end
+    return nil
+  end
 
   # This method returns matching CIDR if at least one
   # of the given objects containing IP information is on the list.
@@ -360,7 +364,7 @@ class IPAccessList < NetAddr::Tree
   alias_method :include_one?,     :include?
   alias_method :include_one_of?,  :include?
   
-  # This method returns array of matching IPAddr rules
+  # This method returns array of matching CIDR rules
   # if all of the given objects containing IP information
   # are on the list. Otherwise it returns +false+.
   #
@@ -378,23 +382,24 @@ class IPAccessList < NetAddr::Tree
     return found.size == addrs.size ? found : false
   end
   
-  # This method returns matching IPAddr rule if the given IP address
-  # (expressed as string or IPAddr object) is on the list.
+  # This method returns matching CIDR rule if the given IP address
+  # (expressed as IP string or CIDR object) is on the list.
   # Otherwise it returns +false+.
-
+  
   def include_simple?(addr)
     return false if empty?
-    addr = IPAddr.new(addr) unless addr.is_a?(IPAddr)
-    return include_cidr?(addr.ipv6? ? addr : addr.ipv4_compat)
+    addr = NetAddr::CIDR.create(addr) unless addr.is_a?(NetAddr::CIDR)
+    return include_cidr?(addr)
   end
   
-  # This method returns matching IPAddr rule if the given IPv6 address
-  # (expressed as IPAddr object) is on the list. Otherwise it returns +false+.
+  # This method returns matching CIDR rule if the given IPv6 address
+  # (expressed as CIDR object) is on the list. Otherwise it returns +false+.
   #
   # Note that IPv4 addresses should be passed here as IPv4-compatible IPv6
   # addresses.
   
   def include_cidr?(addr)
+    addr = addr.ipv4 if addr.ipv4_compliant?
     m = longest_match(addr)
     return (m.to_i.nonzero? && m.matches(addr))
   end
@@ -408,10 +413,10 @@ class IPAccessList < NetAddr::Tree
   # you may pass to it.
   
   def +(*args)
-    self.dup << args
+    self.dup.add! args
   end
   
-  # Returns new list with removed IPAddr objects which are exactly the same as objects passed as an argument.
+  # Returns new list with removed CIDR objects which are exactly the same as objects passed as an argument.
   #
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.

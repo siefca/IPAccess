@@ -45,7 +45,7 @@ class IPAccess
   attr_reader   :default_exception
   
   # This method creates new IPAccess object. It optionally takes
-  # two arrays of IPAddr objects (initial data for black list and white list)
+  # two arrays of CIDR objects (initial data for black list and white list)
   # and default_exception which should be class name used to raise exceptions.
   # This argument should be subclass of IPAccessDenied or symbol containg its name.
   # 
@@ -83,7 +83,7 @@ class IPAccess
   end
   
   # Raises default exception including remote address and rule object.
-  # Both arguments should be IPAddr objects but if the aren't they will be
+  # Both arguments should be CIDR objects but if the aren't they will be
   # converted – resistance is futile.
   
   def scream!(peer_ip=nil, rule=nil)
@@ -92,7 +92,7 @@ class IPAccess
     raise default_exception.new(peer_ip, self, rule)
   end
   
-  # Returns matching IPAddr rule if access is denied and +false+ otherwise.
+  # Returns matching CIDR rule if access is denied and +false+ otherwise.
   # Access is denied if black list contains one of the addresses
   # and white list doesn't contain it. If access is denied for
   # at least one of the passed elements this method returns +true+.
@@ -107,7 +107,7 @@ class IPAccess
     return false
   end
   
-  # Returns matching IPAddr rule if access is denied and +false+ otherwise.
+  # Returns matching CIDR rule if access is denied and +false+ otherwise.
   # Access is denied if black list contains the address
   # and white list doesn't contain it.
   
@@ -121,9 +121,9 @@ class IPAccess
     return false
   end
   
-  # Returns matching IPAddr rule if access is denied and +false+ otherwise.
+  # Returns matching CIDR rule if access is denied and +false+ otherwise.
   # Access is denied if black list contains the IP address
-  # from passed IPv6 IPAddr object and white list doesn't contain it.
+  # from passed IPv6 CIDR object and white list doesn't contain it.
   
   def ipaddr6_denied?(addr)
     return false if @blacklist.empty?
@@ -153,7 +153,7 @@ class IPAccess
   alias_method :granted?, :allowed?
   
   # This method returns +true+ if access may be granted to IPv6 address
-  # from the given IPAddr object. Otherwise it returns +false+.
+  # from the given CIDR object. Otherwise it returns +false+.
   # It has opposite behaviour to method ipaddr6_denied?
   
   def ipaddr6_granted?(addr)
@@ -237,7 +237,7 @@ class IPAccess
     @blacklist.empty?
   end
   
-  # This method checks IP access for IPAddr object.
+  # This method checks IP access for CIDR object.
   
   def check_addrinfo(peer)
     return peer if empty?
@@ -250,7 +250,7 @@ class IPAccess
     return peer
   end
   
-  # This method checks IP access for IPAddr object.
+  # This method checks IP access for CIDR object.
   
   def check_ipaddr(peer_ip)
     return peer_ip if empty?
