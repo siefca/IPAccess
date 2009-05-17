@@ -33,7 +33,7 @@ module NetAddr
 
     # Returns +true+ if the IP address is an IPv4-compatible IPv6 address.
 
-    def ipv4_compat?(addr)
+    def ipv4_compat?
       return false if @version != 6
       return false if (@ip >> 32) != 0
       a = (@ip & 0xffffffff)
