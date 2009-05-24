@@ -84,10 +84,14 @@ class IPAccessList < NetAddr::Tree
   # ==== Special symbols
   #
   # When symbol is passed to this method it tries to find out if it has special meaning.
-  # That allows you to create access rules in an easy way. Known symbols are:
+  # That allows you to create access rules in an easy way. For most of them you may
+  # also specify IP protocol version using +ipv4_+ or +ipv6_+ prefix.
+  # 
+  # Known symbols are:
   #
   # ===== +:all+
   # Aliases: +:any+, +:anyone+, +:world+, +:internet+, +:net+, +:everything+, +:everyone+, +:everybody+, +:anybody+
+  # Subvariants: +:ipv4_+ and +:ipv6_:+
   #
   # Creates masked IP address that matches all networks:
   #     – 0.0.0.0/0
@@ -95,6 +99,7 @@ class IPAccessList < NetAddr::Tree
   # 
   # ===== +:broadcast+
   # Aliases: +:brd+
+  # Subvariants: +:ipv4_+ and +:ipv6_:+
   #
   # Creates masked IP address that matches generic broadcast address:
   #     – 255.255.255.255/32
@@ -102,6 +107,7 @@ class IPAccessList < NetAddr::Tree
   #
   # ===== +:local+
   # Aliases: +:localhost+, +:localdomain+, +:loopback+, +:lo+
+  # Subvariants: +:ipv4_+ and +:ipv6_:+
   # 
   # Creates masked IP addresses that match localhost:
   #     – 127.0.0.1/8
@@ -109,14 +115,16 @@ class IPAccessList < NetAddr::Tree
   #
   # ===== +:auto+
   # Aliases: +:automatic+, +:linklocal+
+  # Subvariants: +:ipv4_+ and +:ipv6_:+
   #  
   # Creates masked IP addresses that match automatically assigned address ranges:
   #     – 169.254.0.0/16
   #     – fe80::/10
   # 
   # ===== +:private+
-  # Aliases: +:intra+, +:intranet+, +:hidden+, +:internal+, +:secret+, +:ula+, +:unique+
-  #  
+  # Aliases: +:intra+, +:intranet+, +:internal+
+  # Subvariants: +:ipv4_+ and +:ipv6_:+
+  #
   # Creates masked IP addresses that match private ranges:
   #     – 10.0.0.0/8
   #     – 172.16.0.0/12
@@ -128,6 +136,7 @@ class IPAccessList < NetAddr::Tree
   # 
   # ===== +:multicast+
   # Aliases: +:multi+, +:multiemission+
+  # Subvariants: +:ipv4_+ and +:ipv6_:+
   #
   # Creates masked IP addresses that match multicast addresses ranges:
   #     – 224.0.0.0/4
@@ -136,6 +145,7 @@ class IPAccessList < NetAddr::Tree
   # 
   # ===== +:reserved+
   # Aliases: +:example+
+  # Subvariants: +:ipv4_+
   # 
   # Creates masked IP addresses that match reserved addresses ranges:
   #     – 192.0.2.0/24
@@ -149,7 +159,7 @@ class IPAccessList < NetAddr::Tree
   # ===== +:strange+
   # Aliases: +:unusual+, +:nonpublic+, +:unpublic+
   #
-  # Creates masked IP addressess that match the following sets:
+  # Creates masked IP addressess that match the following sets (both IPv4 and IPv6):
   #     – :local
   #     – :auto
   #     – :private
@@ -255,6 +265,8 @@ class IPAccessList < NetAddr::Tree
       when :multicast, :multi, :multiemission
         return obj_to_cidr(:ipv4_multicast,
                            :ipv6_multicast)
+      when :reserved, :example
+        return obj_to_cidr(:ipv4_example)
       when :strange, :unusual, :nonpublic, :unpublic
         return obj_to_cidr(:local,
                            :auto,
