@@ -19,8 +19,19 @@ require 'netaddr'
 require 'ipaccess/netaddr_patch'
 
 # This class creates easy to manage IP access list based on IPAddrList object
-# which uses binary search to speed up seeking. It stores data in CIDR objects
-# and allows to add, remove and search through them.
+# which uses binary search to speed up searching. It stores data in a tree
+# of NetAddr::CIDR objects and allows to add, remove and search through them.
+# 
+# To control access IPAccessList maintaines two lists: white list and black
+# list. Each list contains rules (CIDR objects containing information about
+# IP addresses and network masks). Access is evaluated as blocked when tested
+# IP address matches rule from black list and not matches any rule from white
+# list.
+# 
+# There are 2 major types of operations you can perform: rules management and
+# access checks. Rules management allows you to add, remove and find IP access
+# rules. Access checks let you test if given address or addresses are allowed
+# or denied to perform network operations according to rules.
 
 class IPAccessList < NetAddr::Tree
 
@@ -41,7 +52,7 @@ class IPAccessList < NetAddr::Tree
     return self
   end
   
-  # This method converts names to NetAddr::CIDR objects. It returns array of CIDR objects.
+  # This method converts names to NetAddr::CIDR objects. It returns an array of CIDR objects.
   # 
   # Allowed input: string(s) (DNS names or IP addresses optionally with masks), number(s) (IP address representation),
   # IPSocket object(s), URI object(s), IPAddr object(s), Net::HTTP object(s), IPAddrList object(s), IPAccessList object(s),
@@ -453,7 +464,7 @@ class IPAccessList < NetAddr::Tree
     end
   end
   
-  # This method returns array of matching CIDR objects
+  # This method returns an array of matching CIDR objects
   # for the given objects containing IP information
   # that are on the list.
   # 
@@ -532,7 +543,7 @@ class IPAccessList < NetAddr::Tree
     found = nil
     found = find_me(addr)
     found = find_parent(addr) if found.nil?
-    return nil if (found.nil? || found == root)
+    return nil if (found.nil? || found.hash == root.hash)
     return (found.matches?(addr) ? found : nil)
   end
   
@@ -578,7 +589,7 @@ class IPAccessList < NetAddr::Tree
     root = addr.version == 4 ? @v4_root : @v6_root
     return nil if root.tag[:Subnets].empty?
     found = find_me(addr)
-    return (found.nil? || found == root || found.tag[:ACL] != list) ? nil : found
+    return (found.nil? || found.hash == root.hash || found.tag[:ACL] != list) ? nil : found
   end
   private :rule_exists_cidr
   
@@ -706,8 +717,8 @@ class IPAccessList < NetAddr::Tree
     found = nil
     found = denied_find_me(addr)
     found = denied_find_parent(addr) if found.nil?
-    return nil if (found.nil? || found == root)
-    return (found.matches?(addr) ? found : nil)  
+    return nil if (found.nil? || found.hash == root.hash)
+    return (found.matches?(addr) ? found : nil)
   end
   
   # This method returns +true+ if the given CIDR contains
@@ -720,7 +731,7 @@ class IPAccessList < NetAddr::Tree
     not denied_cidr(addr).nil?
   end
 
-  # This method returns array of CIDR objects that match
+  # This method returns an array of CIDR objects that match
   # black list rules and not match white list rules.
   # 
   # See obj_to_cidr description for more info about arguments
@@ -773,7 +784,7 @@ class IPAccessList < NetAddr::Tree
     denied_cidr(addr).nil?
   end
   
-  # This method returns array of the given CIDR objects that
+  # This method returns an array of the given CIDR objects that
   # don't match black list rules or match white list rules.
   # 
   # See obj_to_cidr description for more info about arguments
@@ -855,7 +866,7 @@ class IPAccessList < NetAddr::Tree
     return self
   end
   
-  # This method returns array of CIDR objects belonging
+  # This method returns an array of CIDR objects belonging
   # to given access list.
 
   def dump_flat_list(parent, type)
@@ -904,15 +915,14 @@ class IPAccessList < NetAddr::Tree
 
 end # class IPAccessList
 
-# CHECK include_  for misleading 0.0.0.0/0 matches!!!
-
 a = IPAccessList.new
 
-a  << :ipv4_private << :all
+a  << :ipv4_private
 
-#a.add('10.11.0.0/8', :white)
-#a.add('127.0.0.1/8', :black)
-a.add('127.0.0.1/8', :white)
+a.add('10.11.0.0/8', :white)
+a.add('127.0.0.1/8', :black)
+#a.add('127.0.0.1/8', :white)
+a.add('127.0.0.1/24', :black)
 
 #a.add('1.2.3.4/16', :white)
 #p a.include?('12.34.5.6')
@@ -925,8 +935,9 @@ puts a.whitelist
 #puts a.show_b
 
 #z = NetAddr::CIDR.create('10.11.1.1')
-z = NetAddr::CIDR.create('1.16.0.1')  
-puts a.denied?(z) ####### FIXME!!!!!!!!!!!!
+z = NetAddr::CIDR.create('127.0.0.1')  
+puts a.denied?(z)
+
 
 #puts a.blacklist_rule_exists?('172.16.0.0/12')
 
