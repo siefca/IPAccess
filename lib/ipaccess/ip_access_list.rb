@@ -196,7 +196,7 @@ class IPAccessList < NetAddr::Tree
     return [obj.dup] if obj.is_a?(NetAddr::CIDR)
     
     # IPAccessList - immediate generation
-    return obj.to_a(obj) if obj.is_a?(self.class)
+    return obj.to_a if obj.is_a?(self.class)
 
     # NetAddr::Tree - immediate generation
     return obj.dump.map { |addr| addr[:CIDR] } if obj.is_a?(NetAddr::Tree)
@@ -950,7 +950,9 @@ class IPAccessList < NetAddr::Tree
   def dump_flat_list(parent, type=nil)
     list = []
     parent.tag[:Subnets].each do |entry|
-      list.push(entry) if (type.nil? || entry.tag[:ACL] == type || entry.tag[:ACL] == :ashen)
+      if (type.nil? || entry.tag[:ACL] == type || entry.tag[:ACL] == :ashen)
+        list.push(entry)
+      end
       if (entry.tag[:Subnets].length > 0)
         list.concat dump_flat_list(entry, type) 
       end
@@ -1035,17 +1037,16 @@ a.add('127.0.0.1/24', :black)
 
 puts a.show
 puts
-puts (a+a).show
+puts (a+[]).show
 
-
-puts a.blacklist
-puts
-puts a.whitelist
+#puts a.blacklist
+#puts
+#puts a.whitelist
 #puts a.show_b
 
-z = NetAddr::CIDR.create('11.11.1.1')
+#z = NetAddr::CIDR.create('11.11.1.1')
 #z = NetAddr::CIDR.create('127.0.0.1')  
-puts a.denied?(z)
+#puts a.denied?(z)
 
 
 #puts a.blacklist_rule_exists?('17.16.0.0/12')
