@@ -19,7 +19,7 @@
 require 'netaddr'
 
 # This module contains few new methods extending
-# original.
+# original NetAddr module.
 
 module NetAddr
   

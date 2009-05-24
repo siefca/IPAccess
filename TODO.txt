@@ -1,11 +1,5 @@
 
-
-- own crawling function:
-  - same as longest_match but with black/white-list checking for each node
-  - if intermediate or final node is whitelisted then return false for denied?
-
-- tagging (:black, :white)
-  - when adding to tree
-
-- tagging special target ALL when rule 0/0 is added
+- rubyforge URL in spec
+- add missing rspec examples
+- possibility to choose whether to patch main socket class or just singletons of the given objects (but what about sockets that are created by listen? - check it)
 

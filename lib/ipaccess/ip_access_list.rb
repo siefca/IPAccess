@@ -294,76 +294,45 @@ class IPAccessList < NetAddr::Tree
   def pathfinder(cidr)
     found = nil
     found = find_me(cidr)
-    found = find_parent(cidr) unless found
+    found = find_parent(cidr) if found.nil?
     return found
   end
   private :pathfinder
+    
+  # Finds the NetStruct to which given CIDR belongs and is not
+  # whitelisted.
   
-  # This method finds the longest matching path
-  # and returns original CIDR object found there
-  # if the given CIDR matches it.
-  
-  def matchfinder(cidr)
-    found = nil
-    found = find_me(cidr)
-    found = find_parent(cidr) unless found
-    if found.matches?(cidr)
-      return found
-    else
-      return nil
-    end
-  end
-  private :matchfinder
-  
-  # Finds the NetStruct to which given CIDR belongs.
-  
-  def find_me(cidr)
+  def denied_find_me(cidr)
     me = nil
-    root = nil
-    if (cidr.version == 4)
-      root = @v4_root
-    else
-      root = @v6_root
-    end
-
-    # find matching
+    root = (cidr.version == 4 ? @v4_root : @v6_root)
     parent = find_parent(cidr,root)
-    index = NetAddr.cidr_find_in_list(cidr,parent.tag[:Subnets])
+    return nil if parent.tag[:ACL] == :white
+    index = NetAddr.cidr_find_in_list(cidr, parent.tag[:Subnets])
     me = parent.tag[:Subnets][index] if (index.kind_of?(Integer))
-
-    return(me)
+    return nil if (me.nil? || me.tag[:ACL] == :white)
+    return me
   end
+  private :denied_find_me
 
+  # Finds the parent NetStruct to which a child NetStruct belongs
+  # and is not whitelisted.
 
-  # Finds the parent NetStruct to which a child NetStruct belongs.
-  #
-  def find_parent(cidr,parent=nil)
-    if (!parent)
-      if (cidr.version == 4)
-        parent = @v4_root
-      else
-        parent = @v6_root
-      end
-    end
+  def denied_find_parent(cidr, parent=nil)
+    parent = (cidr.version == 4 ? @v4_root : @v6_root) if parent.nil?
     bit_diff = cidr.bits - parent.bits
 
-    # if bit_diff greater than 1 bit then check if one of the children is the actual parent.
-    if (bit_diff > 1 && parent.tag[:Subnets].length != 0)
+    if (bit_diff > 1 && parent.tag[:Subnets].length.nonzero?)
       list = parent.tag[:Subnets]
       found = NetAddr.cidr_find_in_list(cidr,list)
       if (found.kind_of?(NetAddr::CIDR))
-        parent = find_parent(cidr,found)
+        return nil if found.tag[:ACL] == :white
+        parent = denied_find_parent(cidr,found)
       end
     end
 
-    return(parent)
+    return parent
   end
-
-  
-  
-  
-  
-  
+  private :denied_find_parent
   
   # This method finds all matching addresses in the list
   # and returns an array containing these addresses.
@@ -382,7 +351,7 @@ class IPAccessList < NetAddr::Tree
     out_ary = []
     addrs = obj_to_cidr(*args)
     addrs.each do |addr|
-      m = matchfinder(addr)
+      m = included_cidr(addr)
       out_ary.push( block_given? ? yield(m) : m) unless m.nil?
     end
     return out_ary
@@ -407,7 +376,7 @@ class IPAccessList < NetAddr::Tree
     out_ary = []
     addrs = obj_to_cidr(*args)
     addrs.each do |addr|
-      m = matchfinder(addr)
+      m = included_cidr(addr)
       if (m == addr)
         out_ary.push( block_given? ? yield(m) : m)
       end
@@ -443,9 +412,14 @@ class IPAccessList < NetAddr::Tree
     addrs = obj_to_cidr(*args)
     addrs.each do |addr|
       addr = addr.ipv4 if addr.ipv4_compliant?
-      addr.tag[:Subnets] = []
-      addr.tag[:ACL] = acl_list
-      add_to_tree(addr)
+      exists = find_me(addr)
+      if exists.nil?
+        addr.tag[:Subnets] = []
+        addr.tag[:ACL] = acl_list
+        add_to_tree(addr)
+      elsif exists.tag[:ACL] != acl_list
+        exists.tag[:ACL] = acl_list
+      end
     end
     return nil
   end
@@ -453,77 +427,385 @@ class IPAccessList < NetAddr::Tree
   alias_method :add, :add!
   alias_method :blacklist, :add!
   
-  # Adds IP addresses in given object(s) to white list.
+  # Adds IP addresses in given object(s) to white list if called
+  # with at least one argument. Returns white list if called
+  # without arguments (array of CIDR objects).
   
   def whitelist(*args)
-    add!(*args, :white)
+    if args.empty?
+      dump_flat_list(@v4_root, :white) +
+      dump_flat_list(@v6_root, :white)
+    else
+      add!(*args, :white)
+    end
   end
   
-  # This method returns matching CIDR if at least one
-  # of the given objects containing IP information is on the list.
+  # Adds IP addresses in given object(s) to black list if called
+  # with at least one argument. Returns black list if called
+  # without arguments (array of CIDR objects).
+  
+  def blacklist(*args)
+    if args.empty?
+      dump_flat_list(@v4_root, :black) +
+      dump_flat_list(@v6_root, :black)
+    else
+      add!(*args, :black)
+    end
+  end
+  
+  # This method returns array of matching CIDR objects
+  # for the given objects containing IP information
+  # that are on the list.
+  # 
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+  
+  def included(*args)
+    found = []
+    return found if empty?
+    addrs = obj_to_cidr(*args)
+    return found if addrs.empty?
+    addrs.each do |addr|
+      rule = included_cidr(addr)
+      found.push(rule) unless rule.nil?
+    end
+    
+    return found
+  end
+  
+  # This method returns +true+ if all
+  # of the given objects containing IP information
+  # are on the list. Otherwise it returns +false+.
+  # 
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+
+  def include?(*args)
+    return false if empty?
+    addrs = obj_to_cidr(*args)
+    return false if addrs.empty?
+    addrs.each do |addr|
+      rule = included_cidr(addr)
+      return false if rule.nil?
+    end
+    return true
+  end
+
+  alias_method :include_all?, :include?
+  
+  # This method returns first CIDR rule from
+  # the given objects containing IP information
+  # that is on the list. Otherwise it returns nil.
+  # 
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+  
+  def included_first(*args)
+    return nil if empty?
+    addrs = obj_to_cidr(*args)
+    return nil if addrs.empty?
+    addrs.each do |addr|
+      rule = included_cidr(addr)
+      return rule unless rule.nil?
+    end
+    return nil
+  end
+  
+  # This method returns +true+ if at least one of
+  # the given objects containing IP information
+  # that is on the list. Otherwise it returns +false+.
+  # 
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+  
+  def include_one?(*args)
+    not included_first.nil?
+  end
+
+  # This method returns matching CIDR rule if the given IP address
+  # (expressed as CIDR object) is on the list. Otherwise it returns +nil+.
+  
+  def included_cidr(addr)
+    addr = addr.ipv4 if addr.ipv4_compliant?
+    root = addr.version == 4 ? @v4_root : @v6_root
+    return nil if root.tag[:Subnets].empty?
+    found = nil
+    found = find_me(addr)
+    found = find_parent(addr) if found.nil?
+    return nil if (found.nil? || found == root)
+    return (found.matches?(addr) ? found : nil)
+  end
+  
+  # This method returns +true+ if the given IP address
+  # (expressed as CIDR object) is on the list. Otherwise it returns +false+.
+  #
+  # It is designed to check rules, NOT access. To do access
+  # check use granted_cidr and denied_cidr methods.
+  
+  def include_cidr?(addr)
+    not included_cidr(addr).nil?
+  end
+
+  # This method returns an array containing CDIR objects that
+  # are result of finding IP rules given in the array.
+  # 
+  # It is designed to check rules, NOT access. To do access
+  # check use allowed and denied methods.
+  
+  def rule_exists(list, *args)
+    found = []
+    return found if empty?
+    addrs = obj_to_cidr(*args)
+    return found if addrs.empty?
+    addrs.each do |addr|
+      rule = rule_exists_cidr(list, addr)
+      found.push(rule) unless rule.nil?
+    end
+    return found
+  end
+  private :rule_exists
+  
+  # This method returns CDIR object that
+  # equals given IP rule in the given list.
+  # It returns +nil+ if such rule doesn't
+  # exists.
+  #
+  # It is designed to check rules, NOT access. To do access
+  # check use granted_cidr and denied_cidr methods.
+  
+  def rule_exists_cidr(list, addr)
+    addr = addr.ipv4 if addr.ipv4_compliant?
+    root = addr.version == 4 ? @v4_root : @v6_root
+    return nil if root.tag[:Subnets].empty?
+    found = find_me(addr)
+    return (found.nil? || found == root || found.tag[:ACL] != list) ? nil : found
+  end
+  private :rule_exists_cidr
+  
+  # This method returns an array containing CDIR objects that
+  # are result of finding given IP rules in the black list.
+  # 
+  # It is designed to check rules, NOT access. To do access
+  # check use granted and denied methods.
+  # 
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+  
+  def find_blacklist_rules(*args)
+    rule_exists(:black, *args)
+  end
+  
+  alias_method :find_blacklist_rule, :find_blacklist_rules
+  
+  # This method returns CDIR object that
+  # equals given IP rule in the black list.
+  # Otherwise it returns +nil+.
+  # 
+  # It is designed to check rules not IP access. To do access
+  # check use granted_cidr and denied_cidr methods.
+  
+  def find_blacklist_rule_cidr(addr)
+    rule_exists_cidr(:black, addr)
+  end
+
+  # This method returns +true+ if all of the given
+  # IP addresses are on the IP rules black list.
+  # 
+  # It is designed to check rules, NOT access. To do access
+  # check use allowed and denied methods.
+  #
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+  
+  def blacklist_rules_exist?(*args)
+    addrs = obj_to_cidr(*args)
+    return found if addrs.empty?
+    addrs.each do |addr|
+      rule = rule_exists_cidr(:black, addr)
+      return false if rule.nil?
+    end
+    return true
+  end
+  
+  alias_method :blacklist_rule_exists?, :blacklist_rules_exist?
+
+  # This method returns +true+ if the given
+  # IP address is on the IP rules black list.
+  # 
+  # It is designed to check rules, NOT access. To do access
+  # check use allowed and denied methods.
+  
+  def blacklist_rule_exists_cidr?(addr)
+    not rule_exists_cidr(:black, addr).nil?
+  end
+
+  # This method returns an array containing CDIR objects that
+  # is result of finding given IP rules in the white list.
+  # 
+  # It is designed to check rules, NOT access. To do access
+  # check use allowed and denied methods.
+  #
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+  
+  def find_whitelist_rules(*args)
+    rule_exists(:white, *args)
+  end
+  
+  alias_method :find_blacklist_rule, :find_blacklist_rules
+  
+  # This method returns CDIR object that
+  # equals given IP rule in the white list.
+  # 
+  # It is designed to check rules, NOT access. To do access
+  # check use allowed_cidr and denied_cidr methods.
+  
+  def find_whitelist_rule_cidr(addr)
+    rule_exists_cidr(:white, addr)
+  end
+
+  # This method returns +true+ if all of the given
+  # IP addresses are on the IP rules white list.
+  # 
+  # It is designed to check rules, NOT access. To do access
+  # check use allowed and denied methods.
+  #
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+  
+  def whitelist_rules_exist?(*args)
+    addrs = obj_to_cidr(*args)
+    return found if addrs.empty?
+    addrs.each do |addr|
+      rule = rule_exists_cidr(:white, addr)
+      return false if rule.nil?
+    end
+    return true
+  end
+  
+  # This method returns +true+ if the given
+  # IP address is on the IP rules white list.
+  # 
+  # It is designed to check rules, NOT access. To do access
+  # check use allowed and denied methods.
+  
+  def whitelist_rule_exists_cidr?(addr)
+    not rule_exists_cidr(:white, addr).nil?
+  end
+  
+  # This method returns CIDR object of the matching rule
+  # if the given CIDR contains blacklisted and not whitelisted
+  # address. Otherwise it returns +nil+.
+  #
+  # It should be used to check access for one IP.
+  
+  def denied_cidr(addr)
+    addr = addr.ipv4 if addr.ipv4_compliant?
+    root = addr.version == 4 ? @v4_root : @v6_root
+    return nil if root.tag[:Subnets].empty?
+    found = nil
+    found = denied_find_me(addr)
+    found = denied_find_parent(addr) if found.nil?
+    return nil if (found.nil? || found == root)
+    return (found.matches?(addr) ? found : nil)  
+  end
+  
+  # This method returns +true+ if the given CIDR contains
+  # blacklisted and not whitelisted address. Otherwise
+  # it returns +false+.
+  # 
+  # It should be used to check access for one IP.
+
+  def denied_cidr?(addr)
+    not denied_cidr(addr).nil?
+  end
+
+  # This method returns array of CIDR objects that match
+  # black list rules and not match white list rules.
+  # 
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+  #
+  # It should be used to check access for many IP addresses
+  # and/or address(-es) that are not represented by CIDR objects.
+  
+  def denied(*args)
+    found = []
+    return found if empty?
+    args = obj_to_cidr(*args)
+    args.each do |addr|
+      rule = denied_cidr(addr)
+      found.push(rule) unless rule.nil?
+    end
+    return found
+  end
+  
+  # This method returns +true+ if at least one of given CIDR
+  # objects matches black list rules and doesn't match white
+  # list rules. Otherwise it returns +false+.
+  # 
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+  
+  def denied?(*args)
+    not denied(args).empty?
+  end
+  
+  alias_method :denied_one?,     :denied?
+  alias_method :denied_one_of?,  :denied?
+  
+  # This method returns given CIDR object of the matching rule
+  # if the given CIDR is not blacklisted or whitelisted.
+  # Otherwise it returns +nil+.
+  #
+  # It should be used to check access for one IP. 
+  
+  def granted_cidr(addr)
+    denied_cidr(addr).nil? ? addr : nil
+  end
+  
+  # This method returns +true+ if the given CIDR is not
+  # blacklisted or whitelisted. Otherwise it returns +false+.
+  # 
+  # It should be used to check access for one IP.
+  
+  def granted_cidr?(addr)
+    denied_cidr(addr).nil?
+  end
+  
+  # This method returns array of the given CIDR objects that
+  # don't match black list rules or match white list rules.
+  # 
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
+  #
+  # It should be used to check access for many IP addresses
+  # and/or address(-es) that are not represented by CIDR objects.
+  
+  def granted(*args)
+    found = []
+    return found if empty?
+    args = obj_to_cidr(*args)
+    args.each do |addr|
+      rule = denied_cidr(addr)
+      found.push(addr) if rule.nil?
+    end
+    return found
+  end
+  
+  # This method returns +true+ if all of given CIDR
+  # objects are not blacklisted or are whitelisted.
   # Otherwise it returns +false+.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
   
-  def include?(*args)
-    return false if empty?
-    addrs = obj_to_cidr(*args)
-    addrs.each do |addr|
-      rule = include_cidr?(addr)
-      return rule if rule
-    end
-    return false
+  def granted?(*args)
+    denied(args).empty?
   end
   
-  alias_method :include_one?,     :include?
-  alias_method :include_one_of?,  :include?
-  
-  # This method returns array of matching CIDR rules
-  # if all of the given objects containing IP information
-  # are on the list. Otherwise it returns +false+.
-  #
-  # See obj_to_cidr description for more info about arguments
-  # you may pass to it.
-  
-  def include_all?(*args)
-    return false if empty?
-    addrs = obj_to_cidr(*args)
-    found = []
-    addrs.each do |addr|
-      rule = include_cidr?(addr)
-      found.push rule if rule
-    end
-    return found.size == addrs.size ? found : false
-  end
-  
-  # This method returns matching CIDR rule if the given IP address
-  # (expressed as IP string or CIDR object) is on the list.
-  # Otherwise it returns +false+.
-  
-  def include_simple?(addr)
-    return false if empty?
-    addr = NetAddr::CIDR.create(addr) unless addr.is_a?(NetAddr::CIDR)
-    return include_cidr?(addr)
-  end
-  
-  # This method returns matching CIDR rule if the given IP address
-  # (expressed as CIDR object) is on the list. Otherwise it returns +false+.
-  
-  def include_cidr?(addr)
-    addr = addr.ipv4 if addr.ipv4_compliant?
-    m = matchfinder(addr)
-    return m.nil? ? false : m
-  end
-  
-  # This method returns CIDR object of the rule if the given CIDR
-  # contains blacklisted and not whitelisted address. Otherwise
-  # it returns +false+.
-  
-  def denied_cidr?(addr)
-    addr = addr.ipv4 if addr.ipv4_compliant?
-    
-  end
+  alias_method :granted_one?,     :granted?
+  alias_method :granted_one_of?,  :granted?
   
   #def select;   self.class.new(super)   end
   #def map;      self.class.new(super)   end
@@ -556,13 +838,8 @@ class IPAccessList < NetAddr::Tree
     end.join(sep)
   end
   
-  # This method prunes all elements in list.
-  
-  def clear
-    prune!
-  end
-  
-  alias_method :erase, :clear
+  alias_method :clear, :prune!
+  alias_method :erase, :prune!
   
   # This method returns +true+ if the list is empty.
   
@@ -577,17 +854,80 @@ class IPAccessList < NetAddr::Tree
     add!(*args)
     return self
   end
-        
-end
+  
+  # This method returns array of CIDR objects belonging
+  # to given access list.
+
+  def dump_flat_list(parent, type)
+    list = []
+    parent.tag[:Subnets].each do |entry|
+      list.push(entry) if entry.tag[:ACL] == type
+      if (entry.tag[:Subnets].length > 0)
+        list.concat dump_flat_list(entry, type) 
+      end
+    end
+    list.map do |entry|
+      NetAddr.cidr_build(entry.version,
+                        entry.to_i(:network),
+                        entry.to_i(:netmask))
+    end
+    return list
+  end
+  private :dump_flat_list
+  
+  # This method shows internal tree of CIDR objects marked
+  # with access list they belong to.
+  
+  def show()
+    printed = "IPv4 Tree\n---------\n"
+    list4 = dump_children(@v4_root)
+    list6 = dump_children(@v6_root)
+
+    list4.each do |entry|
+      cidr    = entry[:CIDR]
+      depth   = entry[:Depth]
+      indent  = depth.zero? ? "" : " " * (depth*3)
+      alist   = cidr.tag[:ACL].nil? ? "" : "[#{cidr.tag[:ACL]}]" 
+      printed << "#{alist} #{indent}#{cidr.desc}\n"
+    end
+    
+    printed << "\n\nIPv6 Tree\n---------\n" if list6.length.nonzero?
+    list6.each do |entry|
+      cidr    = entry[:CIDR]
+      depth   = entry[:Depth]
+      alist   = cidr.tag[:ACL].nil? ? "" : "[#{cidr.tag[:ACL]}]"
+      indent  = depth.zero? ? "" : " " * (depth*3)
+      printed << "#{alist} #{indent}#{cidr.desc(:Short => true)}\n"
+    end
+    return printed
+  end
+
+end # class IPAccessList
+
+# CHECK include_  for misleading 0.0.0.0/0 matches!!!
 
 a = IPAccessList.new
 
-cc = NetAddr::CIDR.create('12.34.0.0/8', :Tag => {'interface' => 'eth0'})
+a  << :ipv4_private << :all
 
-a  << cc #'0.0.0.0/0'
-#a.add('127.0.0.1/8', :white)
+#a.add('10.11.0.0/8', :white)
+#a.add('127.0.0.1/8', :black)
+a.add('127.0.0.1/8', :white)
 
-p a.include?('12.34.5.6')
+#a.add('1.2.3.4/16', :white)
+#p a.include?('12.34.5.6')
 
-#puts a.show
+puts a.show
+puts
+puts a.blacklist
+puts
+puts a.whitelist
+#puts a.show_b
+
+#z = NetAddr::CIDR.create('10.11.1.1')
+z = NetAddr::CIDR.create('1.16.0.1')  
+puts a.denied?(z) ####### FIXME!!!!!!!!!!!!
+
+#puts a.blacklist_rule_exists?('172.16.0.0/12')
+
 
