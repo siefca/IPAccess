@@ -450,8 +450,15 @@ class IPAccessList < NetAddr::Tree
   
   # This method adds new rule(s) to access list. By default
   # elements are added to black list. If last argument
-  # is given and it is +:white+ or +:black+ then element is added
+  # given argument is +:white+ or +:black+ then element is added
   # to the specified list.
+  
+  # Special case: CIDR objects may carry information about
+  # access list they should belong to. If the last argument
+  # is not describing access list and added rule is this
+  # special CIDR containing information about assignment
+  # to some list then this extra sugar will be used instead
+  # of default +:black+.
   # 
   # If the given rule is exact (IP and mask) as pre-existent
   # rule in the same list then it is not added.
@@ -468,17 +475,22 @@ class IPAccessList < NetAddr::Tree
       when :white, :black
         acl_list = args.pop
       else
-        acl_list = :black
+        acl_list = nil
     end
     addrs = obj_to_cidr(*args)
     addrs.each do |addr|
+      add_list = acl_list
       addr = addr.ipv4 if addr.ipv4_compliant?
+      add_list = addr.tag[:ACL] if (add_list.nil? &&
+                                    (addr.tag[:ACL] == :white ||
+                                     addr.tag[:ACL] == :ashen)) # object with extra sugar
+      add_list = :black if add_list.nil?
       exists = find_me(addr)
       if exists.nil?
         addr.tag[:Subnets] = []
-        addr.tag[:ACL] = acl_list
+        addr.tag[:ACL] = add_list
         add_to_tree(addr)
-      elsif exists.tag[:ACL] != acl_list
+      elsif exists.tag[:ACL] != add_list
         exists.tag[:ACL] = :ashen
       end
     end
@@ -1025,7 +1037,7 @@ end # class IPAccessList
 
 a = IPAccessList.new
 
-a .blacklist :ipv4_private #, :all
+a .blacklist :ipv4_private, :all
 
 a.add('10.11.0.0/8', :white)
 a.add('127.0.0.1/8', :black)
