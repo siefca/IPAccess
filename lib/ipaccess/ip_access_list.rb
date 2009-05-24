@@ -36,16 +36,29 @@ require 'ipaccess/netaddr_patch'
 # rules. Access checks let you test if given address or addresses are allowed
 # or denied to perform network operations according to rules.
 #
+# IPv6 addresses that are IPv4 compatible or IPv4 masked are automatically
+# translated into IPv4 addresses while adding or searching.
+# 
 # Example of usage:
 #
-#     access = IPAccessList.new(:private, :local)
-#     access.
+#     access = IPAccessList.new       # creates new access list
+#     access.blacklist :ipv4_private  # blacklists private IPv4 addresses
+#     access.whitelist 172.16.0.7     # whitelists 172.16.0.7
+#
+# Example of deny-all & allow-selected strategy:
+# 
+#     access = IPAccessList.new       # creates new access list
+#     access.blacklist :all           # blacklist all
 
 class IPAccessList < NetAddr::Tree
 
-  # Creates new IPAccessList object. It uses obj_to_cidr method for fetching
-  # initial elements. See obj_to_cidr description for more info on how to pass
-  # arguments.
+  # Creates new IPAccessList object. You may pass objects
+  # containing IP information to it. See obj_to_cidr description
+  # for more info on how to pass arguments.
+  #
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time.
+  # That may cause security flaws.
   # 
   # Examples:
   #     
@@ -63,8 +76,9 @@ class IPAccessList < NetAddr::Tree
   # This method converts names to NetAddr::CIDR objects. It returns an array of CIDR objects.
   # 
   # Allowed input: string(s) (DNS names or IP addresses optionally with masks), number(s) (IP address representation),
-  # IPSocket object(s), URI object(s), IPAddr object(s), Net::HTTP object(s), IPAddrList object(s), IPAccessList object(s),
-  # symbol(s), object(s) that contain file descriptors bound to socket(s), and arrays of these.
+  # IPSocket object(s), URI object(s), IPAddr object(s), Net::HTTP object(s), IPAddrList object(s), NetAddr::CIDR object(s)m
+  # NetAddr::Tree object(s), IPAccessList object(s), symbol(s), object(s) that contain file descriptors bound to socket(s),
+  # and arrays of these.
   #
   # ==== Examples
   # 
@@ -80,7 +94,7 @@ class IPAccessList < NetAddr::Tree
   #     obj_to_cidr :"randomseed.pl"            # uses symbol that hasn't special meaning
   #     obj_to_cidr URI('http://www.pl/')       # uses URI
   #     obj_to_cidr 'http://www.pl/'            # uses extracted host string
-  # 
+  #
   # ==== Special symbols
   #
   # When symbol is passed to this method it tries to find out if it has special meaning.
@@ -180,6 +194,12 @@ class IPAccessList < NetAddr::Tree
 
     # NetAddr::CIDR - immediate generation
     return [obj.dup] if obj.is_a?(NetAddr::CIDR)
+    
+    # IPAccessList - immediate generation
+    return obj.to_a(obj) if obj.is_a?(self.class)
+
+    # NetAddr::Tree - immediate generation
+    return obj.dump.map { |addr| addr[:CIDR] } if obj.is_a?(NetAddr::Tree)
 
     # number - immediate generation
     return [NetAddr::CIDR.create(obj)] if obj.is_a?(Numeric)
@@ -434,7 +454,11 @@ class IPAccessList < NetAddr::Tree
   # to the specified list.
   # 
   # If the given rule is exact (IP and mask) as pre-existent
-  # rule then it is not added.
+  # rule in the same list then it is not added.
+  # 
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time
+  # which may cause security flaws.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -466,14 +490,13 @@ class IPAccessList < NetAddr::Tree
   # Adds IP addresses in given object(s) to white list if called
   # with at least one argument. Returns white list if called
   # without arguments (array of CIDR objects).
+  #
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time
+  # which may cause security flaws.
   
   def whitelist(*args)
-    if args.empty?
-      dump_flat_list(@v4_root, :white) +
-      dump_flat_list(@v6_root, :white)
-    else
-      add!(*args, :white)
-    end
+    args.empty? ? to_a(:white) : add!(*args, :white)
   end
   
   alias_method :allow, :whitelist
@@ -482,14 +505,13 @@ class IPAccessList < NetAddr::Tree
   # Adds IP addresses in given object(s) to black list if called
   # with at least one argument. Returns black list if called
   # without arguments (array of CIDR objects).
-  
+  #
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time
+  # which may cause security flaws.
+    
   def blacklist(*args)
-    if args.empty?
-      dump_flat_list(@v4_root, :black) +
-      dump_flat_list(@v6_root, :black)
-    else
-      add!(*args, :black)
-    end
+    args.empty? ? to_a(:black) : add!(*args, :black)
   end
   
   alias_method :deny, :blacklist
@@ -592,6 +614,10 @@ class IPAccessList < NetAddr::Tree
   # 
   # It is designed to check rules, NOT access. To do access
   # check use allowed and denied methods.
+  # 
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time
+  # which may cause security flaws.
   
   def rule_exists(list, *args)
     found = []
@@ -610,7 +636,7 @@ class IPAccessList < NetAddr::Tree
   # equals given IP rule in the given list.
   # It returns +nil+ if such rule doesn't
   # exists.
-  #
+  # 
   # It is designed to check rules, NOT access. To do access
   # check use granted_cidr and denied_cidr methods.
   
@@ -619,7 +645,8 @@ class IPAccessList < NetAddr::Tree
     root = addr.version == 4 ? @v4_root : @v6_root
     return nil if root.tag[:Subnets].empty?
     found = find_me(addr)
-    if (found.nil? || found.hash == root.hash || (found.tag[:ACL] != list && found.tag[:ACL] != :ashen))
+    if (found.nil? || found.hash == root.hash ||
+        (found.tag[:ACL] != list && found.tag[:ACL] != :ashen))
       return nil
     else
       return found
@@ -772,7 +799,12 @@ class IPAccessList < NetAddr::Tree
   # you may pass to it.
   #
   # It should be used to check access for many IP addresses
-  # and/or address(-es) that are not represented by CIDR objects.
+  # and/or address(-es) that are not necessarily represented
+  # by CIDR objects.
+  #
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time
+  # which may cause security flaws.
   
   def denied(*args)
     found = []
@@ -825,8 +857,13 @@ class IPAccessList < NetAddr::Tree
   # you may pass to it.
   #
   # It should be used to check access for many IP addresses
-  # and/or address(-es) that are not represented by CIDR objects.
-  
+  # and/or address(-es) that are not necessarily represented
+  # by CIDR objects.
+  #
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time
+  # which may cause security flaws.
+    
   def granted(*args)
     found = []
     return found if empty?
@@ -844,6 +881,10 @@ class IPAccessList < NetAddr::Tree
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
+  # 
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time
+  # which may cause security flaws.
   
   def granted?(*args)
     denied(args).empty?
@@ -852,19 +893,18 @@ class IPAccessList < NetAddr::Tree
   alias_method :granted_one?,     :granted?
   alias_method :granted_one_of?,  :granted?
   
-  #def select;   self.class.new(super)   end
-  #def map;      self.class.new(super)   end
-  
   # Returns new instance containing elements from this object
-  # and objects passed as an argument.
+  # and objects passed as an argument. If objects contain IP
+  # information but it's impossible to obtain whether they
+  # relate to black or white list, then blacklisting is assumed.
   #
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
   
   def +(*args)
-    obj = self.new
-    obj.
-    self.dup.add! args
+    obj = self.class.new(self)
+    obj.add!(obj_to_cidr(*args))
+    return obj
   end
   
   # Returns new list with removed CIDR objects which are exactly the same as objects passed as an argument.
@@ -888,28 +928,29 @@ class IPAccessList < NetAddr::Tree
   
   alias_method :clear, :prune!
   alias_method :erase, :prune!
-  
+
   # This method returns +true+ if the list is empty.
-  
+
   def empty?
     @v4_root.tag[:Subnets].empty? &&
     @v6_root.tag[:Subnets].empty?
   end
-  
+
   # This operator calls add method.
 
   def <<(*args)
     add!(*args)
     return self
   end
-  
-  # This method returns an array of CIDR objects belonging
-  # to given access list.
 
-  def dump_flat_list(parent, type)
+  # This method returns an array of CIDR objects belonging
+  # to given access list. If no list is specified it returns
+  # an array containing all lists.
+
+  def dump_flat_list(parent, type=nil)
     list = []
     parent.tag[:Subnets].each do |entry|
-      list.push(entry) if (entry.tag[:ACL] == type || entry.tag[:ACL] == :ashen)
+      list.push(entry) if (type.nil? || entry.tag[:ACL] == type || entry.tag[:ACL] == :ashen)
       if (entry.tag[:Subnets].length > 0)
         list.concat dump_flat_list(entry, type) 
       end
@@ -917,11 +958,21 @@ class IPAccessList < NetAddr::Tree
     list.map do |entry|
       NetAddr.cidr_build(entry.version,
                         entry.to_i(:network),
-                        entry.to_i(:netmask))
+                        entry.to_i(:netmask),
+                        entry.tag[:ACL].nil? ? {} : {:ACL => entry.tag[:ACL]})  
     end
     return list
   end
   private :dump_flat_list
+  
+  # This method produces array of CIDR objects that
+  # belong to an access list specified by type (:white or :black).
+  # If no type is given it returns all entries.
+  
+  def to_a(type=nil)
+    dump_flat_list(@v4_root, type) +
+    dump_flat_list(@v6_root, type)
+  end
   
   # This method shows internal tree of CIDR objects marked
   # with access list they belong to. While interpreting it
@@ -972,7 +1023,7 @@ end # class IPAccessList
 
 a = IPAccessList.new
 
-a  << :ipv4_private << :all
+a .blacklist :ipv4_private #, :all
 
 a.add('10.11.0.0/8', :white)
 a.add('127.0.0.1/8', :black)
@@ -984,6 +1035,9 @@ a.add('127.0.0.1/24', :black)
 
 puts a.show
 puts
+puts (a+a).show
+
+
 puts a.blacklist
 puts
 puts a.whitelist
