@@ -18,20 +18,28 @@ require 'resolv'
 require 'netaddr'
 require 'ipaccess/netaddr_patch'
 
-# This class creates easy to manage IP access list based on IPAddrList object
-# which uses binary search to speed up searching. It stores data in a tree
-# of NetAddr::CIDR objects and allows to add, remove and search through them.
-# 
-# To control access IPAccessList maintaines two lists: white list and black
-# list. Each list contains rules (CIDR objects containing information about
-# IP addresses and network masks). Access is evaluated as blocked when tested
+# This class implements easy to manage IP access list based on NetAddr::Tree
+# which uses binary search to speed up matching process. It stores data in a tree
+# of NetAddr::CIDR objects and allows to add, remove and search them.
+#  
+# To control access IPAccessList maintaines two abstract lists: white list and black
+# list. Each list contains rules (CIDR objects with information about
+# IP address and network mask). Access is evaluated as blocked when tested
 # IP address matches rule from black list and not matches any rule from white
-# list.
+# list. Basically, white list rules override black list rules.
+# 
+# To be precise: internally there are no real lists but one tree containing marked
+# objects in order to increase lookups performance.
 # 
 # There are 2 major types of operations you can perform: rules management and
-# access checks. Rules management allows you to add, remove and find IP access
+# access checks. Rules management methods allows you to add, remove and find IP access
 # rules. Access checks let you test if given address or addresses are allowed
 # or denied to perform network operations according to rules.
+#
+# Example of usage:
+#
+#     access = IPAccessList.new(:private, :local)
+#     access.
 
 class IPAccessList < NetAddr::Tree
 
@@ -317,10 +325,10 @@ class IPAccessList < NetAddr::Tree
     me = nil
     root = (cidr.version == 4 ? @v4_root : @v6_root)
     parent = find_parent(cidr,root)
-    return nil if parent.tag[:ACL] == :white
+    return nil if parent.tag[:ACL] != :black
     index = NetAddr.cidr_find_in_list(cidr, parent.tag[:Subnets])
     me = parent.tag[:Subnets][index] if (index.kind_of?(Integer))
-    return nil if (me.nil? || me.tag[:ACL] == :white)
+    return nil if (me.nil? || me.tag[:ACL] != :black)
     return me
   end
   private :denied_find_me
@@ -336,7 +344,7 @@ class IPAccessList < NetAddr::Tree
       list = parent.tag[:Subnets]
       found = NetAddr.cidr_find_in_list(cidr,list)
       if (found.kind_of?(NetAddr::CIDR))
-        return nil if found.tag[:ACL] == :white
+        return nil if found.tag[:ACL] != :black
         parent = denied_find_parent(cidr,found)
       end
     end
@@ -408,10 +416,16 @@ class IPAccessList < NetAddr::Tree
     return false
   end
   
-  # This method adds new element to access list. If last argument
+  # This method adds new rule(s) to access list. By default
+  # elements are added to black list. If last argument
   # is given and it is +:white+ or +:black+ then element is added
-  # to white or black list. By default elements are added to black
-  # list.
+  # to the specified list.
+  # 
+  # If the given rule is exact (IP and mask) as pre-existent
+  # rule then it is not added.
+  # 
+  # See obj_to_cidr description for more info about arguments
+  # you may pass to it.
   
   def add!(*args)
     case args.last
@@ -429,14 +443,13 @@ class IPAccessList < NetAddr::Tree
         addr.tag[:ACL] = acl_list
         add_to_tree(addr)
       elsif exists.tag[:ACL] != acl_list
-        exists.tag[:ACL] = acl_list
+        exists.tag[:ACL] = :ashen
       end
     end
     return nil
   end
   
   alias_method :add, :add!
-  alias_method :blacklist, :add!
   
   # Adds IP addresses in given object(s) to white list if called
   # with at least one argument. Returns white list if called
@@ -451,6 +464,9 @@ class IPAccessList < NetAddr::Tree
     end
   end
   
+  alias_method :allow, :whitelist
+  alias_method :permit, :whitelist
+  
   # Adds IP addresses in given object(s) to black list if called
   # with at least one argument. Returns black list if called
   # without arguments (array of CIDR objects).
@@ -463,6 +479,8 @@ class IPAccessList < NetAddr::Tree
       add!(*args, :black)
     end
   end
+  
+  alias_method :deny, :blacklist
   
   # This method returns an array of matching CIDR objects
   # for the given objects containing IP information
@@ -589,7 +607,11 @@ class IPAccessList < NetAddr::Tree
     root = addr.version == 4 ? @v4_root : @v6_root
     return nil if root.tag[:Subnets].empty?
     found = find_me(addr)
-    return (found.nil? || found.hash == root.hash || found.tag[:ACL] != list) ? nil : found
+    if (found.nil? || found.hash == root.hash || (found.tag[:ACL] != list && found.tag[:ACL] != :ashen))
+      return nil
+    else
+      return found
+    end
   end
   private :rule_exists_cidr
   
@@ -821,12 +843,15 @@ class IPAccessList < NetAddr::Tree
   #def select;   self.class.new(super)   end
   #def map;      self.class.new(super)   end
   
-  # Returns new list containing elements from this object and objects passed as an argument.
+  # Returns new instance containing elements from this object
+  # and objects passed as an argument.
   #
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
   
   def +(*args)
+    obj = self.new
+    obj.
     self.dup.add! args
   end
   
@@ -872,7 +897,7 @@ class IPAccessList < NetAddr::Tree
   def dump_flat_list(parent, type)
     list = []
     parent.tag[:Subnets].each do |entry|
-      list.push(entry) if entry.tag[:ACL] == type
+      list.push(entry) if (entry.tag[:ACL] == type || entry.tag[:ACL] == :ashen)
       if (entry.tag[:Subnets].length > 0)
         list.concat dump_flat_list(entry, type) 
       end
@@ -887,7 +912,13 @@ class IPAccessList < NetAddr::Tree
   private :dump_flat_list
   
   # This method shows internal tree of CIDR objects marked
-  # with access list they belong to.
+  # with access list they belong to. While interpreting it
+  # you should be aware that access for tested IP will not
+  # be denied if black list rule has at least one whitelisted,
+  # preceding rule in the path that leads to it. You may
+  # also notice doubled entries sometimes. That happens
+  # in case when the same rule is belongs to both:
+  # black list and white list.
   
   def show()
     printed = "IPv4 Tree\n---------\n"
@@ -897,18 +928,30 @@ class IPAccessList < NetAddr::Tree
     list4.each do |entry|
       cidr    = entry[:CIDR]
       depth   = entry[:Depth]
+      alist   = cidr.tag[:ACL]
       indent  = depth.zero? ? "" : " " * (depth*3)
-      alist   = cidr.tag[:ACL].nil? ? "" : "[#{cidr.tag[:ACL]}]" 
-      printed << "#{alist} #{indent}#{cidr.desc}\n"
+      if alist == :ashen
+        printed << "[black] #{indent}#{cidr.desc}\n"
+        printed << "[white] #{indent}#{cidr.desc}\n"
+      else
+        alist   = cidr.tag[:ACL].nil? ? "[undef]" : "[#{cidr.tag[:ACL]}]" 
+        printed << "#{alist} #{indent}#{cidr.desc}\n"
+      end
     end
     
     printed << "\n\nIPv6 Tree\n---------\n" if list6.length.nonzero?
     list6.each do |entry|
       cidr    = entry[:CIDR]
       depth   = entry[:Depth]
-      alist   = cidr.tag[:ACL].nil? ? "" : "[#{cidr.tag[:ACL]}]"
+      alist   = cidr.tag[:ACL]
       indent  = depth.zero? ? "" : " " * (depth*3)
-      printed << "#{alist} #{indent}#{cidr.desc(:Short => true)}\n"
+      if alist == :ashen
+        printed << "[black] #{indent}#{cidr.desc(:Short => true)}\n"
+        printed << "[white] #{indent}#{cidr.desc(:Short => true)}\n"
+      else
+        alist   = cidr.tag[:ACL].nil? ? "[undef]" : "[#{cidr.tag[:ACL]}]" 
+        printed << "#{alist} #{indent}#{cidr.desc(:Short => true)}\n"
+      end
     end
     return printed
   end
@@ -917,7 +960,7 @@ end # class IPAccessList
 
 a = IPAccessList.new
 
-a  << :ipv4_private
+a  << :ipv4_private << :all
 
 a.add('10.11.0.0/8', :white)
 a.add('127.0.0.1/8', :black)
@@ -934,11 +977,11 @@ puts
 puts a.whitelist
 #puts a.show_b
 
-#z = NetAddr::CIDR.create('10.11.1.1')
-z = NetAddr::CIDR.create('127.0.0.1')  
+z = NetAddr::CIDR.create('11.11.1.1')
+#z = NetAddr::CIDR.create('127.0.0.1')  
 puts a.denied?(z)
 
 
-#puts a.blacklist_rule_exists?('172.16.0.0/12')
+#puts a.blacklist_rule_exists?('17.16.0.0/12')
 
 
