@@ -48,13 +48,20 @@ require 'ipaccess/netaddr_patch'
 # Example of deny-all & allow-selected strategy:
 # 
 #     access = IPAccessList.new       # creates new access list
-#     access.blacklist :all           # blacklist all
+#     access.deny :all                # blacklist all
+#     access.allow 192.168.1.0/24     # allow my private network
 
 class IPAccessList < NetAddr::Tree
 
   # Creates new IPAccessList object. You may pass objects
-  # containing IP information to it. See obj_to_cidr description
+  # containing IP information to it. These objects will
+  # create black list rules. See obj_to_cidr description
   # for more info on how to pass arguments.
+  #
+  # IPAccessList object and/or NetAddr::CIDR object(s) may
+  # carry black or white list assignments inside. If such
+  # object(s) will be used to create initial ruleset then
+  # this assignment would be used instead of default. 
   #
   # You should avoid passing hostnames as arguments since
   # DNS is not reliable and responses may change with time.
@@ -511,8 +518,9 @@ class IPAccessList < NetAddr::Tree
     args.empty? ? to_a(:white) : add!(*args, :white)
   end
   
-  alias_method :allow, :whitelist
-  alias_method :permit, :whitelist
+  alias_method :add_white,  :whitelist
+  alias_method :allow,      :whitelist
+  alias_method :permit,     :whitelist
   
   # Adds IP addresses in given object(s) to black list if called
   # with at least one argument. Returns black list if called
@@ -521,12 +529,13 @@ class IPAccessList < NetAddr::Tree
   # You should avoid passing hostnames as arguments since
   # DNS is not reliable and responses may change with time
   # which may cause security flaws.
-    
+  
   def blacklist(*args)
     args.empty? ? to_a(:black) : add!(*args, :black)
   end
   
-  alias_method :deny, :blacklist
+  alias_method :add_black,  :blacklist
+  alias_method :deny,       :blacklist
   
   # This method returns an array of matching CIDR objects
   # for the given objects containing IP information
@@ -957,8 +966,9 @@ class IPAccessList < NetAddr::Tree
 
   # This method returns an array of CIDR objects belonging
   # to given access list. If no list is specified it returns
-  # an array containing all lists.
-
+  # an array containing all lists. It preserves access list
+  # information in copied objects.
+ 
   def dump_flat_list(parent, type=nil)
     list = []
     parent.tag[:Subnets].each do |entry|
@@ -981,7 +991,8 @@ class IPAccessList < NetAddr::Tree
   
   # This method produces array of CIDR objects that
   # belong to an access list specified by type (:white or :black).
-  # If no type is given it returns all entries.
+  # If no type is given it returns all entries. It preserves
+  # access list assignment information in CIDR copies.
   
   def to_a(type=nil)
     dump_flat_list(@v4_root, type) +
@@ -1039,10 +1050,6 @@ a = IPAccessList.new
 
 a .blacklist :ipv4_private, :all
 
-a.add('10.11.0.0/8', :white)
-a.add('127.0.0.1/8', :black)
-#a.add('127.0.0.1/8', :white)
-a.add('127.0.0.1/24', :black)
 
 #a.add('1.2.3.4/16', :white)
 #p a.include?('12.34.5.6')
@@ -1050,11 +1057,6 @@ a.add('127.0.0.1/24', :black)
 puts a.show
 puts
 puts (a+[]).show
-
-#puts a.blacklist
-#puts
-#puts a.whitelist
-#puts a.show_b
 
 #z = NetAddr::CIDR.create('11.11.1.1')
 #z = NetAddr::CIDR.create('127.0.0.1')  
