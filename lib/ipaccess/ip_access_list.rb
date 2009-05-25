@@ -41,15 +41,19 @@ require 'ipaccess/netaddr_patch'
 # 
 # Example of usage:
 #
-#     access = IPAccessList.new       # creates new access list
-#     access.blacklist :ipv4_private  # blacklists private IPv4 addresses
-#     access.whitelist 172.16.0.7     # whitelists 172.16.0.7
+#     access = IPAccessList.new       # create new access list
+#     access.blacklist :ipv4_private  # blacklist private IPv4 addresses
+#     access.whitelist '172.16.0.7'   # whitelist 172.16.0.7
+#     access.granted? '172.16.0.7'    # check access
+#     access.granted? '172.16.0.1'    # check access
 #
 # Example of deny-all & allow-selected strategy:
 # 
-#     access = IPAccessList.new       # creates new access list
+#     access = IPAccessList.new       # create new access list
 #     access.deny :all                # blacklist all
-#     access.allow 192.168.1.0/24     # allow my private network
+#     access.allow '192.168.1.0/24'   # allow my private network
+#     access.allow :local             # allow localhost
+#     puts access.show                # display internal structure
 
 class IPAccessList < NetAddr::Tree
 
@@ -61,7 +65,7 @@ class IPAccessList < NetAddr::Tree
   # IPAccessList object and/or NetAddr::CIDR object(s) may
   # carry black or white list assignments inside. If such
   # object(s) will be used to create initial ruleset then
-  # this assignment would be used instead of default. 
+  # assignment found there would be used instead of default. 
   #
   # You should avoid passing hostnames as arguments since
   # DNS is not reliable and responses may change with time.
@@ -356,41 +360,6 @@ class IPAccessList < NetAddr::Tree
     return found
   end
   private :pathfinder
-    
-  # Finds the NetStruct to which given CIDR belongs and is not
-  # whitelisted.
-  
-  def denied_find_me(cidr)
-    me = nil
-    root = (cidr.version == 4 ? @v4_root : @v6_root)
-    parent = find_parent(cidr,root)
-    return nil if parent.tag[:ACL] != :black
-    index = NetAddr.cidr_find_in_list(cidr, parent.tag[:Subnets])
-    me = parent.tag[:Subnets][index] if (index.kind_of?(Integer))
-    return nil if (me.nil? || me.tag[:ACL] != :black)
-    return me
-  end
-  private :denied_find_me
-
-  # Finds the parent NetStruct to which a child NetStruct belongs
-  # and is not whitelisted.
-
-  def denied_find_parent(cidr, parent=nil)
-    parent = (cidr.version == 4 ? @v4_root : @v6_root) if parent.nil?
-    bit_diff = cidr.bits - parent.bits
-
-    if (bit_diff > 1 && parent.tag[:Subnets].length.nonzero?)
-      list = parent.tag[:Subnets]
-      found = NetAddr.cidr_find_in_list(cidr,list)
-      if (found.kind_of?(NetAddr::CIDR))
-        return nil if found.tag[:ACL] != :black
-        parent = denied_find_parent(cidr,found)
-      end
-    end
-
-    return parent
-  end
-  private :denied_find_parent
   
   # This method finds all matching addresses in the list
   # and returns an array containing these addresses.
@@ -792,15 +761,65 @@ class IPAccessList < NetAddr::Tree
   #
   # It should be used to check access for one IP.
   
+  # This method evaluates given CIDR against list.
+  #
+  # It returns CIDR entry if entry is most close hit to given IP/netmask
+  # and is not blacklisted or is whitelisted or any of the preceding
+  # entries is whitelisted. Preceding means parent nodes in path.
+  # It returns nil if no match found
+  #
+  def list_denied_cidr(cidr, list)
+
+    match = nil
+    low   = 0
+    high  = list.length-1
+    index = low + ((high-low)/2)
+
+    while low <= high
+
+      li = list[index]
+      cmp = NetAddr.cidr_gt_lt(cidr,li)
+      
+      if cmp == -1
+        high = index - 1
+        
+      elsif cmp == 1
+        if (NetAddr.cidr_compare(cidr,li) == -1)
+          if li.tag[:ACL] == :black
+            unless li.tag[:Subnets].empty?
+              match = list_denied_cidr(cidr, li.tag[:Subnets])
+            else
+              match = li
+            end
+          end
+          break
+        end
+        low = index + 1
+      
+      else
+        match = li if li.tag[:ACL] == :black
+        break
+      end
+      
+      index = low + ((high-low)/2)
+    
+    end # while
+    
+    return match
+  end
+  private :list_denied_cidr
+  
+  # This method returns CIDR object of the matching rule
+  # if the given CIDR contains blacklisted and not whitelisted
+  # address. Otherwise it returns +nil+.
+  #
+  # It should be used to check access for one IP.
+  
   def denied_cidr(addr)
     addr = addr.ipv4 if addr.ipv4_compliant?
     root = addr.version == 4 ? @v4_root : @v6_root
-    return nil if root.tag[:Subnets].empty?
-    found = nil
-    found = denied_find_me(addr)
-    found = denied_find_parent(addr) if found.nil?
-    return nil if (found.nil? || found.hash == root.hash)
-    return (found.matches?(addr) ? found : nil)
+    list = root.tag[:Subnets]
+    return (list.nil? || list.length.zero?) ? nil : list_denied_cidr(addr, list)
   end
   
   # This method returns +true+ if the given CIDR contains
@@ -1043,26 +1062,27 @@ class IPAccessList < NetAddr::Tree
     end
     return printed
   end
-
+  
 end # class IPAccessList
 
-a = IPAccessList.new
-
-a .blacklist :ipv4_private, :all
-
-
-#a.add('1.2.3.4/16', :white)
-#p a.include?('12.34.5.6')
-
-puts a.show
+access = IPAccessList.new         # create new access list
+access.blacklist '1.2.3.4/12'
+access.blacklist '8.8.8.0/24'
+access.blacklist '8.8.8.8/32'
+access.blacklist :ipv4_private    # blacklist private IPv4 addresses
+access.blacklist '172.16.0.0/24'  # blacklist private IPv4 addresses
+#access.whitelist '172.16.0.0/10'     # whitelist 172.16.0.7
+#access.blacklist '172.16.0.7'     # whitelist 172.16.0.7
+puts access.show
 puts
-puts (a+[]).show
 
-#z = NetAddr::CIDR.create('11.11.1.1')
-#z = NetAddr::CIDR.create('127.0.0.1')  
-#puts a.denied?(z)
+x = NetAddr::CIDR.create('8.8.8.1')
+
+puts access.denied(x)
+
+# puts access.denied_cidr x    # check access
 
 
-#puts a.blacklist_rule_exists?('17.16.0.0/12')
-
+#puts access.granted? '172.16.0.7'    # check access
+#puts access.granted? '172.16.0.1'    # check access
 
