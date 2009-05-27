@@ -39,7 +39,7 @@ require 'ipaccess/netaddr_patch'
 # IPv6 addresses that are IPv4 compatible or IPv4 masked are automatically
 # translated into IPv4 addresses while adding or searching.
 # 
-# Example of usage:
+# Examples of usage:
 #
 #     access = IPAccessList.new       # create new access list
 #     access.blacklist :ipv4_private  # blacklist private IPv4 addresses
@@ -47,13 +47,17 @@ require 'ipaccess/netaddr_patch'
 #     access.granted? '172.16.0.7'    # check access
 #     access.granted? '172.16.0.1'    # check access
 #
-# Example of deny-all & allow-selected strategy:
+# Examples of deny-all & allow-selected strategy:
 # 
 #     access = IPAccessList.new       # create new access list
 #     access.deny :all                # blacklist all
 #     access.allow '192.168.1.0/24'   # allow my private network
 #     access.allow :local             # allow localhost
+#     
 #     puts access.show                # display internal structure
+#     puts access.blacklist           # display blacklisted IP addresses
+#     puts access.whitelist           # display whitelisted IP addresses
+
 
 class IPAccessList < NetAddr::Tree
 
@@ -507,9 +511,11 @@ class IPAccessList < NetAddr::Tree
   alias_method :deny,       :blacklist
   
   # This method returns an array of matching CIDR objects
-  # for the given objects containing IP information
-  # that are on the list.
+  # for the given objects containing IP information.
   # 
+  # It is designed to browse rules, NOT to check access. To do access
+  # check use granted and denied methods.
+  #
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
   
@@ -526,9 +532,12 @@ class IPAccessList < NetAddr::Tree
     return found
   end
   
-  # This method returns +true+ if all
+  # This method returns +true+ if ALL
   # of the given objects containing IP information
-  # are on the list. Otherwise it returns +false+.
+  # match some rules. Otherwise it returns +false+.
+  # 
+  # It is designed to browse rules, NOT to check access. To do access
+  # check use granted and denied methods.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -546,9 +555,12 @@ class IPAccessList < NetAddr::Tree
 
   alias_method :include_all?, :include?
   
-  # This method returns first CIDR rule from
-  # the given objects containing IP information
-  # that is on the list. Otherwise it returns nil.
+  # This method returns first matching CIDR rule from
+  # the given objects containing IP information.
+  # Otherwise it returns +nil+.
+  # 
+  # It is designed to browse rules, NOT to check access. To do access
+  # check use granted and denied methods.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -566,7 +578,10 @@ class IPAccessList < NetAddr::Tree
   
   # This method returns +true+ if at least one of
   # the given objects containing IP information
-  # that is on the list. Otherwise it returns +false+.
+  # matches rule from the list. Otherwise it returns +false+.
+  # 
+  # It is designed to browse rules, NOT to check access. To do access
+  # check use granted and denied methods.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -585,14 +600,15 @@ class IPAccessList < NetAddr::Tree
     found = nil
     found = find_me(addr)
     found = find_parent(addr) if found.nil?
-    return nil if (found.nil? || found.hash == root.hash)
-    return (found.matches?(addr) ? found : nil)
+    return nil if (found.nil? || found.hash == root.hash || !found.matches?(addr))
+    return found
   end
   
   # This method returns +true+ if the given IP address
-  # (expressed as CIDR object) is on the list. Otherwise it returns +false+.
+  # (expressed as CIDR object) matches some rule.
+  # Otherwise it returns +false+.
   #
-  # It is designed to check rules, NOT access. To do access
+  # It is designed to browse rules, NOT to check access. To do access
   # check use granted_cidr and denied_cidr methods.
   
   def include_cidr?(addr)
@@ -602,8 +618,8 @@ class IPAccessList < NetAddr::Tree
   # This method returns an array containing CDIR objects that
   # are result of finding IP rules given in the array.
   # 
-  # It is designed to check rules, NOT access. To do access
-  # check use allowed and denied methods.
+  # It is designed to browse rules, NOT to check access. To do access
+  # check use granted_cidr and denied_cidr methods.
   # 
   # You should avoid passing hostnames as arguments since
   # DNS is not reliable and responses may change with time
@@ -647,7 +663,7 @@ class IPAccessList < NetAddr::Tree
   # This method returns an array containing CDIR objects that
   # are result of finding given IP rules in the black list.
   # 
-  # It is designed to check rules, NOT access. To do access
+  # It is designed to browse rules, NOT to check access. To do access
   # check use granted and denied methods.
   # 
   # See obj_to_cidr description for more info about arguments
@@ -663,7 +679,7 @@ class IPAccessList < NetAddr::Tree
   # equals given IP rule in the black list.
   # Otherwise it returns +nil+.
   # 
-  # It is designed to check rules not IP access. To do access
+  # It is designed to browse rules, NOT to check access. To do access
   # check use granted_cidr and denied_cidr methods.
   
   def find_blacklist_rule_cidr(addr)
@@ -673,9 +689,9 @@ class IPAccessList < NetAddr::Tree
   # This method returns +true+ if all of the given
   # IP addresses are on the IP rules black list.
   # 
-  # It is designed to check rules, NOT access. To do access
-  # check use allowed and denied methods.
-  #
+  # It is designed to browse rules, NOT to check access. To do access
+  # check use granted and denied methods.
+  # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
   
@@ -694,9 +710,9 @@ class IPAccessList < NetAddr::Tree
   # This method returns +true+ if the given
   # IP address is on the IP rules black list.
   # 
-  # It is designed to check rules, NOT access. To do access
-  # check use allowed and denied methods.
-  
+  # It is designed to browse rules, NOT to check access. To do access
+  # check use granted and denied methods.
+    
   def blacklist_rule_exists_cidr?(addr)
     not rule_exists_cidr(:black, addr).nil?
   end
@@ -704,8 +720,8 @@ class IPAccessList < NetAddr::Tree
   # This method returns an array containing CDIR objects that
   # is result of finding given IP rules in the white list.
   # 
-  # It is designed to check rules, NOT access. To do access
-  # check use allowed and denied methods.
+  # It is designed to browse rules, NOT to check access. To do access
+  # check use granted and denied methods.
   #
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -754,12 +770,49 @@ class IPAccessList < NetAddr::Tree
   def whitelist_rule_exists_cidr?(addr)
     not rule_exists_cidr(:white, addr).nil?
   end
+  
+  # This method returns CIDR rule that is the same
+  # as given IP and mask. It returns copy
+  # of a rule that query matches (CIDR object) or +nil+
+  # if no match was found.
+  #
+  # Example:
+  #     access = IPAccessList.new '127.0.0.1/8'   # blacklisted local IP
+  #     access.find '127.0.0.1'                   # returns +nil+
+  #     access.find '127.0.0.1/24'                # returns +nil+
+  #     access.find '127.0.0.1'/8                 # returns CIDR: +127.0.0.0/8+
+  #     access.find '127.0.1.2'/8                 # returns CIDR: +127.0.0.0/8+
+  # 
+  # If you want simpler or more fancy search in rules
+  # (e.g. without need to specify mask or with ability to
+  # check many rules at one time) use methods like
+  # find_blacklist_rules or find_whitelist_rules.
+  # 
+  # It is designed to browse rules, NOT to check access. To do access
+  # check use granted and denied methods.
+  # 
+  # See obj_to_cidr description for more info about argument
+  # you may pass to it. Be aware that in case of name or special
+  # symbol given as an address only first result will be used and
+  # it will probably do not match because lack of proper netmask.
     
+  def find(addr)
+    return nil if empty?
+    addr = obj_to_cidr(addr)
+    return nil if addr.empty?
+    addr = addr.first
+    addr = addr.ipv4 if addr.ipv4_compliant?
+    root = addr.version == 4 ? @v4_root : @v6_root
+    return nil if root.tag[:Subnets].empty?
+    return super(addr)
+  end
+  
   # This method returns CIDR object of the matching rule
   # if the given CIDR contains blacklisted and not whitelisted
   # address. Otherwise it returns +nil+.
   #
-  # It should be used to check access for one IP.
+  # It should be used to check access for one IP. It is
+  # recommended to use it in low-level routines.
   
   def denied_cidr(addr)
     addr = addr.ipv4 if addr.ipv4_compliant?
@@ -789,7 +842,8 @@ class IPAccessList < NetAddr::Tree
   # blacklisted and not whitelisted address. Otherwise
   # it returns +false+.
   # 
-  # It should be used to check access for one IP.
+  # It should be used to check access for one IP. It is recommended
+  # to use it in low-level routines.
 
   def denied_cidr?(addr)
     not denied_cidr(addr).nil?
@@ -838,7 +892,8 @@ class IPAccessList < NetAddr::Tree
   # if the given CIDR is not blacklisted or whitelisted.
   # Otherwise it returns +nil+.
   #
-  # It should be used to check access for one IP. 
+  # It should be used to check access for one IP. It is recommended
+  # to use it in low-level routines.
   
   def granted_cidr(addr)
     denied_cidr(addr).nil? ? addr : nil
@@ -847,7 +902,8 @@ class IPAccessList < NetAddr::Tree
   # This method returns +true+ if the given CIDR is not
   # blacklisted or whitelisted. Otherwise it returns +false+.
   # 
-  # It should be used to check access for one IP.
+  # It should be used to check access for one IP. It is
+  # recommended to use it in low-level routines.
   
   def granted_cidr?(addr)
     denied_cidr(addr).nil?
@@ -939,7 +995,7 @@ class IPAccessList < NetAddr::Tree
     @v6_root.tag[:Subnets].empty?
   end
 
-  # This operator calls add method.
+  # This operator calls add! method.
 
   def <<(*args)
     add!(*args)
@@ -1009,7 +1065,7 @@ class IPAccessList < NetAddr::Tree
       end
     end
     
-    printed << "\n\nIPv6 Tree\n---------\n" if list6.length.nonzero?
+    printed << "\nIPv6 Tree\n---------\n" if list6.length.nonzero?
     list6.each do |entry|
       cidr    = entry[:CIDR]
       depth   = entry[:Depth]
