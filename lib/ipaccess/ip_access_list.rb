@@ -579,10 +579,10 @@ class IPAccessList < NetAddr::Tree
   #
   # Examples:
   #     access = IPAccessList.new '127.0.0.1/8'   # blacklisted local IP
-  #     access.included '127.0.0.1'                   # returns CIDR: +127.0.0.0/8+
-  #     access.included '127.0.0.1/24'                # returns CIDR: +127.0.0.0/8+
-  #     access.included '127.0.0.1'/8                 # returns CIDR: +127.0.0.0/8+
-  #     access.included '127.0.1.2'/8                 # returns CIDR: +127.0.0.0/8+
+  #     access.included '127.0.0.1'               # returns [127.0.0.0/8]
+  #     access.included '127.0.0.1/24'            # returns [127.0.0.0/8]
+  #     access.included '127.0.0.1'/8             # returns [127.0.0.0/8]
+  #     access.included '127.0.1.2'/8             # returns [127.0.0.0/8]
   
   def included(*args)
     found = []
@@ -665,7 +665,7 @@ class IPAccessList < NetAddr::Tree
     found = find_me(addr)
     found = find_parent(addr) if found.nil?
     return nil if (found.nil? || found.hash == root.hash || !found.matches?(addr))
-    return found
+    return found.safe_dup
   end
   
   # This method returns +true+ if the given IP address
@@ -719,7 +719,7 @@ class IPAccessList < NetAddr::Tree
         (found.tag[:ACL] != list && found.tag[:ACL] != :ashen))
       return nil
     else
-      return found
+      return found.safe_dup
     end
   end
   private :rule_exists_cidr
@@ -842,10 +842,10 @@ class IPAccessList < NetAddr::Tree
   #
   # Examples:
   #     access = IPAccessList.new '127.0.0.1/8'   # blacklisted local IP
-  #     access.find '127.0.0.1'                   # returns +nil+
-  #     access.find '127.0.0.1/24'                # returns +nil+
-  #     access.find '127.0.0.1'/8                 # returns CIDR: +127.0.0.0/8+
-  #     access.find '127.0.1.2'/8                 # returns CIDR: +127.0.0.0/8+
+  #     access.find '127.0.0.1'                   # returns nil
+  #     access.find '127.0.0.1/24'                # returns nil
+  #     access.find '127.0.0.1'/8                 # returns CIDR: 127.0.0.0/8
+  #     access.find '127.0.1.2'/8                 # returns CIDR: 127.0.0.0/8
   # 
   # If you want simpler or more fancy search in rules
   # (e.g. without need to specify mask or with ability to
@@ -884,7 +884,6 @@ class IPAccessList < NetAddr::Tree
     list = root
     return nil if list.tag[:Subnets].length.zero?
 
-    
     until (li = NetAddr.cidr_find_in_list(addr, list.tag[:Subnets])).nil?
       if li.is_a?(Integer)
         li = list.tag[:Subnets][li]
@@ -1081,12 +1080,7 @@ class IPAccessList < NetAddr::Tree
         list.concat dump_flat_list(entry, type) 
       end
     end
-    list.map do |entry|
-      NetAddr.cidr_build(entry.version,
-                        entry.to_i(:network),
-                        entry.to_i(:netmask),
-                        entry.tag[:ACL].nil? ? {} : {:ACL => entry.tag[:ACL]})  
-    end
+    list.map { |cidr| cidr.safe_dup }
     return list
   end
   private :dump_flat_list

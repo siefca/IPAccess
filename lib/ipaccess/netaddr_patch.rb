@@ -50,6 +50,23 @@ module NetAddr
       a = (@ip & 0xffffffff)
       return (a != 0 && a != 1)
     end
+    
+    # This method duplicates CIDR and removes
+    # information about placement in tree from
+    # newly created copy. It returns new
+    # Netaddr::CIDR object.
+    
+    def safe_dup
+      tags = self.tag.dup
+      tags.delete :Subnets
+      tags.delete :Parent
+      return self.class.cidr_build(
+        @version,
+        @network,
+        @netmask,
+        tags,
+        @wildcard_mask)
+    end
 
   end # class CIDR
   
