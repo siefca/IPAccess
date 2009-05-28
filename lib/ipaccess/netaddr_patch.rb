@@ -52,22 +52,20 @@ module NetAddr
     end
     
     # This method duplicates CIDR and removes
-    # information about placement in tree from
-    # newly created copy. It returns new
+    # tags specified as symbols. It returns new
     # Netaddr::CIDR object.
     
-    def safe_dup
+    def safe_dup(*tags_to_remove)
       tags = self.tag.dup
-      tags.delete :Subnets
-      tags.delete :Parent
-      return self.class.cidr_build(
+      tags_to_remove.each { |t| tags.delete t }
+      return NetAddr.cidr_build(
         @version,
         @network,
         @netmask,
         tags,
         @wildcard_mask)
     end
-
+    
   end # class CIDR
   
   class CIDRv4

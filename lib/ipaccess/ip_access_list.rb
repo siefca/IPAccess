@@ -21,7 +21,9 @@ require 'ipaccess/netaddr_patch'
 # This class implements easy to manage IP access list based on NetAddr::Tree
 # which uses binary search to speed up matching process. It stores data in a tree
 # of NetAddr::CIDR objects and allows to add, remove and search them.
-#  
+# 
+# ==== Access lists
+# 
 # To control access IPAccessList maintaines two abstract lists: white list and black
 # list. Each list contains rules (CIDR objects with information about
 # IP address and network mask). Access is evaluated as blocked when tested
@@ -31,13 +33,19 @@ require 'ipaccess/netaddr_patch'
 # To be precise: internally there are no real lists but one tree containing marked
 # objects in order to increase lookups performance.
 # 
+# ==== Basic Operations
+# 
 # There are 2 major types of operations you can perform: rules management and
 # access checks. Rules management methods allows you to add, remove and find IP access
 # rules. Access checks let you test if given address or addresses are allowed
 # or denied to perform network operations according to rules.
 #
+# ==== IPv4 and IPv6
+# 
 # IPv6 addresses that are IPv4 compatible or IPv4 masked are automatically
 # translated into IPv4 addresses while adding or searching.
+#
+# ==== Examples
 # 
 # Examples of usage:
 #
@@ -57,7 +65,6 @@ require 'ipaccess/netaddr_patch'
 #     puts access.show                # display internal structure
 #     puts access.blacklist           # display blacklisted IP addresses
 #     puts access.whitelist           # display whitelisted IP addresses
-
 
 class IPAccessList < NetAddr::Tree
 
@@ -91,7 +98,7 @@ class IPAccessList < NetAddr::Tree
   # This method converts names to NetAddr::CIDR objects. It returns an array of CIDR objects.
   # 
   # Allowed input: string(s) (DNS names or IP addresses optionally with masks), number(s) (IP address representation),
-  # IPSocket object(s), URI object(s), IPAddr object(s), Net::HTTP object(s), IPAddrList object(s), NetAddr::CIDR object(s)m
+  # IPSocket object(s), URI object(s), IPAddr object(s), Net::HTTP object(s), IPAddrList object(s), NetAddr::CIDR object(s),
   # NetAddr::Tree object(s), IPAccessList object(s), symbol(s), object(s) that contain file descriptors bound to socket(s),
   # and arrays of these.
   #
@@ -107,7 +114,6 @@ class IPAccessList < NetAddr::Tree
   #     obj_to_cidr IPSocket.new("www.pl", 80)  # uses socket
   #     obj_to_cidr IPAddr("10.0.0.1")          # uses IPAddr object
   #     obj_to_cidr NetAddr.create("10.0.0.1")  # uses NetAddr object
-  #     obj_to_cidr :"randomseed.pl"            # uses symbol that hasn't special meaning
   #     obj_to_cidr URI('http://www.pl/')       # uses URI
   #     obj_to_cidr 'http://www.pl/'            # uses extracted host string
   #
@@ -196,7 +202,7 @@ class IPAccessList < NetAddr::Tree
   #     – :reserved
   #     – :multicast
   
-  def obj_to_cidr(*obj)
+  def self.obj_to_cidr(*obj)
     obj = obj.flatten
 
     if obj.size == 1
@@ -356,17 +362,12 @@ class IPAccessList < NetAddr::Tree
     return obj.is_a?(NetAddr::CIDR) ? [obj.dup] : [NetAddr::CIDR.create(obj.to_s)]
   end
   
-  # This method finds the longest matching path
-  # and returns original CIDR object found there.
+  # This method calls IPAccessList.obj_to_cidr
   
-  def pathfinder(cidr)
-    found = nil
-    found = find_me(cidr)
-    found = find_parent(cidr) if found.nil?
-    return found
+  def obj_to_cidr(*args)
+    self.class.obj_to_cidr(*args)
   end
-  private :pathfinder
-  
+    
   # This method finds all matching addresses in the list
   # and returns an array containing these addresses.
   # If the optional block is supplied, each matching element
@@ -396,7 +397,7 @@ class IPAccessList < NetAddr::Tree
   # equal to given addresses/netmasks and returns an array containing
   # these addresses. It is intended to be used to operate on
   # lists rather than to match IPs to them.
-  
+  # 
   # If the optional block is supplied,
   # each matching element is passed to it, and the block‘s
   # result is stored in the output array.
@@ -416,31 +417,22 @@ class IPAccessList < NetAddr::Tree
     end
     return out_ary
   end
-  
-  # This method check if this list contains exact IP
-  # address/mask combination(s). It returns +true+ if
-  # it is so.
-  #
-  # See obj_to_cidr description for more info about arguments
-  # you may pass to it.
-
-  def have_exact_addr?(*addr)
-    return false if empty?
-    grep_exact(*addr) { |m| return true }
-    return false
-  end
-  
+    
   # This method adds new rule(s) to access list. By default
   # elements are added to black list. If first or last argument
   # is +:white+ or +:black+ then element is added to the specified
   # list.
-  
+  # 
   # Special case: some CIDR objects may carry information about
   # access list they should belong to. If the last argument
   # of this method does not specify access list and added rule
   # is the kind of special CIDR containing information about
   # assignment to some list then this extra sugar will be used
-  # in assignment instead of default +:black+.
+  # in assignment instead of default +:black+. These special
+  # CIDR object are usualy result of passing IPAccessList
+  # as an argument. To be sure which access
+  # list will be altered always give its name when passing
+  # IPAccessList.
   # 
   # If the given rule is exact (IP and mask) as pre-existent
   # rule in the same access list then it is not added.
@@ -454,16 +446,13 @@ class IPAccessList < NetAddr::Tree
   
   def add!(*args)
     acl_list = nil
-    acl_list = args.shift if (args.first == :white || args.first == :black)
-    acl_list = args.pop if (args.last == :white || args.last == :black)
+    acl_list = args.shift if (args.first.is_a?(Symbol) && (args.first == :white || args.first == :black))
+    acl_list = args.pop if (args.last.is_a?(Symbol) && (args.last == :white || args.last == :black))
     return nil if args.empty?
     addrs = obj_to_cidr(*args)
     addrs.each do |addr|
-      add_list = acl_list
       addr = addr.ipv4 if addr.ipv4_compliant?
-      add_list = addr.tag[:ACL] if (add_list.nil? &&
-                                    (addr.tag[:ACL] == :white ||
-                                     addr.tag[:ACL] == :ashen)) # object with extra sugar
+      add_list = acl_list.nil? ? addr.tag[:ACL] : acl_list  # object with extra sugar
       add_list = :black if add_list.nil?
       exists = find_me(addr)
       if exists.nil?
@@ -485,19 +474,27 @@ class IPAccessList < NetAddr::Tree
   # 
   # Make sure you will specify correct and exact netmasks
   # in order to delete proper rules. This method will NOT
-  # remove rules that just match given address or rules
+  # remove rules that imprecisely match given address or rules
   # that logically depends on specified rules, e.g.
-  # removing 192.168.0.0/16 will leave 192.168.0.0/24
+  # removing +192.168.0.0/16+ will leave +192.168.0.0/24+
   # untouched. To create access exceptions for some
   # ranges and/or addresses whitelist them using permit
-  # method.
-  # 
+  # method. This method removes rules matching exact addresses/masks.
+  #
   # If the first or last argument is a symbol and it's +:white+
   # or +:black+ then the specified rule will be removed
-  # only from the given (white or black) list.
+  # only from the given (white or black) list. If the list is
+  # not specified the rule will be removed from both lists.
   # 
-  # This method ignores any extra sugar, means doesn't
-  # rely on assignment information saved in passed objects.
+  # Special case: some CIDR objects may carry information about
+  # access list they should belong to. If the last argument
+  # of this method does not specify access list and added rule
+  # is the kind of special CIDR containing information about
+  # assignment to some list then this extra sugar will be used
+  # while removing. These special CIDR objects are usualy result
+  # of passing IPAccessList as an argument. To be sure which access
+  # list will be altered always give its name when passing
+  # IPAccessList.
   # 
   # You should avoid passing hostnames as arguments since
   # DNS is not reliable and responses may change with time
@@ -508,8 +505,8 @@ class IPAccessList < NetAddr::Tree
   
   def delete!(*args)
     acl_list = nil
-    acl_list = args.shift if (args.first == :white || args.first == :black)
-    acl_list = args.pop if (args.last == :white || args.last == :black)
+    acl_list = args.shift if (args.first.is_a?(Symbol) && (args.first == :white || args.first == :black))
+    acl_list = args.pop if (args.last.is_a?(Symbol) && (args.last == :white || args.last == :black))
     removed = []
     return removed if (args.empty? || empty?)
     addrs = obj_to_cidr(*args)
@@ -517,14 +514,16 @@ class IPAccessList < NetAddr::Tree
       addr = addr.ipv4 if addr.ipv4_compliant?
       exists = find_me(addr)
       unless exists.nil?
+        src_list = acl_list.nil? ? addr.tag[:ACL] : acl_list
+        src_list = nil if src_list == :ashen
         ex_list = exists.tag[:ACL]
         parent = exists.tag[:Parent]
         children = exists.tag[:Subnets]
-        if (!acl_list.nil? && ex_list == :ashen)
-          removed.push exists
-          exists.tag[:ACL] = (acl_list == :black) ? :white : :black
-        elsif (acl_list.nil? || ex_list == acl_list)
-          removed.push exists
+        if (!src_list.nil? && ex_list == :ashen)
+          removed.push exists.safe_dup(:Subnets, :Parent)
+          exists.tag[:ACL] = (src_list == :black) ? :white : :black
+        elsif (src_list.nil? || ex_list == src_list)
+          removed.push exists.safe_dup(:Subnets, :Parent)
           parent.tag[:Subnets].delete(exists)
           children.each { |childaddr| add_to_parent(childaddr, parent) }
         end
@@ -665,7 +664,7 @@ class IPAccessList < NetAddr::Tree
     found = find_me(addr)
     found = find_parent(addr) if found.nil?
     return nil if (found.nil? || found.hash == root.hash || !found.matches?(addr))
-    return found.safe_dup
+    return found.safe_dup(:Subnets, :Parent)
   end
   
   # This method returns +true+ if the given IP address
@@ -719,7 +718,7 @@ class IPAccessList < NetAddr::Tree
         (found.tag[:ACL] != list && found.tag[:ACL] != :ashen))
       return nil
     else
-      return found.safe_dup
+      return found.safe_dup(:Subnets, :Parent)
     end
   end
   private :rule_exists_cidr
@@ -750,8 +749,8 @@ class IPAccessList < NetAddr::Tree
     rule_exists_cidr(:black, addr)
   end
 
-  # This method returns +true+ if all of the given
-  # IP addresses are on the IP rules black list.
+  # This method returns +true+ if ALL of the given
+  # IP addresses/masks are present in the black list.
   # 
   # It is designed to browse rules, NOT to check access. To do access
   # check use granted and denied methods.
@@ -806,8 +805,8 @@ class IPAccessList < NetAddr::Tree
     rule_exists_cidr(:white, addr)
   end
 
-  # This method returns +true+ if all of the given
-  # IP addresses are on the IP rules white list.
+  # This method returns +true+ if ALL of the given
+  # IP addresses are on the white list.
   # 
   # It is designed to check rules, NOT access. To do access
   # check use allowed and denied methods.
@@ -1035,9 +1034,9 @@ class IPAccessList < NetAddr::Tree
   # you may pass to it.
   
   def -(*args)
-    other = self.class.new(*args)
-    newobj = select { |addr| !other.have_exact_addr?(addr) }
-    return newobj
+    self_copy = self.class.new(self)
+    self_copy.delete(*args)
+    return self_copy
   end
   
   # Returns list of addresses and masks as a string with elements joined using space or given string.
@@ -1080,7 +1079,7 @@ class IPAccessList < NetAddr::Tree
         list.concat dump_flat_list(entry, type) 
       end
     end
-    list.map { |cidr| cidr.safe_dup }
+    list.map { |cidr| cidr.safe_dup(:Subnets, :Parent) }
     return list
   end
   private :dump_flat_list

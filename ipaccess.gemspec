@@ -7,6 +7,7 @@ Gem::Specification.new do |s|
   s.description = %q{Classes contained in this library allows you to create and manage IP access lists in an easy way}
   s.email = %q{pw@gnu.org}
   s.homepage = %q{http://randomseed.pl/ipaccess}
+  s.rubyforge_project = %q{ipaccess}
   s.has_rdoc = true
   s.authors = ["Paweł Wilk"]
   s.files = ["lib/ipaccess.rb", "lib/ipaccess/ip_access_list.rb" ]
