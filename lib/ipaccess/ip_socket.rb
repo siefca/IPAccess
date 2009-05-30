@@ -32,22 +32,27 @@ IPAccess::Global = IPAccess.new 'global'
 # to use IP access control. Each patched socket
 # class has acl member, which is an IPAccess object.
 # 
-# 
-# Examples:
+# ==== Examples
 #
+# ===== +TCPServer+
 #     serv = TCPServer.new(31337)                   # create listening TCP socket
 #     serv.acl = :local                             # create and use local access lists
-#     serv.acl.input.block '1.2.3.4/16'             # block 1.2.0.0/16
 #     serv.acl.input.block :local, :private         # block local and private addresses
 #     serv.acl.input.permit '127.0.0.5'             # make an exception
 #     puts list.input.blacklist                     # show blacklisted IP addresses
 #     puts list.input.whitelist                     # show whitelisted IP addresses
 #     sock = serv.sysaccept                         # accept connection
 #
-#     list = IPAccess.new 'my list'                 # will use external access lists
-#     list.output.block '1.2.3.4/16'                # block connections to 1.2.0.0/16
-#     list.output.block 'randomseed.pl'             # block connections to IP address of randomseed.pl
-#     socket = TCPSocket('randomseed.pl', 80, list) # create connected TCP socket with list assigned
+# ===== +TCPSocket+
+#     list = IPAccess.new 'my list'                     # we will use external access lists
+#     list.output.block '1.2.3.4/16'                    # block connections to 1.2.0.0/16
+#     list.output.block 'randomseed.pl'                 # block connections to IP address of randomseed.pl
+#     socket = TCPSocket.new('randomseed.pl', 80, list) # create connected TCP socket with access control
+# 
+# Note that in this example we cannot alter
+# access list after creating socket since
+# TCPSocket instance does connect at the very
+# beginning of existence.
 
 module IPSocketAccess
 
@@ -146,16 +151,4 @@ class TCPSocket
   
 end
 
-serv = TCPServer.new(2202)
-serv.access = :local
-serv.access.in.block :local
-#IPAccess::In.deny   :all
-#
-##IPAccess::In.allow  "127.0.0.1", :localhost
-#p serv.access
-     begin
-       sock = serv.sysaccept #_nonblock
-     rescue Errno::EAGAIN, Errno::ECONNABORTED, Errno::EPROTO, Errno::EINTR
-       #IO.select([serv])
-       retry
-     end
+
