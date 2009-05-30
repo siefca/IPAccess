@@ -62,7 +62,7 @@ require 'ipaccess/ip_access_errors'
 #   end
 #
 # In the example above, which BTW is probably more real
-# than previous we're using check_out method for testing
+# than previous, we're using check_out method for testing
 # Net::HTTP response object. The method is clever and
 # can extract IP socket from such object.
 # 

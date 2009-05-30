@@ -576,7 +576,7 @@ class IPAccessList < NetAddr::Tree
   # for the given objects containing IP information.
   # 
   # It is designed to browse rules, NOT to check access. To do access
-  # check use granted and denied methods.
+  # check use IPAccessList#granted and IPAccessList#denied methods.
   #
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -605,7 +605,7 @@ class IPAccessList < NetAddr::Tree
   # match some rules. Otherwise it returns +false+.
   # 
   # It is designed to browse rules, NOT to check access. To do access
-  # check use granted and denied methods.
+  # check use IPAccessList#granted and IPAccessList#denied methods.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -628,7 +628,7 @@ class IPAccessList < NetAddr::Tree
   # Otherwise it returns +nil+.
   # 
   # It is designed to browse rules, NOT to check access. To do access
-  # check use granted and denied methods.
+  # check use IPAccessList#granted and IPAccessList#denied methods.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -649,7 +649,7 @@ class IPAccessList < NetAddr::Tree
   # matches rule from the list. Otherwise it returns +false+.
   # 
   # It is designed to browse rules, NOT to check access. To do access
-  # check use granted and denied methods.
+  # check use IPAccessList#granted and IPAccessList#denied methods.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -732,7 +732,7 @@ class IPAccessList < NetAddr::Tree
   # are result of finding given IP rules in the black list.
   # 
   # It is designed to browse rules, NOT to check access. To do access
-  # check use granted and denied methods.
+  # check use IPAccessList#granted and IPAccessList#denied methods.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -758,7 +758,7 @@ class IPAccessList < NetAddr::Tree
   # IP addresses/masks are present in the black list.
   # 
   # It is designed to browse rules, NOT to check access. To do access
-  # check use granted and denied methods.
+  # check use IPAccessList#granted and IPAccessList#denied methods.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -779,7 +779,7 @@ class IPAccessList < NetAddr::Tree
   # IP address is on the IP rules black list.
   # 
   # It is designed to browse rules, NOT to check access. To do access
-  # check use granted and denied methods.
+  # check use IPAccessList#granted and IPAccessList#denied methods.
     
   def blacklist_rule_exists_cidr?(addr)
     not rule_exists_cidr(:black, addr).nil?
@@ -789,7 +789,7 @@ class IPAccessList < NetAddr::Tree
   # is result of finding given IP rules in the white list.
   # 
   # It is designed to browse rules, NOT to check access. To do access
-  # check use granted and denied methods.
+  # check use IPAccessList#granted and IPAccessList#denied methods.
   #
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -857,7 +857,7 @@ class IPAccessList < NetAddr::Tree
   # find_blacklist_rules or find_whitelist_rules.
   # 
   # It is designed to browse rules, NOT to check access. To do access
-  # check use granted and denied methods.
+  # check use IPAccessList#granted and IPAccessList#denied methods.
   # 
   # See obj_to_cidr description for more info about argument
   # you may pass to it. Be aware that in case of name or special
