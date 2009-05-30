@@ -1,29 +1,26 @@
 # encoding: utf-8
-#
-# Easy to manage and fast IP access lists.
+# 
+# Simple and handy IP access control.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
 # License::   LGPL
 # 
-# Classes contained in this library allow you to create
-# and manage IP access lists in an easy way. You may use
-# IPAccess class to maintain black list and white list
-# and validate connections against it. You also may use
-# IPAccessList class directly to build your own lists.
-#
-# The classes use NetAddr::CIDR objects to store IP
-# addresses/masks and NetAddr::Tree to maintain
-# access lists.
+# === ip_access_errors
+# 
+# This file contains IPAccessDenied class
+# used to report access denials by
+# IPAccess objects.
 
 # This class handles IP access denied exceptions.
  
 class IPAccessDenied < Errno::EACCES
 
-  # Creates new object. First argument should be a NetAddr::CIDR
-  # object containing address of denied connection.
-  # Second argument should be a CIDR rule that matched.
-  # Last argument should be an IPAccess object.
+  # Creates new object. First argument should be
+  # a NetAddr::CIDR object containing address
+  # of denied connection. Second argument should
+  # be a CIDR rule that matched. Last argument
+  # should be an IPAccess object.
 
   def initialize(addr, rule=nil, access_list=nil)
     @peer_ip = addr
@@ -47,11 +44,17 @@ class IPAccessDenied < Errno::EACCES
   
   def rule_desc
     if @rule.is_a?(NetAddr::CIDR)
-      @rule.version == 6 ? " rule: #{@rule.to_s(:Short => true)}" : " rule: #{@rule.to_s}"
+      if @rule.version == 6
+        rule = @rule.to_s(:Short => true)
+        rule = ":0#{rule}" if rule =~ /^\//
+      else
+        rule = @rule.to_s
+      end
+      return " rule: #{rule}"
     elsif @rule.is_a?(String)
-      " rule: #{@rule}"
+      return " rule: #{@rule}"
     else
-      ""
+      return ""
     end
   end
   
@@ -59,38 +62,59 @@ class IPAccessDenied < Errno::EACCES
   
   def addr_desc
     if @peer_ip.is_a?(NetAddr::CIDR)
-      @peer_ip.version == 6 ? "#{@peer_ip.to_s(:Short => true)}" : @peer_ip.to_s
+      if @peer_ip.version == 6
+        if @peer_ip.to_i(:netmask) == ((2**128)-1)
+          return @peer_ip.ip(:Short => true)
+        else
+          pip = @peer_ip.to_s(:Short => true)
+          pip = ":0#{pip}" if pip =~ /^\//
+          return pip
+        end
+      else
+        if @peer_ip.to_i(:netmask) == 4294967295
+          return @peer_ip.ip
+        else
+          return @peer_ip.to_s
+        end
+      end
     elsif @peer_ip.is_a?(String)
-      @peer_ip
+      return @peer_ip
     else
-      @peer_ip.to_s
+      return @peer_ip.to_s
     end
   end
   
   # Shows an error message.
   
   def message
-    return "connection with #{@peer_ip.ip} denied by #{list_desc}access list#{rule_desc}"
+    return "connection with #{addr_desc} " +
+            "denied by #{list_desc}#{rule_desc}"
   end
   
 end
 
-# This class handles IP access denied exceptions for incomming connections/datagrams.
+# This class handles IP access denied exceptions
+# for incoming connections/datagrams.
 
 class IPAccessDenied::Input < IPAccessDenied
 
   def message
-    return "incomming connection from #{@peer_ip.ip} denied by #{list_desc}access list#{rule_desc}"
+    return "incoming connection from "  +
+           "#{addr_desc} denied by "    +
+           "#{list_desc}#{rule_desc}"
   end
 
 end
 
-# This class handles IP access denied exceptions for outgoing connections/datagrams.
+# This class handles IP access denied exceptions
+# for outgoing connections/datagrams.
 
 class IPAccessDenied::Output < IPAccessDenied
 
   def message
-    return "outgoing connection to #{@peer_ip.ip} denied by #{list_desc}access list#{rule_desc}"
+    return "outgoing connection to "  +
+           "#{addr_desc} denied by "  +
+           "#{list_desc}#{rule_desc}"
   end
   
 end

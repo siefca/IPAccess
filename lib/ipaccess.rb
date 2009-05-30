@@ -1,6 +1,6 @@
 # encoding: utf-8
 #
-# Easy to manage and fast IP access lists.
+# Simple and handy IP access control.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk

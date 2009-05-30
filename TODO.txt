@@ -1,33 +1,8 @@
 - add missing rspec examples
-- possibility to choose whether to patch main socket class or just singletons of the given objects (but what about sockets that are created by listen? - check it)
 - pseudoarrays(?)
 
--------------------------------- access list scenarios for sockets:
+- add more documentation describing access checking workflow
 
-# global access list (this is the default)
+- patch more sockets
+- possibility to choose whether to patch main socket class or just singletons of the given objects (but what about sockets that are created by listen? - check it)
 
-socket.access = nil
-
-# shared, external access list
-
-	socket.access = IPAccessList.new
-
-# private access list
-
-	socket.access << []
-
-# controlling
-
-# adding rule to private or shared
-
-socket.access.input.whitelist :localhost
-private_accesslist.input.whitelist :localhost
-
-# adding rule to default
-
-IPAccess::Input.whitelist :localhost
-
-# checking access
-
-access.check_in(addr)
-access.check_out(addr)

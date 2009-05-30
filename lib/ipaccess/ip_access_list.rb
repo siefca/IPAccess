@@ -1,17 +1,15 @@
 # encoding: utf-8
 # 
-# === ip_access_list
-# 
-# This file contains IPAccessList class, which uses
-# NetAddr::Tree to implement IP access list.
-#
-# Easy to manage and fast IP access lists.
+# Simple and handy IP access control.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
 # License::   LGPL
-
-$LOAD_PATH.unshift '..'
+# 
+# === ip_access_list
+# 
+# This file contains IPAccessList class, which uses
+# NetAddr::Tree to implement IP access list.
 
 require 'ipaddr'
 require 'resolv'

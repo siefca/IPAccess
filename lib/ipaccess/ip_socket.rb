@@ -1,10 +1,12 @@
 # encoding: utf-8
 #
-# Easy to manage and fast IP access lists.
+# Simple and handy IP access control.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
 # License::   LGPL
+# 
+# === ip_socket
 # 
 # Classes contained in this library allow you to create
 # and manage IP access lists in an easy way. You may use
@@ -24,10 +26,29 @@ require 'ipaddr_list'
 require 'ipaccess/ip_access'
 require 'ipaccess/ip_access_errors'
 
-IPAccess::Global      = IPAccess.new
-IPAccess::Global.name = 'global'
+IPAccess::Global = IPAccess.new 'global'
 
-# This module patches socket handling classes to use IP access control.
+# This module patches socket handling classes
+# to use IP access control. Each patched socket
+# class has acl member, which is a IPAccess object.
+# Each IPAccess object contains two IPAccessList
+# objects called input and output.
+# 
+# Examples:
+#
+#     serv = TCPServer.new(31337)                   # create listening TCP socket
+#     serv.acl = :local                             # create and use local access lists
+#     serv.acl.input.block '1.2.3.4/16'             # block 1.2.0.0/16
+#     serv.acl.input.block :local, :private         # block local and private addresses
+#     serv.acl.input.permit '127.0.0.5'             # make an exception
+#     puts list.input.blacklist                     # show blacklisted IP addresses
+#     puts list.input.whitelist                     # show whitelisted IP addresses
+#     sock = serv.sysaccept                         # accept connection
+#
+#     list = IPAccess.new 'my list'                 # will use external access lists
+#     list.output.block '1.2.3.4/16'                # block 1.2.0.0/16
+#     list.output.block 'randomseed.pl'             # block IP address of randomseed.pl
+#     socket = TCPSocket('randomseed.pl', 80, list) # create connected TCP socket with list assigned
 
 module IPSocketAccess
 
@@ -36,22 +57,12 @@ module IPSocketAccess
   # kind it is assumed that it should be converted to IPAccess object
   # and give initial information about black list.
   # 
-  # If argument is +nil+ then IP access list is disabled for specific socket. That means
-  # only global IP access checks will be done, of course only if list IPAccess::In
-  # (for incoming packets) and/or list IPAccess::Out (for outgoing packets)
-  # are not empty.
-  #
   # Examples:
   #
-  #     socket = TCPSocket('randomseed.pl', 80)    # new socket
-  #     socket.acl = :global                       # use global access lists
-  #     socket.acl = :local                        # use local access list
-  #     socket.acl = IPAccess.new                  # use shared, external access lists
-  #     socket.acl.input = '192.168.0.0/16', '1.2.3.4'   # new access list with blacklist
-  #     socket.acl = []                            # other way to create empty list              
-  #     socket.acl = nil                           # disables IP access list for socket
-  #                                                # (global IP access lists may be still in use!)
-  
+  #     socket.acl = :global        # use global access lists
+  #     socket.acl = :local         # create and use local access lists
+  #     socket.acl = IPAccess.new   # use external (shared) access lists
+
   def acl=(obj)
     if obj.is_a?(Symbol)
       case obj
@@ -129,10 +140,6 @@ class TCPSocket
   end
 
 end
-
-IPAccess::Global.outgoing.block '91.0.0.0/8'
-
-s = TCPSocket.new('wykop.pl', 80)
 
 #serv = TCPServer.new(2202)
 ##serv.access = "127.0.0.1"

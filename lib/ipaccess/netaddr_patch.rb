@@ -1,20 +1,19 @@
 # encoding: utf-8
 #
-# Easy to manage and fast IP access lists.
+# Simple and handy IP access control.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
 # License::   LGPL
 # 
-# Classes contained in this library allow you to create
-# and manage IP access lists in an easy way. You may use
-# IPAccess class to maintain black list and white list
-# and validate connections against it. You also may use
-# IPAccessList class directly to build your own lists.
-#
-# The classes use NetAddr::CIDR objects to store IP
+# === netaddr_patch
+#  
+# The IPAccessList class and other classes
+# use NetAddr::CIDR objects to store IP
 # addresses/masks and NetAddr::Tree to maintain
-# access lists.
+# access lists. This file extends NetAddr
+# by adding methods that bring some comfort
+# into IPv6 handling.
 
 require 'netaddr'
 
