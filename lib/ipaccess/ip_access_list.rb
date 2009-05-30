@@ -566,6 +566,7 @@ class IPAccessList < NetAddr::Tree
   
   alias_method :add_black,  :blacklist
   alias_method :deny,       :blacklist
+  alias_method :block,      :blacklist
   
   # This method returns an array of matching CIDR objects
   # for the given objects containing IP information.

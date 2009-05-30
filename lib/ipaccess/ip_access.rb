@@ -28,11 +28,13 @@ class IPAccess
   
   attr_reader   :input
   alias_method  :in, :input
+  alias_method  :incoming, :input
   
   # Outgoing traffic.
   
   attr_reader   :output
   alias_method  :out, :output
+  alias_method  :outgoing, :output
   
   # Descriptive name of this object. Used in error reporting.
   

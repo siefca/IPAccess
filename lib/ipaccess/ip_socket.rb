@@ -130,7 +130,7 @@ class TCPSocket
 
 end
 
-IPAccess::Global.out.deny 'wykop.pl'
+IPAccess::Global.outgoing.block '91.0.0.0/8'
 
 s = TCPSocket.new('wykop.pl', 80)
 
