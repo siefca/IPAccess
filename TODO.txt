@@ -6,3 +6,6 @@
 - patch more sockets
 - possibility to choose whether to patch main socket class or just singletons of the given objects (but what about sockets that are created by listen? - check it)
 
+- maybe some day: test input lists even if socket is a client socket (read local socket address)
+
+

@@ -102,18 +102,18 @@ class IPAccessList < NetAddr::Tree
   #
   # ==== Examples
   # 
-  #     obj_to_cidr("127.0.0.1")                # uses IP address
-  #     obj_to_cidr(2130706433)                 # uses numeric representation of 127.0.0.1
-  #     obj_to_cidr(:private, "localhost")      # uses special symbol and DNS hostname
-  #     obj_to_cidr(:private, :localhost)       # uses special symbols
-  #     obj_to_cidr [:private, :auto]           # other way to write the above
-  #     obj_to_cidr "10.0.0.0/8"                # uses masked IP address
-  #     obj_to_cidr "10.0.0.0/255.0.0.0"        # uses masked IP address
-  #     obj_to_cidr IPSocket.new("www.pl", 80)  # uses socket
-  #     obj_to_cidr IPAddr("10.0.0.1")          # uses IPAddr object
-  #     obj_to_cidr NetAddr.create("10.0.0.1")  # uses NetAddr object
-  #     obj_to_cidr URI('http://www.pl/')       # uses URI
-  #     obj_to_cidr 'http://www.pl/'            # uses extracted host string
+  #     obj_to_cidr("127.0.0.1")                      # uses IP address
+  #     obj_to_cidr(2130706433)                       # uses numeric representation of 127.0.0.1
+  #     obj_to_cidr(:private, "localhost")            # uses special symbol and DNS hostname
+  #     obj_to_cidr(:private, :localhost)             # uses special symbols
+  #     obj_to_cidr [:private, :auto]                 # other way to write the above
+  #     obj_to_cidr "10.0.0.0/8"                      # uses masked IP address
+  #     obj_to_cidr "10.0.0.0/255.0.0.0"              # uses masked IP address
+  #     obj_to_cidr IPSocket.new("www.pl", 80)        # uses socket
+  #     obj_to_cidr IPAddr("10.0.0.1")                # uses IPAddr object
+  #     obj_to_cidr NetAddr::CIDR.create("10.0.0.1")  # uses NetAddr object
+  #     obj_to_cidr URI('http://www.pl/')             # uses URI
+  #     obj_to_cidr 'http://www.pl/'                  # uses extracted host string
   #
   # ==== Special symbols
   #
@@ -125,7 +125,8 @@ class IPAccessList < NetAddr::Tree
   #
   # ===== +:all+
   # Aliases: +:any+, +:anyone+, +:world+, +:internet+, +:net+, +:everything+, +:everyone+, +:everybody+, +:anybody+
-  # Subvariants: +:ipv4_+ and +:ipv6_:+
+  #
+  # Subvariants: +:ipv4_+ and +:ipv6_+
   #
   # Creates masked IP address that matches all networks:
   #     – 0.0.0.0/0
@@ -141,7 +142,8 @@ class IPAccessList < NetAddr::Tree
   #
   # ===== +:local+
   # Aliases: +:localhost+, +:localdomain+, +:loopback+, +:lo+
-  # Subvariants: +:ipv4_+ and +:ipv6_:+
+  # 
+  # Subvariants: +:ipv4_+ and +:ipv6_+
   # 
   # Creates masked IP addresses that match localhost:
   #     – 127.0.0.1/8
@@ -149,7 +151,8 @@ class IPAccessList < NetAddr::Tree
   #
   # ===== +:auto+
   # Aliases: +:automatic+, +:linklocal+
-  # Subvariants: +:ipv4_+ and +:ipv6_:+
+  # 
+  # Subvariants: +:ipv4_+ and +:ipv6_+
   #  
   # Creates masked IP addresses that match automatically assigned address ranges:
   #     – 169.254.0.0/16
@@ -157,7 +160,8 @@ class IPAccessList < NetAddr::Tree
   # 
   # ===== +:private+
   # Aliases: +:intra+, +:intranet+, +:internal+
-  # Subvariants: +:ipv4_+ and +:ipv6_:+
+  # 
+  # Subvariants: +:ipv4_+ and +:ipv6_+
   #
   # Creates masked IP addresses that match private ranges:
   #     – 10.0.0.0/8
@@ -170,7 +174,8 @@ class IPAccessList < NetAddr::Tree
   # 
   # ===== +:multicast+
   # Aliases: +:multi+, +:multiemission+
-  # Subvariants: +:ipv4_+ and +:ipv6_:+
+  # 
+  # Subvariants: +:ipv4_+ and +:ipv6_+
   #
   # Creates masked IP addresses that match multicast addresses ranges:
   #     – 224.0.0.0/4
@@ -179,6 +184,7 @@ class IPAccessList < NetAddr::Tree
   # 
   # ===== +:reserved+
   # Aliases: +:example+
+  # 
   # Subvariants: +:ipv4_+
   # 
   # Creates masked IP addresses that match reserved addresses ranges:

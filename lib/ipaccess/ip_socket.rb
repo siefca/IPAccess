@@ -30,7 +30,7 @@ IPAccess::Global = IPAccess.new 'global'
 
 # This module patches socket handling classes
 # to use IP access control. Each patched socket
-# class has acl member, which is a IPAccess object.
+# class has acl member, which is an IPAccess object.
 # Each IPAccess object contains two IPAccessList
 # objects called input and output.
 # 
@@ -87,13 +87,16 @@ module IPSocketAccess
 end
 
 # TCPServer class with IP access control.
+# It uses input access lists.
 
 class TCPServer
   
+  # :stopdoc:
   alias orig_initialize       initialize
   alias orig_accept           accept
   alias orig_accept_nonblock  accept_nonblock
   alias orig_sysaccept        sysaccept
+  # :startdoc:
   
   include IPSocketAccess
 
@@ -123,10 +126,13 @@ class TCPServer
 end
 
 # TCPSocket class with IP access control.
+# It uses output access lists.
 
 class TCPSocket
   
+  # :stopdoc:
   alias orig_initialize         initialize
+  # :startdoc:
   
   include IPSocketAccess
   
@@ -138,7 +144,7 @@ class TCPSocket
     orig_initialize(addr, port)
     return self
   end
-
+  
 end
 
 #serv = TCPServer.new(2202)

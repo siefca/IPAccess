@@ -18,25 +18,67 @@ require 'ipaddr_list'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_errors'
 
-# This class creates two lists maintaining
-# access control for incoming and outgoing
-# IP traffic. Both IPv4 and IPv6 addresses
+# This class includes two lists for maintaining
+# access control of incoming and outgoing
+# IP traffic. It allows you to build IP access
+# lists (white and black) for input and output
+# and then check objects containing IP addresses
+# against that lists. Both IPv4 and IPv6 addresses
 # are supported.
 #
-# Usage example:
-#
+# This class internally uses IPAccessList objects
+# present in members called input and output.
+# Use IPAccessList to add or remove rules from
+# this lists.
+# 
+# ==== Usage examples
+# 
 #   access = IPAccess.new 'mylist'    # create access lists
 #   access.input.block :private       # input: block private subnets
 #   access.input.permit '192.168.1.1' # input: but permit 192.168.1.1 
 #   access.check_in '192.168.1.1'     # should pass
 #   access.check_in '192.168.1.2'     # should raise an exception
 # 
-# In the above example checking access is covered
-# by the check_in method. It's generic, easy to use
+# In the example above checking access is covered
+# by the check_in method. It is generic, easy to use
 # routine, but if you are fan of performance
 # you may want to use dedicated methods designed
 # to handle single IP stored in socket, file descriptor,
 # NetAddr::CIDR object or string.
+#
+#   require 'uri'
+#   require 'net/http'
+# 
+#   access = IPAccess.new 'outgoing http'   # create access lists
+#   access.output.block :all                # output: block all
+#   
+#   url = URI('http://randomseed.pl/')      # parse URL
+#   res = Net::HTTP.new(url.host, url.port) # create HTTP resource
+#   req = Net::HTTP::Get.new(url.path)      # create HTTP request
+# 
+#   res.start do                            # start HTTP session
+#     access.check_out(res)                 # check access for socket from http object
+#     response = res.request(req)           # read response
+#   end
+#
+# In the example above, which BTW is probably more real
+# than previous we're using check_out method for testing
+# Net::HTTP response object. The method is clever and
+# can extract IP socket from such object.
+# 
+# Although the problem still exists because we're
+# able to check output access after the session has
+# already started. That means the program logic will
+# get the access information after HTTP connection
+# had been established and it would be able to drop
+# it eventually but not avoid it entirely.
+# 
+# The cause of that problem are sockets in Ruby, which
+# are sometimes so abstract that there is no way to
+# create TCP socket without making a connection. To fix
+# that you may use IPSocketAccess module provided
+# with this library. It will allow you to equip all
+# or selected sockets with access control.
 
 class IPAccess
   
@@ -73,14 +115,6 @@ class IPAccess
     @input  = IPAccessList.new(input)
     @output = IPAccessList.new(output)
     return self
-  end
-  
-  def input=(*args)
-    IPAccessList.new(*args)
-  end
-
-  def output=(*args)
-    IPAccessList.new(*args)
   end
   
   # Raises default exception including remote address and rule object.

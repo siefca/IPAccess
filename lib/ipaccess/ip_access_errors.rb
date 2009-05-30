@@ -46,7 +46,7 @@ class IPAccessDenied < Errno::EACCES
     if @rule.is_a?(NetAddr::CIDR)
       if @rule.version == 6
         rule = @rule.to_s(:Short => true)
-        rule = ":0#{rule}" if rule =~ /^\//
+        rule = "::#{rule}" if rule =~ /^\//
       else
         rule = @rule.to_s
       end
@@ -67,7 +67,7 @@ class IPAccessDenied < Errno::EACCES
           return @peer_ip.ip(:Short => true)
         else
           pip = @peer_ip.to_s(:Short => true)
-          pip = ":0#{pip}" if pip =~ /^\//
+          pip = "::#{pip}" if pip =~ /^\//
           return pip
         end
       else
