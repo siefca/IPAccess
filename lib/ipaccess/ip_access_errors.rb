@@ -20,12 +20,13 @@
  
 class IPAccessDenied < Errno::EACCES
 
-  # Creates new object. First argument should be an IPAddr
+  # Creates new object. First argument should be a NetAddr::CIDR
   # object containing address of denied connection.
-  # Second argument should be an access list object.
+  # Second argument should be a CIDR rule that matched.
+  # Last argument should be an IPAccess object.
 
-  def initialize(addr, access_list=nil, rule=nil)
-    @peer_ip = addr.native
+  def initialize(addr, rule=nil, access_list=nil)
+    @peer_ip = addr
     @access_list = access_list
     @rule = rule
   end
@@ -35,6 +36,8 @@ class IPAccessDenied < Errno::EACCES
   def list_desc
     if (@access_list.is_a?(IPAccess) && !@access_list.name.to_s.empty?)
       "#{@access_list.name} "
+    elsif @access_list.is_a?(String)
+      "#{@access_list} "
     else
       ""
     end

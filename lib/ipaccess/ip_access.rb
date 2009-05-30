@@ -1,20 +1,16 @@
 # encoding: utf-8
+# 
+# === ip_access
+# 
+# This file contains IPAccess class, which uses
+# IPAccessList to implement IP input/output
+# access list.
 #
 # Easy to manage and fast IP access lists.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
 # License::   LGPL
-# 
-# Classes contained in this library allow you to create
-# and manage IP access lists in an easy way. You may use
-# IPAccess class to maintain black list and white list
-# and validate connections against it. You also may use
-# IPAccessList class directly to build your own lists.
-#
-# The classes use NetAddr::CIDR objects to store IP
-# addresses/masks and NetAddr::Tree to maintain
-# access lists.
 
 $LOAD_PATH.unshift '..'
 
@@ -22,280 +18,202 @@ require 'ipaddr_list'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_errors'
 
-# This class creates two lists, black and white, in order
-# manage IP access.
+# This class creates access lists for input and output, in order
+# manage IP access. Each list is IPAccessList object containing
+# white and black list.
 
 class IPAccess
   
-  # This is the list that keeps IPAccessList object that keeps information
-  # about blocked IP addresses.
+  # Incoming traffic.
   
-  attr_reader   :blacklist
+  attr_reader   :input
+  alias_method  :in, :input
   
-  # This is the IPAccessList object for creating exceptions from black list.
+  # Outgoing traffic.
   
-  attr_reader   :whitelist
+  attr_reader   :output
+  alias_method  :out, :output
   
   # Descriptive name of this object. Used in error reporting.
   
   attr_accessor :name
   
-  # Default exception class, which is based on IPAccessDenied.
-  
-  attr_reader   :default_exception
-  
   # This method creates new IPAccess object. It optionally takes
-  # two arrays of CIDR objects (initial data for black list and white list)
-  # and default_exception which should be class name used to raise exceptions.
-  # This argument should be subclass of IPAccessDenied or symbol containg its name.
-  # 
-  # If the only argument is a class it is assumed that this is default exception
-  # class and b&w lists are initially empty.
-  
-  def initialize(blacklist=nil, whitelist=nil, default_exception=nil)
+  # two IPAccessList objects (initial data for black list and white list).
+    
+  def initialize(input=nil, output=nil)
     @name = nil
-    if (blacklist.is_a?(Class) && whitelist.nil? && default_exception.nil?)
-      default_exception = blacklist
-      blacklist = nil
-    end
-    self.default_exception = (default_exception or IPAccessDenied)
-    @blacklist = IPAccessList.new(blacklist)
-    @whitelist = IPAccessList.new(whitelist)
+    @input  = IPAccessList.new(input)
+    @output = IPAccessList.new(output)
     return self
   end
   
-  # This method sets default exception class and ensures that the class is
-  # based on IPAccessDenied.
-  
-  def default_exception=(name)
-    unless name.respond_to?(:superclass)
-      name = name.respond_to?(:to_sym) ? name.to_sym : name.to_s.to_sym
-      if Kernel.const_defined?(name)
-        name = Kernel.const_get(name)  # Fixme for ::
-      else
-        raise ArgumentError.new("default exception class #{name} doesn't exists")
-      end
-    end
-    unless name.ancestors.grep(Class).include?(IPAccessDenied)
-      raise ArgumentError.new("default exception class #{name} is not based on IPAccessDenied")
-    end
-    @default_exception = name
+  def input=(*args)
+    IPAccessList.new(*args)
+  end
+
+  def output=(*args)
+    IPAccessList.new(*args)
   end
   
   # Raises default exception including remote address and rule object.
-  # Both arguments should be CIDR objects but if the aren't they will be
-  # converted – resistance is futile.
+  # First argument should be an array containing CIDR objects: testet address
+  # and matching rule. Second argument should be exception class.
   
-  def scream!(peer_ip=nil, rule=nil)
-    peer_ip = @blacklist.obj_to_cidr(peer_ip) unless (peer_ip.to_s.empty? || peer_ip.is_a?(IPAddr))
-    rule = @blacklist.obj_to_cidr(rule) unless (peer_ip.to_s.empty? || peer_ip.is_a?(IPAddr))
-    raise default_exception.new(peer_ip, self, rule)
+  def scream!(rule, use_exception=IPAccessDenied::Input)
+    peer_ip = rule.shift
+    rule = rule.first
+    raise use_exception.new(peer_ip, rule, self)
   end
   
-  # Returns matching CIDR rule if access is denied and +false+ otherwise.
-  # Access is denied if black list contains one of the addresses
-  # and white list doesn't contain it. If access is denied for
-  # at least one of the passed elements this method returns +true+.
-  
-  def denied_one?(*addrs)
-    return false if @blacklist.empty?
-    addrs = @blacklist.obj_to_cidr(*addrs)
-    addrs.each do |addr|
-      rule = @blacklist.include_ipaddr6?(addr)
-      return rule if (rule && !@whitelist.include_ipaddr6?(addr))
-    end
-    return false
-  end
-  
-  # Returns matching CIDR rule if access is denied and +false+ otherwise.
-  # Access is denied if black list contains the address
-  # and white list doesn't contain it.
-  
-  def denied?(addr)
-    return false if @blacklist.empty?
-    addrs = @blacklist.obj_to_cidr(*addr).first
-    addrs.each do |addr|
-      rule = @blacklist.include_ipaddr6?(addr)
-      return rule if (rule && !@whitelist.include_ipaddr6?(addr))
-    end
-    return false
-  end
-  
-  # Returns matching CIDR rule if access is denied and +false+ otherwise.
-  # Access is denied if black list contains the IP address
-  # from passed IPv6 CIDR object and white list doesn't contain it.
-  
-  def ipaddr6_denied?(addr)
-    return false if @blacklist.empty?
-    rule = @blacklist.include_ipaddr6?(addr)
-    return rule if (rule && !@whitelist.include_ipaddr6?(addr))
-    return false
-  end
-  
-  # This method returns +true+ if access may be granted to all
-  # of the given objects. Otherwise it returns +false+.
-  # It has opposite behaviour to method denied_all?
-  
-  def allowed_all?(*addrs)
-    not denied_one?(*addrs)
-  end
-  
-  alias_method :granted_all?, :allowed_all?
-
-  # This method returns +true+ if access may be granted to IP
-  # obtained from the given objects. Otherwise it returns +false+.
-  # It has opposite behaviour to method denied?
-  
-  def allowed?(addr)
-    not denied?(addr)
-  end
-  
-  alias_method :granted?, :allowed?
-  
-  # This method returns +true+ if access may be granted to IPv6 address
-  # from the given CIDR object. Otherwise it returns +false+.
-  # It has opposite behaviour to method ipaddr6_denied?
-  
-  def ipaddr6_granted?(addr)
-    not ipaddr6_denied?(addr)
-  end
-  
-  # This method is an alias for IPAddrList::Algorithm::IPv6BinarySearch#add on whitelist.
-
-  def allow(*addrs)
-    @whitelist.add(*addrs)
-  end
-  
-  alias_method :permit, :allow
-  alias_method :whitelist_add, :allow
-  alias_method :add_to_whitelist, :allow
-  
-  # This method is an alias for IPAddrList::Algorithm::IPv6BinarySearch#del on whitelist.
-
-  def disallow(*addrs)
-    @whitelist.del(*addrs)
-  end
-  
-  alias_method :unallow, :disallow
-  alias_method :whitelist_del, :disallow
-  alias_method :del_from_whitelist, :disallow
-  
-  # This method is an alias for IPAddrList::Algorithm::IPv6BinarySearch#add on blacklist.
-  
-  def deny(*addrs)
-    @blacklist.add(*addrs)
-  end
-  
-  alias_method :blacklist, :deny
-  alias_method :blacklist_add, :deny
-  alias_method :add_to_blacklist, :deny
-
-  # This method is an alias for IPAddrList::Algorithm::IPv6BinarySearch#del on blacklist.
-  
-  def undeny(*addrs)
-    @blacklist.del(*addrs)
-  end
-
-  alias_method :blacklist_del, :undeny
-  alias_method :del_from_blacklist, :undeny
-  
-  # This method sets new black list removing all rules from
-  # old black list first.
-  
-  def blacklist=(*args)
-    @blacklist.clear
-    @blacklist.add(*args)
-  end
-
-  # This method sets new white list removing all rules from
-  # old black list first.
-  
-  def whitelist=(*args)
-    @whitelist.clear
-    @whitelist.add(*args)
-  end
-  
-  # This method erases all rules.
-  
-  def clear
-    @blacklist.clear
-    @whitelist.clear
-  end
-  
-  alias_method :erase, :clear
-  
-  # This method resets black list and white list
+  # This method resets input list and output list
   # removing all rules first.
   
-  def reset(blacklist=[], whitelist=[])
-    self.blacklist = blacklist
-    self.whitelist = whitelist
+  def reset(input=[], whitelist=[])
+    self.input = input
+    self.output = output
   end
   
-  # This method returns +true+ if blacklist is empty.
+  # This method returns +true+ if all access lists are empty.
+  
   def empty?
-    @blacklist.empty?
+    @input.empty? && @output.empty?
   end
+
+  # This method checks IP access of traffic for
+  # CIDR objects. If access is denied it raises an exception
+  # reporting first rejected IP. If access is granted it
+  # returns an array containing the given argument(s).
+  # 
+  # See IPAccessList.obj_to_cidr description for more info
+  # about arguments you may pass to it.
   
-  # This method checks IP access for CIDR object.
-  
-  def check_addrinfo(peer)
-    return peer if empty?
-    peer_ip = IPAddr.new(peer)
-    rule = ipaddr6_denied? ( peer_ip.ipv4? ? peer_ip.ipv4_compat : peer_ip )
-    if rule
+  def check(list, exc, *args)
+    rules = list.denied(*args)
+    unless rules.empty?
       # place for a block if any
-      scream!(peer_ip, rule)
+      scream!(rules.first, exc)
     end
-    return peer
+    return args
   end
-  
-  # This method checks IP access for CIDR object.
-  
-  def check_ipaddr(peer_ip)
-    return peer_ip if empty?
-    rule = ipaddr6_denied? ( peer_ip.ipv4? ? peer_ip.ipv4_compat : peer_ip )
-    if rule
-      # place for a block if any
-      scream!(peer_ip, rule)
-    end
-    return peer_ip
-  end
+  private :check
   
   # This method checks IP access for socket object.
   
-  def check_so(socket)
+  def check_so(list, exc, socket)
     return socket if empty?
     lookup_prev = socket.do_not_reverse_lookup
-    peer_ip     = IPAddr(socket.peeraddr[3])
+    peer_ip     = NetAddr::CIDR.create(socket.peeraddr[3])
     socket.do_not_reverse_lookup = lookup_prev
-    rule = ipaddr6_denied? ( peer_ip.ipv4? ? peer_ip.ipv4_compat : peer_ip )
+    rule        = list.denied_cidr(peer_ip, true)
     if rule
       # place for a block if any
       socket.close
-      scream!(peer_ip, rule)
+      scream!(rule)
     end
     return socket
   end
+  private :check_so
+  
+  # This method checks IP access for CIDR object.
+  
+  def check_cidr(list, exc, peer_ip)
+    rule = list.denied_cidr(peer_ip, true)
+    unless rule.nil?
+      # place for a block if any
+      scream!(rule, exc)
+    end
+    return peer_ip
+  end
+  private :check_cidr
+  
+  # This method checks IP access for CIDR object.
+  
+  def check_ipstring(list, exc, peer_ip)
+    addr = NetAddr::CIDR.create(peer_ip)
+    rule = list.denied_cidr(addr, true)
+    unless rule.nil?
+      # place for a block if any
+      scream!(rule, exc)
+    end
+    return peer_ip
+  end
+  private :check_ipstring
   
   # This method checks IP access but bases on file descriptor.
   # Devel note: DRY is less important than time here!
   
-  def check_fd(fd, list)
+  def check_fd(fd, list, exc)
     return fd if empty?
     socket      = IPSocket.for_fd(fd)
     lookup_prev = socket.do_not_reverse_lookup
-    peer_ip     = IPAddr.new(socket.peeraddr[3])
+    peer_ip     = NetAddr::CIDR.create(socket.peeraddr[3])
     socket.do_not_reverse_lookup = lookup_prev
-    rule = ipaddr6_denied? ( peer_ip.ipv4? ? peer_ip.ipv4_compat : peer_ip )
+    rule        = list.denied_cidr(peer_ip, true)
     if rule
       # place for a block if any
       socket.close
-      scream!(peer_ip, rule)
+      scream!(rule, exc)
     end
     return fd
-  end  
+  end
+  private :check_fd
   
-end
+  # This method checks access of incoming traffic for
+  # the given CIDR objects. If access is denied it
+  # raises an exception reporting first rejected IP.
+  # If access is granted it returns the given argument(s).
+  # 
+  # See IPAccessList.obj_to_cidr description for more info
+  # about arguments you may pass to it.
+  
+  def check_in(*args)
+    check(@input, IPAccessDenied::Input, *args)
+  end
+  
+  # This method checks access of outgoing traffic for
+  # the given CIDR objects. If access is denied it
+  # raises an exception reporting first rejected IP.
+  # If access is granted it returns the given argument(s).
+  # 
+  # See IPAccessList.obj_to_cidr description for more info
+  # about arguments you may pass to it.
+  
+  def check_out(*args)
+    check(@output, IPAccessDenied::Output, *args)
+  end
 
+  def check_in_cidr(peer_ip)
+    check_cidr(@input, IPAccessDenied::Input, peer_ip)
+  end
+  
+  def check_out_cidr(peer_ip)
+    check_cidr(@output, IPAccessDenied::Output, peer_ip)
+  end
+  
+  def check_in_ipstring(peer_ip)
+    check_ipstring(@input, IPAccessDenied::Input, peer_ip)
+  end
+  
+  def check_out_ipstring(peer_ip)
+    check_ipstring(@output, IPAccessDenied::Output, peer_ip)
+  end
+  
+  def check_in_so(socket)
+    check_so(@input, IPAccessDenied::Input, socket)
+  end
+  
+  def check_out_so(socket)
+    check_so(@output, IPAccessDenied::Output, socket)
+  end
+    
+  def check_in_fd(fd)
+    check_fd(@input, IPAccessDenied::Input, fd)
+  end
+  
+  def check_out_fd(fd)
+    check_fd(@output, IPAccessDenied::Output, fd)
+  end
+    
+end
 
