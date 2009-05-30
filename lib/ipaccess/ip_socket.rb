@@ -31,8 +31,7 @@ IPAccess::Global = IPAccess.new 'global'
 # This module patches socket handling classes
 # to use IP access control. Each patched socket
 # class has acl member, which is an IPAccess object.
-# Each IPAccess object contains two IPAccessList
-# objects called input and output.
+# 
 # 
 # Examples:
 #
@@ -46,8 +45,8 @@ IPAccess::Global = IPAccess.new 'global'
 #     sock = serv.sysaccept                         # accept connection
 #
 #     list = IPAccess.new 'my list'                 # will use external access lists
-#     list.output.block '1.2.3.4/16'                # block 1.2.0.0/16
-#     list.output.block 'randomseed.pl'             # block IP address of randomseed.pl
+#     list.output.block '1.2.3.4/16'                # block connections to 1.2.0.0/16
+#     list.output.block 'randomseed.pl'             # block connections to IP address of randomseed.pl
 #     socket = TCPSocket('randomseed.pl', 80, list) # create connected TCP socket with list assigned
 
 module IPSocketAccess
@@ -147,15 +146,16 @@ class TCPSocket
   
 end
 
-#serv = TCPServer.new(2202)
-##serv.access = "127.0.0.1"
+serv = TCPServer.new(2202)
+serv.access = :local
+serv.access.in.block :local
 #IPAccess::In.deny   :all
 #
 ##IPAccess::In.allow  "127.0.0.1", :localhost
 #p serv.access
-#     begin
-#       sock = serv.sysaccept #_nonblock
-#     rescue Errno::EAGAIN, Errno::ECONNABORTED, Errno::EPROTO, Errno::EINTR
-#       #IO.select([serv])
-#       retry
-#     end
+     begin
+       sock = serv.sysaccept #_nonblock
+     rescue Errno::EAGAIN, Errno::ECONNABORTED, Errno::EPROTO, Errno::EINTR
+       #IO.select([serv])
+       retry
+     end

@@ -103,7 +103,7 @@ module NetAddr
         ip = @ip
       else
         raise VersionError, "Attempted to create version 4 CIDR " +
-                             "with non-compliant CIDR item in version #{@version}."
+                            "with non-compliant CIDR item in version #{@version}."
       end
       return NetAddr::CIDR.create(ip,
                                   :Mask => @netmask >> 96,

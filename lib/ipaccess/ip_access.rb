@@ -31,6 +31,10 @@ require 'ipaccess/ip_access_errors'
 # Use IPAccessList to add or remove rules from
 # this lists.
 # 
+# When access is denied this class methods
+# use IPAccessDenied exceptions: IPAccessDenied::Input
+# and IPAccessDenied::Output.
+# 
 # ==== Usage examples
 # 
 #   access = IPAccess.new 'mylist'    # create access lists
@@ -143,6 +147,7 @@ class IPAccess
   # about arguments you may pass to it.
   
   def check(list, exc, *args)
+    return args if empty?
     rules = list.denied(*args)
     unless rules.empty?
       # place for a block if any
@@ -185,6 +190,7 @@ class IPAccess
   # IP address.
   
   def check_ipstring(list, exc, peer_ip)
+    return peer_ip if empty?
     addr = NetAddr::CIDR.create(peer_ip)
     rule = list.denied_cidr(addr, true)
     unless rule.nil?
@@ -197,7 +203,7 @@ class IPAccess
   
   # This method checks IP access but bases on file descriptor.
   
-  def check_fd(fd, list, exc)
+  def check_fd(list, exc, fd)
     return fd if empty?
     socket      = IPSocket.for_fd(fd)
     lookup_prev = socket.do_not_reverse_lookup

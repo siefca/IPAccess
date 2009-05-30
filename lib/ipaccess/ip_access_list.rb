@@ -28,8 +28,8 @@ require 'ipaccess/netaddr_patch'
 # IP address matches rule from black list and not matches any rule from white
 # list. Basically, white list rules override black list rules.
 # 
-# To be precise: internally there are no real lists but one tree containing marked
-# objects in order to increase lookups performance.
+# To be precise: in order to increase lookups performance internally
+# there are no real lists but one tree containing marked objects.
 # 
 # ==== Basic Operations
 # 
