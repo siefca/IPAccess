@@ -14,6 +14,7 @@
 
 $LOAD_PATH.unshift '..'
 
+require 'socket'
 require 'ipaddr_list'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_errors'
@@ -147,7 +148,7 @@ class IPAccess
   # about arguments you may pass to it.
   
   def check(list, exc, *args)
-    return args if empty?
+    return args if list.empty?
     rules = list.denied(*args)
     unless rules.empty?
       # place for a block if any
@@ -160,20 +161,24 @@ class IPAccess
   # This method checks access for a socket.
   
   def check_so(list, exc, socket)
-    return socket if empty?
-    lookup_prev = socket.do_not_reverse_lookup
-    peer_ip     = NetAddr::CIDR.create(socket.peeraddr[3])
-    socket.do_not_reverse_lookup = lookup_prev
-    rule        = list.denied_cidr(peer_ip, true)
-    if rule
+    if (list.empty? || !socket.respond_to?(:getpeername))
+      return socket
+    end
+    begin
+      peeraddr = Socket.unpack_sockaddr_in(socket.getpeername).last
+    rescue Errno::ENOTCONN, Errno::ENOTSOCK, ArgumentError # socket is not INET, not a socket or not connected
+      return socket
+    end
+    peer_ip = NetAddr::CIDR.create(peeraddr)
+    rule    = list.denied_cidr(peer_ip, true)
+    unless rule.nil?
       # place for a block if any
-      socket.close
-      scream!(rule)
+      scream!(rule, exc)
     end
     return socket
   end
   private :check_so
-  
+
   # This method checks access for a CIDR object.
   
   def check_cidr(list, exc, peer_ip)
@@ -190,7 +195,7 @@ class IPAccess
   # IP address.
   
   def check_ipstring(list, exc, peer_ip)
-    return peer_ip if empty?
+    return peer_ip if list.empty?
     addr = NetAddr::CIDR.create(peer_ip)
     rule = list.denied_cidr(addr, true)
     unless rule.nil?
@@ -204,18 +209,7 @@ class IPAccess
   # This method checks IP access but bases on file descriptor.
   
   def check_fd(list, exc, fd)
-    return fd if empty?
-    socket      = IPSocket.for_fd(fd)
-    lookup_prev = socket.do_not_reverse_lookup
-    peer_ip     = NetAddr::CIDR.create(socket.peeraddr[3])
-    socket.do_not_reverse_lookup = lookup_prev
-    rule        = list.denied_cidr(peer_ip, true)
-    if rule
-      # place for a block if any
-      socket.close
-      scream!(rule, exc)
-    end
-    return fd
+    check_so(list, exc, Socket.for_fd(fd))
   end
   private :check_fd
   

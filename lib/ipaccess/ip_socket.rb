@@ -53,6 +53,31 @@ IPAccess::Global = IPAccess.new 'global'
 # access list after creating socket since
 # TCPSocket instance does connect at the very
 # beginning of existence.
+#
+# ===== +Socket+
+#     require 'socket'
+#     include Socket::Constants
+#     
+#     IPAccess::Global.input.blacklist :localhost         # add localhost to global input black list
+#     socket = Socket.new(AF_INET, SOCK_STREAM, 0)        # create TCP socket
+#     sockaddr = Socket.sockaddr_in(31337, '127.0.0.1')   # create sockadr_in structure
+#     socket.bind(sockaddr)                               # bind to port 31331 and IP 127.0.0.1
+#     socket.listen(5)                                    # listen on socket
+#     begin
+#       c_socket, c_sockaddr = socket.accept_nonblock     # call non-blocking accept for connections
+#     rescue Errno::EAGAIN, Errno::ECONNABORTED,
+#            Errno::EPROTO, Errno::EINTR                  
+#       IO.select([socket])                               # retry on retriable errors
+#       retry
+#     rescue IPAccessDenied                               # when access is denied
+#       c_socket.close                                    # close client socket
+#       socket.close                                      # close listener
+#       raise                                             # raise exception
+#     end
+#     c_socket.puts "Hello world!"                        # otherwise continue
+#     c_socket.close
+#     socket.close
+
 
 module IPSocketAccess
 
@@ -135,7 +160,7 @@ end
 class TCPSocket
   
   # :stopdoc:
-  alias orig_initialize         initialize
+  alias orig_initialize        initialize
   # :startdoc:
   
   include IPSocketAccess
@@ -151,4 +176,44 @@ class TCPSocket
   
 end
 
+# Socket class with IP access control.
+# It uses output access lists.
 
+class Socket
+
+  # :stopdoc:
+  alias orig_initialize       initialize
+  alias orig_accept           accept
+  alias orig_accept_nonblock  accept_nonblock
+  alias orig_sysaccept        sysaccept
+  # :startdoc:
+  
+  include IPSocketAccess
+  
+  def initialize(*args)
+    @acl = nil
+    orig_initialize(*args)
+    return self
+  end
+  
+  # accept on steroids.
+  def accept(*args)
+    acl = @acl || IPAccess::Global
+    acl.check_in_so orig_accept(*args)
+  end
+  
+  # accept_nonblock on steroids.
+  def accept_nonblock(*args)
+    acl = @acl || IPAccess::Global
+    ret = orig_accept_nonblock(*args)
+    acl.check_in_so(ret.first)
+    return ret
+  end
+  
+  # sysaccept on steroids.
+  def sysaccept(*args)
+    acl = @acl || IPAccess::Global
+    acl.check_in_fd orig_sysaccept(*args)
+  end
+
+end

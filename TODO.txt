@@ -1,5 +1,4 @@
 - add missing rspec examples
-- pseudoarrays(?)
 
 - add more documentation describing access checking workflow
 

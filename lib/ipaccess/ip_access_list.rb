@@ -12,6 +12,7 @@
 # NetAddr::Tree to implement IP access list.
 
 require 'ipaddr'
+require 'socket'
 require 'resolv'
 require 'netaddr'
 require 'ipaccess/netaddr_patch'
@@ -230,29 +231,28 @@ class IPAccessList < NetAddr::Tree
     # number - immediate generation
     return [NetAddr::CIDR.create(obj)] if obj.is_a?(Numeric)
 
-    # IPAddr - fetch IP string
+    # IPAddr - fetch IP/mask string
     obj = obj.native.inspect.split[1].chomp('>')[5..-1] if obj.is_a?(IPAddr)
 
     # object containing socket member (e.g. Net::HTTP) - fetch socket
-    obj = obj.socket if obj.respond_to?(:socket)
-    obj = obj.instance_variable_get(:@socket) if obj.instance_variable_defined?(:@socket)
-    obj = obj.io if (obj.respond_to?(:io) && obj.io.respond_to?(:peeraddr))
+    if obj.respond_to?(:socket)
+      obj = obj.socket 
+    elsif obj.respond_to?(:client_socket)
+      obj = obj.client_socket
+    elsif obj.instance_variable_defined?(:@socket)
+      obj = obj.instance_variable_get(:@socket)
+    end 
+    obj = obj.io if (obj.respond_to?(:io) && obj.io.respond_to?(:getpeername))
     
     # some file descriptor but not socket - fetch socket
-    obj = IPSocket.for_fd(obj.fileno) if (!obj.respond_to?(:peeraddr) && obj.respond_to?(:fileno))
+    obj = Socket.for_fd(obj.fileno) if (!obj.respond_to?(:getpeername) && obj.respond_to?(:fileno))
     
-    # socket - fetch IP string
-    if obj.respond_to?(:peeraddr)
-      prev = nil
-      if obj.respond_to?(:do_not_reverse_lookup)
-        prev = obj.do_not_reverse_lookup
-        obj.do_not_reverse_lookup = true
-      end
-      peeraddr = obj.peeraddr[3]
-      obj.do_not_reverse_lookup = prev unless prev.nil?
-      obj = peeraddr
+    # Socket - immediate generation
+    if obj.respond_to?(:getpeername)
+      peeraddr = Socket.unpack_sockaddr_in(obj.getpeername).last
+      return [NetAddr::CIDR.create(peeraddr)]
     end
-
+    
     # symbol - immediate generation
     if obj.is_a?(Symbol)
     case obj
