@@ -58,7 +58,7 @@ IPAccess::Global = IPAccess.new 'global'
 #     require 'socket'
 #     include Socket::Constants
 #     
-#     IPAccess::Global.input.blacklist :localhost         # add localhost to global input black list
+#     IPAccess::Global.input.blacklist :localhost         # add localhost to global black list of incomming traffic
 #     socket = Socket.new(AF_INET, SOCK_STREAM, 0)        # create TCP socket
 #     sockaddr = Socket.sockaddr_in(31337, '127.0.0.1')   # create sockadr_in structure
 #     socket.bind(sockaddr)                               # bind to port 31331 and IP 127.0.0.1
@@ -177,7 +177,7 @@ class TCPSocket
 end
 
 # UDPSocket class with IP access control.
-# It uses output access lists.
+# It uses input and output access lists.
 
 class UDPSocket
   
@@ -224,7 +224,7 @@ class UDPSocket
   # recvfrom_nonblock on steroids.
   def recvfrom_nonblock(*args)
     acl = @acl || IPAccess::Global
-    ret = orig_recvfrom(*args)
+    ret = orig_recvfrom_nonblock(*args)
     peer_ip = ret[1][3]
     family = ret[1][0]
     if (family == "AF_INET" || family == "AF_INET6")
@@ -232,7 +232,6 @@ class UDPSocket
     end
     return ret
   end
-  
   
 end
 
@@ -264,11 +263,13 @@ end
 class Socket
 
   # :stopdoc:
-  alias orig_initialize       initialize
-  alias orig_accept           accept
-  alias orig_accept_nonblock  accept_nonblock
-  alias orig_connect          connect
-  alias orig_sysaccept        sysaccept
+  alias orig_initialize         initialize
+  alias orig_accept             accept
+  alias orig_accept_nonblock    accept_nonblock
+  alias orig_connect            connect
+  alias orig_recvfrom           recvfrom
+  alias orig_recvfrom_nonblock  recvfrom_nonblock
+  alias orig_sysaccept          sysaccept
   # :startdoc:
   
   include IPSocketAccess
@@ -310,6 +311,29 @@ class Socket
     return orig_connect(*args)
   end
   
+  # recvfrom on steroids.
+  def recvfrom(*args)
+    acl = @acl || IPAccess::Global
+    ret = orig_recvfrom(*args)
+    peer_ip = ret[1][3]
+    family = ret[1][0]
+    if (family == "AF_INET" || family == "AF_INET6")
+      acl.check_in_ipstring(peer_ip)
+    end
+    return ret
+  end
+  
+  # recvfrom_nonblock on steroids.
+  def recvfrom_nonblock(*args)
+    acl = @acl || IPAccess::Global
+    ret = orig_recvfrom_nonblock(*args)
+    peer_ip = ret[1][3]
+    family = ret[1][0]
+    if (family == "AF_INET" || family == "AF_INET6")
+      acl.check_in_ipstring(peer_ip)
+    end
+    return ret
+  end
+  
 end
-
 

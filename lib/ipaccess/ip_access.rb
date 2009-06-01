@@ -182,7 +182,7 @@ class IPAccess
   # This method checks access for a sockaddr.
   
   def check_sockaddr(list, exc, sockaddr)
-    return socket if list.empty?
+    return sockaddr if list.empty?
     begin
       peeraddr = Socket.unpack_sockaddr_in(sockaddr).last
     rescue ArgumentError # sockaddr is not INET
@@ -332,6 +332,26 @@ class IPAccess
   
   def check_out_socket(socket)
     check_socket(@output, IPAccessDenied::Output, socket)
+  end
+  
+  # This method checks access for the given sockaddr structure
+  # containing IP information against input access list.
+  # If access is denied it raises an exception reporting
+  # rejected IP and a matching rule. If access is granted
+  # it returns the given argument.
+  
+  def check_in_sockaddr(sockaddr)
+    check_sockaddr(@input, IPAccessDenied::Input, sockaddr)
+  end
+
+  # This method checks access for the given sockaddr structure
+  # containing IP information against output access list.
+  # If access is denied it raises an exception reporting
+  # rejected IP and a matching rule. If access is granted
+  # it returns the given argument.
+  
+  def check_out_sockaddr(sockaddr)
+    check_sockaddr(@output, IPAccessDenied::Output, sockaddr)
   end
   
   # This method checks access for the given file descriptor
