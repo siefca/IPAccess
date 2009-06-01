@@ -151,7 +151,7 @@ class IPAccess
     return args if list.empty?
     rules = list.denied(*args)
     unless rules.empty?
-      # place for a block if any
+      yield(rules.first, args) if block_given?
       scream!(rules.first, exc)
     end
     return args
@@ -160,7 +160,7 @@ class IPAccess
   
   # This method checks access for a socket.
   
-  def check_so(list, exc, socket)
+  def check_socket(list, exc, socket)
     if (list.empty? || !socket.respond_to?(:getpeername))
       return socket
     end
@@ -172,44 +172,63 @@ class IPAccess
     peer_ip = NetAddr::CIDR.create(peeraddr)
     rule    = list.denied_cidr(peer_ip, true)
     unless rule.nil?
-      # place for a block if any
+      yield(rule, socket) if block_given?
       scream!(rule, exc)
     end
     return socket
   end
-  private :check_so
+  private :check_socket
+  
+  # This method checks access for a sockaddr.
+  
+  def check_sockaddr(list, exc, sockaddr)
+    return socket if list.empty?
+    begin
+      peeraddr = Socket.unpack_sockaddr_in(sockaddr).last
+    rescue ArgumentError # sockaddr is not INET
+      return sockaddr
+    end
+    peer_ip = NetAddr::CIDR.create(peeraddr)
+    rule    = list.denied_cidr(peer_ip, true)
+    unless rule.nil?
+      yield(rule, sockaddr) if block_given?
+      scream!(rule, exc)
+    end
+    return sockaddr
+  end
+  private :check_sockaddr
 
   # This method checks access for a CIDR object.
   
-  def check_cidr(list, exc, peer_ip)
-    rule = list.denied_cidr(peer_ip, true)
+  def check_cidr(list, exc, cidr)
+    rule = list.denied_cidr(cidr, true)
     unless rule.nil?
-      # place for a block if any
+      yield(rule, cidr) if block_given?
       scream!(rule, exc)
     end
-    return peer_ip
+    return cidr
   end
   private :check_cidr
   
   # This method checks access for a string containing
   # IP address.
   
-  def check_ipstring(list, exc, peer_ip)
-    return peer_ip if list.empty?
-    addr = NetAddr::CIDR.create(peer_ip)
+  def check_ipstring(list, exc, ipstring)
+    return ipstring if list.empty?
+    addr = NetAddr::CIDR.create(ipstring)
     rule = list.denied_cidr(addr, true)
     unless rule.nil?
-      # place for a block if any
+      yield(rule, ipstring) if block_given?
       scream!(rule, exc)
     end
-    return peer_ip
+    return ipstring
   end
   private :check_ipstring
   
   # This method checks IP access but bases on file descriptor.
   
   def check_fd(list, exc, fd)
-    check_so(list, exc, Socket.for_fd(fd))
+    check_socket(list, exc, Socket.for_fd(fd))
   end
   private :check_fd
   
@@ -255,8 +274,8 @@ class IPAccess
   # 
   # Expected argument should be kind of NetAddr::CIDR.
 
-  def check_in_cidr(peer_ip)
-    check_cidr(@input, IPAccessDenied::Input, peer_ip)
+  def check_in_cidr(cidr)
+    check_cidr(@input, IPAccessDenied::Input, cidr)
   end
 
   # This method checks access for the given CIDR object
@@ -267,8 +286,8 @@ class IPAccess
   # 
   # Expected argument should be kind of NetAddr::CIDR.
   
-  def check_out_cidr(peer_ip)
-    check_cidr(@output, IPAccessDenied::Output, peer_ip)
+  def check_out_cidr(cidr)
+    check_cidr(@output, IPAccessDenied::Output, cidr)
   end
   
   # This method checks access for the given string
@@ -277,8 +296,8 @@ class IPAccess
   # rejected IP and a matching rule. If access is granted
   # it returns the given argument.
   
-  def check_in_ipstring(peer_ip)
-    check_ipstring(@input, IPAccessDenied::Input, peer_ip)
+  def check_in_ipstring(ipstring)
+    check_ipstring(@input, IPAccessDenied::Input, ipstring)
   end
 
   # This method checks access for the given string
@@ -287,8 +306,8 @@ class IPAccess
   # rejected IP and a matching rule. If access is granted
   # it returns the given argument.
   
-  def check_out_ipstring(peer_ip)
-    check_ipstring(@output, IPAccessDenied::Output, peer_ip)
+  def check_out_ipstring(ipstring)
+    check_ipstring(@output, IPAccessDenied::Output, ipstring)
   end
   
   # This method checks access for the given socket object
@@ -299,8 +318,8 @@ class IPAccess
   # 
   # Expected argument should be kind of IPSocket.
   
-  def check_in_so(socket)
-    check_so(@input, IPAccessDenied::Input, socket)
+  def check_in_socket(socket)
+    check_socket(@input, IPAccessDenied::Input, socket)
   end
 
   # This method checks access for the given socket object
@@ -311,8 +330,8 @@ class IPAccess
   # 
   # Expected argument should be kind of IPSocket.
   
-  def check_out_so(socket)
-    check_so(@output, IPAccessDenied::Output, socket)
+  def check_out_socket(socket)
+    check_socket(@output, IPAccessDenied::Output, socket)
   end
   
   # This method checks access for the given file descriptor

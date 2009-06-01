@@ -39,8 +39,8 @@ IPAccess::Global = IPAccess.new 'global'
 #     serv.acl = :local                             # create and use local access lists
 #     serv.acl.input.block :local, :private         # block local and private addresses
 #     serv.acl.input.permit '127.0.0.5'             # make an exception
-#     puts list.input.blacklist                     # show blacklisted IP addresses
-#     puts list.input.whitelist                     # show whitelisted IP addresses
+#     puts serv.acl.input.blacklist                 # show blacklisted IP addresses
+#     puts serv.acl.input.whitelist                 # show whitelisted IP addresses
 #     sock = serv.sysaccept                         # accept connection
 #
 # ===== +TCPSocket+
@@ -137,13 +137,13 @@ class TCPServer
   # accept on steroids.
   def accept(*args)
     acl = @acl || IPAccess::Global
-    acl.check_in_so orig_accept(*args)
+    acl.check_in_socket orig_accept(*args)
   end
   
   # accept_nonblock on steroids.
   def accept_nonblock(*args)
     acl = @acl || IPAccess::Global
-    acl.check_in_so orig_accept_nonblock(*args)
+    acl.check_in_socket orig_accept_nonblock(*args)
   end
   
   # sysaccept on steroids.
@@ -176,8 +176,90 @@ class TCPSocket
   
 end
 
-# Socket class with IP access control.
+# UDPSocket class with IP access control.
 # It uses output access lists.
+
+class UDPSocket
+  
+  # :stopdoc:
+  alias orig_connect            connect
+  alias orig_send               send
+  alias orig_recvfrom           recvfrom
+  alias orig_recvfrom_nonblock  recvfrom_nonblock
+  # :startdoc:
+  
+  include IPSocketAccess
+  
+  # connect on steroids.
+  def connect(*args)
+    acl = @acl || IPAccess::Global
+    peer_ip = self.class.getaddress(args.shift)
+    acl.check_out_sockaddr(peer_ip)
+    return orig_connect(peer_ip, *args)
+  end
+  
+  # send on steroids.
+  def send(*args)
+    hostname = args[2]
+    return orig_send(*args) if hostname.nil?
+    acl = @acl || IPAccess::Global
+    peer_ip = self.class.getaddress(hostname)
+    acl.check_out_sockaddr(peer_ip)
+    args[2] = peer_ip
+    return orig_send(*args)
+  end
+  
+  # recvfrom on steroids.
+  def recvfrom(*args)
+    acl = @acl || IPAccess::Global
+    ret = orig_recvfrom(*args)
+    peer_ip = ret[1][3]
+    family = ret[1][0]
+    if (family == "AF_INET" || family == "AF_INET6")
+      acl.check_in_ipstring(peer_ip)
+    end
+    return ret
+  end
+  
+  # recvfrom_nonblock on steroids.
+  def recvfrom_nonblock(*args)
+    acl = @acl || IPAccess::Global
+    ret = orig_recvfrom(*args)
+    peer_ip = ret[1][3]
+    family = ret[1][0]
+    if (family == "AF_INET" || family == "AF_INET6")
+      acl.check_in_ipstring(peer_ip)
+    end
+    return ret
+  end
+  
+  
+end
+
+# SOCKSSocket class with IP access control.
+# It uses output access lists.
+
+class SOCKSSocket
+  
+  # :stopdoc:
+  alias orig_initialize        initialize
+  # :startdoc:
+  
+  include IPSocketAccess
+  
+  def initialize(hostName, port, accessList=:global)
+    self.acl = accessList
+    acl = @acl || IPAccess::Global
+    addr = self.class.getaddress(hostName)
+    acl.check_out_ipstring(addr)
+    orig_initialize(addr, port)
+    return self
+  end
+  
+end
+
+# Socket class with IP access control.
+# It uses input and output access lists.
 
 class Socket
 
@@ -185,6 +267,7 @@ class Socket
   alias orig_initialize       initialize
   alias orig_accept           accept
   alias orig_accept_nonblock  accept_nonblock
+  alias orig_connect          connect
   alias orig_sysaccept        sysaccept
   # :startdoc:
   
@@ -199,21 +282,34 @@ class Socket
   # accept on steroids.
   def accept(*args)
     acl = @acl || IPAccess::Global
-    acl.check_in_so orig_accept(*args)
+    ret = orig_accept(*args)
+    acl.check_in_socket(ret.first)
+    return ret
   end
   
   # accept_nonblock on steroids.
   def accept_nonblock(*args)
     acl = @acl || IPAccess::Global
     ret = orig_accept_nonblock(*args)
-    acl.check_in_so(ret.first)
+    acl.check_in_socket(ret.first)
     return ret
   end
   
   # sysaccept on steroids.
   def sysaccept(*args)
     acl = @acl || IPAccess::Global
-    acl.check_in_fd orig_sysaccept(*args)
+    ret = orig_accept(*args)
+    acl.check_in_sockaddr(ret.last)
+    return ret
   end
 
+  # connect on steroids.
+  def connect(*args)
+    acl = @acl || IPAccess::Global
+    acl.check_out_sockaddr(args.first)
+    return orig_connect(*args)
+  end
+  
 end
+
+
