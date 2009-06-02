@@ -4,7 +4,7 @@
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   LGPL
+# License::   This is licensed under LGPL or Ruby License.
 # 
 # === ip_access
 # 
@@ -19,28 +19,36 @@ require 'ipaddr_list'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_errors'
 
-# This class includes two lists for maintaining
-# access control of incoming and outgoing
-# IP traffic. It allows you to build IP access
-# lists (white and black) for input and output
-# and then check objects containing IP addresses
-# against that lists. Both IPv4 and IPv6 addresses
-# are supported.
-#
-# This class internally uses IPAccessList objects
-# present in members called input and output.
-# Use IPAccessList to add or remove rules from
-# this lists.
+# This class maintains access set that
+# contains two access lists: +input+ for
+# incomming traffic and +output+ for
+# outgoing traffic. Each access list
+# is an IPAccessList object containing 
+# white and black rules controling IP access.
+# It has methods that are able to check access
+# for given objects containing IP addresses.
+# Both IPv4 and IPv6 addresses are supported.
 # 
-# When access is denied this class methods
-# use IPAccessDenied exceptions: IPAccessDenied::Input
-# and IPAccessDenied::Output.
+# This class has no methods
+# that actualy do network operations, it just
+# allows you to check IP access for already
+# given objects.
+# 
+# Access lists objects containing
+# rules are present in members called +input+ and +output+.
+# Use IPAccessList instance methods to add or remove
+# rules from this lists.
+# 
+# When access for tested IP is denied validating
+# methods of this class throw IPAccessDenied exceptions:
+# IPAccessDenied::Input for input rules and
+# IPAccessDenied::Output in case of output rules.
 # 
 # ==== Usage examples
 # 
-#   access = IPAccess.new 'mylist'    # create access lists
-#   access.input.block :private       # input: block private subnets
-#   access.input.permit '192.168.1.1' # input: but permit 192.168.1.1 
+#   access = IPAccess.new 'mylist'    # create access set
+#   access.input.block :private       # input list: block private subnets
+#   access.input.permit '192.168.1.1' # input list: but permit 192.168.1.1 
 #   access.check_in '192.168.1.1'     # should pass
 #   access.check_in '192.168.1.2'     # should raise an exception
 # 
@@ -49,45 +57,46 @@ require 'ipaccess/ip_access_errors'
 # routine, but if you are fan of performance
 # you may want to use dedicated methods designed
 # to handle single IP stored in socket, file descriptor,
-# NetAddr::CIDR object or string.
+# NetAddr::CIDR object, sockaddr structure or IP string.
 #
 #   require 'uri'
 #   require 'net/http'
 # 
-#   access = IPAccess.new 'outgoing http'   # create access lists
-#   access.output.block :all                # output: block all
+#   access = IPAccess.new 'outgoing http'   # create access set
+#   access.output.block :all                # output list: block all
 #   
 #   url = URI('http://randomseed.pl/')      # parse URL
 #   res = Net::HTTP.new(url.host, url.port) # create HTTP resource
 #   req = Net::HTTP::Get.new(url.path)      # create HTTP request
 # 
 #   res.start do                            # start HTTP session
-#     access.check_out(res)                 # check access for socket from http object
+#     access.check_out(res)                 # check access for socket extracted from http object
 #     response = res.request(req)           # read response
 #   end
 #
-# In the example above, which BTW is probably more real
+# In the example above, which is probably more real
 # than previous, we're using check_out method for testing
-# Net::HTTP response object. The method is clever and
-# can extract IP socket from such object.
+# Net::HTTP response object. The method is clever enough to
+# extract IP socket from such object.
 # 
-# Although the problem still exists because we're
-# able to check output access after the session has
-# already started. That means the program logic will
-# get the access information after HTTP connection
-# had been established and it would be able to drop
-# it eventually but not avoid it entirely.
+# Although the problem still exists because
+# access for incomming connection is validated
+# after the HTTP session has already started. We cannot
+# be 100% sure whether any data has been sent or not.
+# The cause of that problem is lack of controlled
+# low-level connect operation that we can issue in
+# that particular case.
 # 
-# The cause of that problem are sockets in Ruby, which
-# are sometimes so abstract that there is no way to
-# create TCP socket without making a connection. To fix
-# that you may use IPSocketAccess module provided
-# with this library. It will allow you to equip all
-# or selected sockets with access control.
+# To fix issues like that you may want to
+# globally enable IP access control for original
+# Ruby's socket classes or use special versions
+# of them shipped with this library. To patch original
+# sockets use arm class method of IPAccess and to
+# use extended classes use classes like IPAccess::TCPSocket.
 
 class IPAccess
   
-  # Incoming traffic lists. See IPAccessList class
+  # Incoming traffic list. See IPAccessList class
   # for more information on how to manage it.
   
   attr_reader   :input
@@ -95,7 +104,7 @@ class IPAccess
   alias_method  :in, :input
   alias_method  :incoming, :input
   
-  # Outgoing traffic lists. See IPAccessList class
+  # Outgoing traffic list. See IPAccessList class
   # for more information on how to manage it.
   
   attr_reader   :output
@@ -108,11 +117,11 @@ class IPAccess
   attr_accessor :name
   
   # This method creates new IPAccess object. It optionally takes
-  # two IPAccessList objects (initial data for black list and white list)
-  # and a name for list (used in error reporting).
+  # two IPAccessList objects (initial data for access lists)
+  # and a name of an access set used in error reporting.
   # 
   # If there is only one argument it is assumed that it also
-  # contains this list's descriptive name.
+  # contains this set's descriptive name.
   
   def initialize(input=nil, output=nil, name=nil)
     @name = nil
@@ -123,8 +132,8 @@ class IPAccess
   end
   
   # Raises default exception including remote address and rule object.
-  # First argument should be an array containing CIDR objects: testet address
-  # and matching rule. Second argument should be exception class.
+  # First argument should be an array containing CIDR objects: a testet address
+  # and a matching rule. Second argument should be exception class.
   
   def scream!(rule, use_exception=IPAccessDenied::Input)
     peer_ip = rule.shift

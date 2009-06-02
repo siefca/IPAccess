@@ -4,7 +4,7 @@
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   LGPL
+# License::   This is licensed under LGPL or Ruby License.
 # 
 # === netaddr_patch
 #  

@@ -4,7 +4,7 @@
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   LGPL
+# License::   This is licensed under LGPL or Ruby License.
 # 
 # Classes contained in this library allow you to create
 # and manage IP access lists in an easy way. You may use
@@ -24,3 +24,5 @@ require 'netaddr'
 require 'ipaccess/netaddr_patch'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access'
+require 'ipaccess/sockets'
+

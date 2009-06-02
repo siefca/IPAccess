@@ -15,6 +15,21 @@ task :install do
   sh "sudo ruby setup.rb install"
 end
 
+### Docs
+
+desc "Generate documentation for the application"
+rd = Rake::RDocTask.new("appdoc") do |rdoc|
+  rdoc.rdoc_dir = 'doc/api'
+  rdoc.title    = "IP Access Control"
+  rdoc.options << '--line-numbers'
+  rdoc.options << '--inline-source'
+  rdoc.options << '--charset=utf-8'
+  rdoc.rdoc_files.include('README')
+  rdoc.rdoc_files.include('TODO')
+  rdoc.rdoc_files.include('LGPL-LICENSE')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+end
+
 ### Specs
 
 spec_opts = proc{File.read("spec/spec.opts").split}

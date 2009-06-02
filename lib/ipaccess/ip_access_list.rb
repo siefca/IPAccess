@@ -4,7 +4,7 @@
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   LGPL
+# License::   This is licensed under LGPL or Ruby License.
 # 
 # === ip_access_list
 # 
@@ -17,32 +17,52 @@ require 'resolv'
 require 'netaddr'
 require 'ipaccess/netaddr_patch'
 
-# This class implements easy to manage IP access list based on NetAddr::Tree
-# which uses binary search to speed up matching process. It stores data in a tree
-# of NetAddr::CIDR objects and allows to add, remove and search them.
+# This class implements easy to
+# manage IP access list based on NetAddr::Tree
+# which uses binary search to speed up
+# matching process. It stores data in a tree
+# of NetAddr::CIDR objects and allows to add,
+# remove and search them.
 # 
 # ==== Access lists
 # 
-# To control access IPAccessList maintaines two abstract lists: white list and black
-# list. Each list contains rules (CIDR objects with information about
-# IP address and network mask). Access is evaluated as blocked when tested
-# IP address matches rule from black list and not matches any rule from white
-# list. Basically, white list rules override black list rules.
+# To control access IPAccessList maintaines
+# two abstract lists: white list and black
+# list. Each list contains rules (CIDR objects
+# with information about IP address and
+# network mask). Access is evaluated as
+# blocked when tested IP address matches
+# rule from black list and not matches any rule
+# from white list. Basically, white list rules
+# override black list rules.
 # 
-# To be precise: in order to increase lookups performance internally
-# there are no real lists but one tree containing marked objects.
+# To be precise: in order to increase
+# lookups performance internally there
+# are no real lists but one tree containing
+# specially marked objects.
 # 
 # ==== Basic Operations
 # 
-# There are 2 major types of operations you can perform: rules management and
-# access checks. Rules management methods allows you to add, remove and find IP access
-# rules. Access checks let you test if given address or addresses are allowed
-# or denied to perform network operations according to rules.
+# This class has no methods that actualy
+# do network operations, it just allows
+# you to check IP against black and
+# white list. There are 2 major types
+# of operations you can perform: rules
+# management and access checks.
+# 
+# Rules management methods allow you to
+# add, remove and find IP access rules.
+# Access checks let you test if given
+# address or addresses are allowed or
+# denied to perform network operations
+# according to rules.
 #
 # ==== IPv4 and IPv6
 # 
-# IPv6 addresses that are IPv4 compatible or IPv4 masked are automatically
-# translated into IPv4 addresses while adding or searching.
+# IPv6 addresses that are IPv4 compatible
+# or IPv4 masked are automatically
+# translated into IPv4 addresses while
+# adding or searching.
 #
 # ==== Examples
 # 
