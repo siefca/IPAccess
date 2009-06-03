@@ -4,8 +4,11 @@ require "rake"
 require "rake/clean"
 require 'spec/version'
 require 'spec/rake/spectask'
-require "rake/rdoctask"
+
 require "fileutils"
+
+require 'rdoc'
+require "rake/rdoctask"
 
 task :default => :spec_coverage
 
@@ -20,9 +23,12 @@ desc "Generate documentation for the application"
 rd = Rake::RDocTask.new("appdoc") do |rdoc|
   rdoc.rdoc_dir = 'doc/api'
   rdoc.title    = "IP Access Control"
-  rdoc.options << '--line-numbers'
-  rdoc.options << '--inline-source'
-  rdoc.options << '--charset=utf-8'
+  rdoc.options += [ '-HN',
+                    '-f', 'darkfish',
+                    '--charset=utf-8',
+                    '--main=README'
+                  ]
+  rdoc.rdoc_files.include('DOWNLOAD')
   rdoc.rdoc_files.include('README')
   rdoc.rdoc_files.include('TODO')
   rdoc.rdoc_files.include('LGPL-LICENSE')

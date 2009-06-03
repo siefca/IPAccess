@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://randomseed.pl/ipaccess}
   s.rubyforge_project = %q{ipaccess}
   s.has_rdoc = true
+  s.add_dependency('netaddr')
   s.authors = ["Paweł Wilk"]
   s.files = ["lib/ipaccess.rb", "lib/ipaccess/arm_socket.rb",
             "lib/ipaccess/ip_access.rb", "lib/ipaccess/ip_access_errors.rb",

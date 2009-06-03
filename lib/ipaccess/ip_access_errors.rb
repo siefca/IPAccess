@@ -1,10 +1,10 @@
 # encoding: utf-8
-# 
-# Simple and handy IP access control.
+#
+# == Simple and handy IP access control.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   This is licensed under LGPL or Ruby License.
+# License::   This program is licensed under the terms of GNU Lesser General Public License or Ruby License.
 # 
 # === ip_access_errors
 # 

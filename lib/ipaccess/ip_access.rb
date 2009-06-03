@@ -1,10 +1,10 @@
 # encoding: utf-8
 # 
-# Simple and handy IP access control.
-#
+# == Simple and handy IP access control.
+# 
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   This is licensed under LGPL or Ruby License.
+# License::   This program is licensed under the terms of GNU Lesser General Public License or Ruby License.
 # 
 # === ip_access
 # 
@@ -21,7 +21,7 @@ require 'ipaccess/ip_access_errors'
 # access checks for given IP addresses.
 # To test if access for certain IP should be
 # denied or granted is uses two access lists:
-# +input+ for incomming traffic and +output+ for
+# +input+ for incoming traffic and +output+ for
 # outgoing traffic. Each of those list is a kind of
 # IPAccessList object containing access rules
 # (white and black). Use IPAccessList instance
@@ -75,7 +75,7 @@ require 'ipaccess/ip_access_errors'
 # extract IP socket from such object.
 # 
 # Although the problem still exists because
-# access for incomming connection is validated
+# access for incoming connection is validated
 # after the HTTP session has already started. We cannot
 # be 100% sure whether any data has been sent or not.
 # The cause of that problem is lack of controlled
@@ -91,7 +91,7 @@ require 'ipaccess/ip_access_errors'
 
 class IPAccess
   
-  # Incoming traffic list. See IPAccessList class
+  # Access list for incoming IP traffic. See IPAccessList class
   # for more information on how to manage it.
   
   attr_reader   :input
@@ -99,7 +99,7 @@ class IPAccess
   alias_method  :in, :input
   alias_method  :incoming, :input
   
-  # Outgoing traffic list. See IPAccessList class
+  # Access list for outgoing IP traffic. See IPAccessList class
   # for more information on how to manage it.
   
   attr_reader   :output
@@ -160,8 +160,7 @@ class IPAccess
   # mode if the given argument is not +false+
   # and is not +nil+. When access set
   # operates in this mode there is no difference
-  # between incomming and outgoing acceess list.
-  # 
+  # between incoming and outgoing acceess list.
   # In bidirectional mode each access check
   # is performed against one list which contains
   # both input and output rules. Still the only

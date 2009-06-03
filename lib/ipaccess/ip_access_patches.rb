@@ -1,10 +1,10 @@
 # encoding: utf-8
 #
-# Simple and handy IP access control.
+# == Simple and handy IP access control.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   This is licensed under LGPL or Ruby License.
+# License::   This program is licensed under the terms of GNU Lesser General Public License or Ruby License.
 # 
 # === ip_access_patches
 # 
@@ -15,7 +15,15 @@
 require 'socket'
 require 'ipaccess/ip_access_errors'
 
-IPAccess::Global = IPAccess.new 'global'
+class IPAccess
+
+  # This is global access set, used by
+  # default by all socket handling
+  # classes with enabled IP access control.
+  
+  Global = IPAccess.new 'global'
+
+end
 
 # :stopdoc:
 
@@ -36,25 +44,23 @@ module IPAccess::Patches
   module IPSocketAccess
 
     # This method enables usage of internal IP access list for object.
-    # If argument is IPAccess object then it is used. If argument is other
-    # kind it is assumed that it should be converted to IPAccess object
-    # and give initial information about black list.
+    # If argument is IPAccess object then it is used.
     # 
     # ==== Example
     #
-    #     socket.acl = :global        # use global access lists
-    #     socket.acl = :local         # create and use local access lists
-    #     socket.acl = IPAccess.new   # use external (shared) access lists
+    #     socket.acl = :global        # use global access set
+    #     socket.acl = :private       # create and use individual access set
+    #     socket.acl = IPAccess.new   # use external (shared) access set
 
     def acl=(obj)
       if obj.is_a?(Symbol)
         case obj
         when :global
           @acl = nil
-        when :local
+        when :private
           @acl = IPAccess.new
         else
-          raise ArgumentError, "bad access list selector, use: :global or :local"
+          raise ArgumentError, "bad access list selector, use: :global or :private"
         end
       elsif obj.is_a?(IPAccess)
         @acl = obj 
@@ -374,7 +380,7 @@ class IPAccess
   # Example:
   # 
   #     IPAccess.arm TCPSocket                            # arm TCPSocket class  
-  #     IPAccess::Global.output.blacklist 'randomseed.pl' # add randomseed.pl to black list of the global output set
+  #     IPAccess::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
   #     TCPSocket.new('randomseed.pl', 80)                # try to connect
   
   def self.arm(klass)

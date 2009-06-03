@@ -1,20 +1,18 @@
+# :stopdoc:
 # encoding: utf-8
+# :startdoc:
 #
-# Simple and handy IP access control.
+# == Simple and handy IP access control.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   This is licensed under LGPL or Ruby License.
+# License::   This program is licensed under the terms of GNU Lesser General Public License or Ruby License.
 # 
 # Classes contained in this library allow you to create
 # and manage IP access lists in an easy way. You may use
 # IPAccess class to maintain black list and white list
 # and validate connections against it. You also may use
 # IPAccessList class directly to build your own lists.
-#
-# The classes use NetAddr::CIDR objects to store IP
-# addresses/masks and NetAddr::Tree to maintain
-# access lists.
 
 require 'rubygems'
 require 'socket'

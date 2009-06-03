@@ -1,8 +1,27 @@
+
+Specification:
+
 - add missing rspec examples
+
+Ruby 1.9 sockets:
+
+- overload Ruby 1.9 socket methods
+
+Documentation:
 
 - add more documentation describing access checking workflow
 
-- maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
+- move docs to docs subdirectory
 
-- overload Ruby 1.9 socket methods
+Errors:
+
+- add some class with method_missing that raises an ArgumentError
+  and then assign its instance to @acl instead of nil when setting
+  list to global
+
+Other:
+
+- re-check where we can use *args
+
+- maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
 

@@ -1,19 +1,15 @@
 # encoding: utf-8
 #
-# Simple and handy IP access control.
+# == Simple and handy IP access control.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   This is licensed under LGPL or Ruby License.
+# License::   This program is licensed under the terms of GNU Lesser General Public License or Ruby License.
 # 
 # === netaddr_patch
 #  
-# The IPAccessList class and other classes
-# use NetAddr::CIDR objects to store IP
-# addresses/masks and NetAddr::Tree to maintain
-# access lists. This file extends NetAddr
-# by adding methods that bring some comfort
-# into IPv6 handling.
+# This file extends NetAddr by adding methods
+# that bring some comfort into IPv6 handling.
 
 require 'netaddr'
 
@@ -21,6 +17,8 @@ require 'netaddr'
 # original NetAddr module.
 
 module NetAddr
+
+  # :stopdoc:
   
   class CIDR
   
@@ -113,6 +111,8 @@ module NetAddr
     alias_method :to_ipv4, :ipv4
     
   end # class CIDRv4
+  
+  # :startdoc:
   
 end # module NetAddr
 

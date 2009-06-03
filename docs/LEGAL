@@ -1,0 +1,19 @@
+LEGAL NOTICE INFORMATION
+------------------------
+
+IPAccess is Copyright (C) 2009 by Pawel Wilk.
+
+IPAccess is copyrighted software owned by Pawel Wilk
+(pw@gnu.org). You may redistribute and/or modify this
+software as long as you comply with either the terms of the LGPL
+(see the file LGPL-LICENSE), or Ruby's license (see the file COPYING).
+
+Your use of all the files in this distribution is controlled by these
+license terms, except for those files specifically mentioned below:
+
+setup.rb
+	This file is Copyright (C) 2000-2005 by Minero Aoki
+	You can distribute/modify this file under the terms of
+	the GNU LGPL, Lesser General Public License version 2.1.
+
+

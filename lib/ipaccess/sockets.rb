@@ -1,10 +1,10 @@
 # encoding: utf-8
-#
-# Simple and handy IP access control.
+# 
+# == Simple and handy IP access control.
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   This is licensed under LGPL or Ruby License.
+# License::   This program is licensed under the terms of GNU Lesser General Public License or Ruby License.
 # 
 # === sockets
 # 
@@ -50,29 +50,6 @@ require 'ipaccess/ip_access_patches'
 #     socket.close
 
 class IPAccess::Socket < Socket
-  # This method selects IPAccess object that will be used to
-  # control IP access for a socket. You may assign global access set,
-  # create local access set or use shared set.
-  # 
-  # If argument is an IPAccess object then it is used.
-  # If argument is other kind it is assumed that it
-  # should be converted to IPAccess object (initial arguments
-  # are considered to be IP rules for a black list). If argument
-  # is +:global+ it uses global access set. If argument is +:local+
-  # it creates an empty, private access set.
-  # 
-  # ==== Example
-  #
-  #     socket.acl = :global        # use global access set
-  #     socket.acl = :local         # create and use local access set
-  #     socket.acl = IPAccess.new   # use external (shared) access set
-  def acl=(set); end
-  
-  # This method allows you to manipulate local and shared access sets
-  # associated with this socket. To control global access set use
-  # +IPAccess::Global+
-  def acl; end
-  
   include IPAccess::Patches::Socket
 end
 
@@ -85,29 +62,6 @@ end
 # controlling IP access.
 
 class IPAccess::UDPSocket < UDPSocket
-  # This method selects IPAccess object that will be used to
-  # control IP access for a socket. You may assign global access set,
-  # create local access set or use shared set.
-  # 
-  # If argument is an IPAccess object then it is used.
-  # If argument is other kind it is assumed that it
-  # should be converted to IPAccess object (initial arguments
-  # are considered to be IP rules for a black list). If argument
-  # is +:global+ it uses global access set. If argument is +:local+
-  # it creates an empty, private access set.
-  # 
-  # ==== Example
-  #
-  #     socket.acl = :global        # use global access set
-  #     socket.acl = :local         # create and use local access set
-  #     socket.acl = IPAccess.new   # use external (shared) access set
-  def acl=(set); end
-  
-  # This method allows you to manipulate local and shared access sets
-  # associated with this socket. To control global access set use
-  # +IPAccess::Global+
-  def acl; end
-  
   include IPAccess::Patches::UDPSocket
 end
 
@@ -121,29 +75,6 @@ if Object.const_defined?(:SOCKSSocket)
   # controlling IP access.
   
   class IPAccess::SOCKSSocket < SOCKSSocket
-    # This method selects IPAccess object that will be used to
-    # control IP access for a socket. You may assign global access set,
-    # create local access set or use shared set.
-    # 
-    # If argument is an IPAccess object then it is used.
-    # If argument is other kind it is assumed that it
-    # should be converted to IPAccess object (initial arguments
-    # are considered to be IP rules for a black list). If argument
-    # is +:global+ it uses global access set. If argument is +:local+
-    # it creates an empty, private access set.
-    # 
-    # ==== Example
-    #
-    #     socket.acl = :global        # use global access set
-    #     socket.acl = :local         # create and use local access set
-    #     socket.acl = IPAccess.new   # use external (shared) access set
-    def acl=(set); end
-
-    # This method allows you to manipulate local and shared access sets
-    # associated with this socket. To control global access set use
-    # +IPAccess::Global+
-    def acl; end
-    
     include IPAccess::Patches::SOCKSSocket
   end
 end
@@ -171,29 +102,6 @@ end
 # beginning of existence.
 
 class IPAccess::TCPSocket < TCPSocket
-  # This method selects IPAccess object that will be used to
-  # control IP access for a socket. You may assign global access set,
-  # create local access set or use shared set.
-  # 
-  # If argument is an IPAccess object then it is used.
-  # If argument is other kind it is assumed that it
-  # should be converted to IPAccess object (initial arguments
-  # are considered to be IP rules for a black list). If argument
-  # is +:global+ it uses global access set. If argument is +:local+
-  # it creates an empty, private access set.
-  # 
-  # ==== Example
-  #
-  #     socket.acl = :global        # use global access set
-  #     socket.acl = :local         # create and use local access set
-  #     socket.acl = IPAccess.new   # use external (shared) access set
-  def acl=(set); end
-  
-  # This method allows you to manipulate local and shared access sets
-  # associated with this socket. To control global access set use
-  # +IPAccess::Global+
-  def acl; end
-    
   include IPAccess::Patches::TCPSocket
 end
 
@@ -209,7 +117,7 @@ end
 #     require 'ipaddr/sockets'
 #     
 #     serv = IPAccess::TCPServer.new(31337)         # create listening TCP socket
-#     serv.acl = :local                             # create and use local access lists
+#     serv.acl = :private                           # create and use private access lists
 #     serv.acl.input.block :local, :private         # block local and private addresses
 #     serv.acl.input.permit '127.0.0.5'             # make an exception
 #     
@@ -219,30 +127,6 @@ end
 #     sock = serv.sysaccept                         # accept connection
 
 class IPAccess::TCPServer < TCPServer
-  # This method selects IPAccess object that will be used to
-  # control IP access for a socket. You may assign global access set,
-  # create local access set or use shared set.
-  # 
-  # If argument is an IPAccess object then it is used.
-  # If argument is other kind it is assumed that it
-  # should be converted to IPAccess object (initial arguments
-  # are considered to be IP rules for a black list). If argument
-  # is +:global+ it uses global access set. If argument is +:local+
-  # it creates an empty, private access set.
-  # 
-  # ==== Example
-  #
-  #     socket.acl = :global        # use global access set
-  #     socket.acl = :local         # create and use local access set
-  #     socket.acl = IPAccess.new   # use external (shared) access set
-  def acl=(set); end
-  
-  # This method allows you to manipulate local and shared access sets
-  # associated with this socket. To control global access set use
-  # +IPAccess::Global+
-  def acl; end
-  
   include IPAccess::Patches::TCPServer
 end
-
 
