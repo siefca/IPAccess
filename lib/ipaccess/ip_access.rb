@@ -126,14 +126,12 @@ class IPAccess
     return self
   end
     
-  # Raises default exception including remote address and rule object.
-  # First argument should be an array containing CIDR objects: a testet address
-  # and a matching rule. Second argument should be exception class.
+  # Raises default exception including remote address and address-rule hash.
+  # First argument should be a hash containing CIDR objects: a testet address
+  # (+:IP+) and a matching rule (+:Rule+). Second argument should be exception class.
   
-  def scream!(rule, use_exception=IPAccessDenied::Input)
-    peer_ip = rule.shift
-    rule = rule.first
-    raise use_exception.new(peer_ip, rule, self)
+  def scream!(pair, use_exception=IPAccessDenied::Input)
+    raise use_exception.new(pair[:IP], pair[:Rule], self)
   end
     
   # This method returns +true+ if all access lists are empty.
@@ -210,10 +208,10 @@ class IPAccess
   
   def check(list, exc, *args)
     return args if list.empty?
-    rules = list.denied(args)
-    unless rules.empty?
-      yield(rules.first, args) if block_given?
-      scream!(rules.first, exc)
+    pairs = list.denied(args)
+    unless pairs.empty?
+      yield(pairs.first, args) if block_given?
+      scream!(pairs.first, exc)
     end
     return args
   end
@@ -231,10 +229,10 @@ class IPAccess
       return socket
     end
     peer_ip = NetAddr::CIDR.create(peeraddr)
-    rule    = list.denied_cidr(peer_ip, true)
-    unless rule.nil?
-      yield(rule, socket) if block_given?
-      scream!(rule, exc)
+    pair    = list.denied_cidr(peer_ip, true)
+    unless pair.empty?
+      yield(pair, socket) if block_given?
+      scream!(pair, exc)
     end
     return socket
   end
@@ -250,10 +248,10 @@ class IPAccess
       return sockaddr
     end
     peer_ip = NetAddr::CIDR.create(peeraddr)
-    rule    = list.denied_cidr(peer_ip, true)
-    unless rule.nil?
-      yield(rule, sockaddr) if block_given?
-      scream!(rule, exc)
+    pair    = list.denied_cidr(peer_ip, true)
+    unless pair.empty?
+      yield(pair, sockaddr) if block_given?
+      scream!(pair, exc)
     end
     return sockaddr
   end
@@ -262,10 +260,10 @@ class IPAccess
   # This method checks access for a CIDR object.
   
   def check_cidr(list, exc, cidr)
-    rule = list.denied_cidr(cidr, true)
-    unless rule.nil?
-      yield(rule, cidr) if block_given?
-      scream!(rule, exc)
+    pair = list.denied_cidr(cidr, true)
+    unless pair.empty?
+      yield(pair, cidr) if block_given?
+      scream!(pair, exc)
     end
     return cidr
   end
@@ -277,10 +275,10 @@ class IPAccess
   def check_ipstring(list, exc, ipstring)
     return ipstring if list.empty?
     addr = NetAddr::CIDR.create(ipstring)
-    rule = list.denied_cidr(addr, true)
-    unless rule.nil?
-      yield(rule, ipstring) if block_given?
-      scream!(rule, exc)
+    pair = list.denied_cidr(addr, true)
+    unless pair.empty?
+      yield(pair, ipstring) if block_given?
+      scream!(pair, exc)
     end
     return ipstring
   end

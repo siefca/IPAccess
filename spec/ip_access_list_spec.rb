@@ -32,8 +32,8 @@ describe IPAccessList do
       it "should take an array of sockets as parameter" do
         s1 = UDPSocket.new
         s2 = UDPSocket.new
-        def s1.peeraddr; [1,2,'127.0.0.1','127.0.0.1'] end
-        def s2.peeraddr; [1,2,'127.0.0.2','127.0.0.2'] end
+        def s1.getpeername; "\x10\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" end
+        def s2.getpeername; "\x10\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" end
         lambda { IPAccessList.new [s1, s2] }.should_not raise_error
       end
 
@@ -77,73 +77,73 @@ describe IPAccessList do
           
       it "should deny access when single IP is blacklisted" do
         @access.blacklist '192.168.0.1'
-        @access.denied('192.168.0.1').first.should == '192.168.0.1/32'
+        @access.denied('192.168.0.1').first[:IP].should == '192.168.0.1/32'
       end
       
       it "should deny access when single IP is blacklisted and neighbour is whitelisted" do
         @access.whitelist '192.168.0.1', '192.168.0.3'
         @access.blacklist '192.168.0.2'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
         
         @access.whitelist '172.16.0.1', '172.16.0.3'
         @access.blacklist '172.16.0.2', '127.0.0.1'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:Rule].should == '192.168.0.2/32'
       end
 
       it "should deny access when single IP is blacklisted and neighbour is blacklisted" do
         @access.blacklist '192.168.0.1', '192.168.0.2', '192.168.0.3'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
 
         @access.whitelist '172.16.0.1', '172.16.0.3'
         @access.blacklist '172.16.0.2', '127.0.0.1'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
       end
 
       it "should deny access when single IP is blacklisted and parent is blacklisted" do
         @access.blacklist '192.168.0.0/24', '192.168.0.2'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
         
         @access.whitelist '172.16.0.1', '172.16.0.3'
         @access.blacklist '172.16.0.2', '127.0.0.1'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
       end
       
       it "should deny access when single IP is blacklisted, parent is blacklisted and neighbours are blacklisted" do
         @access.blacklist '192.168.0.0/24', '192.168.0.1', '192.168.0.2', '192.168.0.3'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
         
         @access.blacklist '172.16.0.1', '172.16.0.3'
         @access.blacklist '172.16.0.2', '127.0.0.1'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
       end
       
       it "should deny access when single IP is blacklisted, parent is blacklisted and neighbours are whitelisted" do
         @access.blacklist '192.168.0.0/24', '192.168.0.2'
         @access.whitelist '192.168.0.1', '192.168.0.3'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
         
         @access.whitelist '172.16.0.1', '172.16.0.3'
         @access.whitelist '172.16.0.2', '127.0.0.1'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
       end
       
       it "should deny access when single IP is blacklisted, parent is blacklisted and parent's neigbour is blacklisted" do
         @access.blacklist '192.168.0.0/24', '192.168.0.1', '192.168.0.2', '192.168.0.3'
         @access.blacklist '192.168.1.0/24'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
         
         @access.blacklist '172.16.0.2', '127.0.0.1', '172.16.0.1', '172.16.0.3'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
       end
       
       it "should deny access when single IP is blacklisted, parent is blacklisted and parent's neigbour is whitelisted" do
         @access.blacklist '192.168.0.0/24', '192.168.0.1', '192.168.0.2', '192.168.0.3'
         @access.whitelist '192.168.1.0/24'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'
 
         @access.blacklist '172.16.0.1', '172.16.0.3'
         @access.whitelist '172.16.0.2', '127.0.0.1'
-        @access.denied('192.168.0.2').first.should == '192.168.0.2/32'      
+        @access.denied('192.168.0.2').first[:IP].should == '192.168.0.2/32'      
       end
 
       it "should not deny access when single IP is not present" do
@@ -237,29 +237,29 @@ describe IPAccessList do
       
       it "should deny access when IP class is blacklisted" do
         @access.blacklist '192.168.0.0/24'
-        @access.denied('192.168.0.1').first.should == '192.168.0.0/24'
+        @access.denied('192.168.0.1').first[:Rule].should == '192.168.0.0/24'
       end
 
       it "should deny access when IP class is blacklisted and parent is blacklisted" do
         @access.blacklist '192.168.0.0/24', '192.168.0.0/16'
-        @access.denied('192.168.0.1').first.should == '192.168.0.0/24'
+        @access.denied('192.168.0.1').first[:Rule].should == '192.168.0.0/24'
       end
       
       it "should deny access when IP class is blacklisted and neighbour classes are blacklisted" do
         @access.blacklist '192.168.0.0/24', '172.16.0.0/24', '10.0.0.0/12'
-        @access.denied('192.168.0.1').first.should == '192.168.0.0/24'
+        @access.denied('192.168.0.1').first[:Rule].should == '192.168.0.0/24'
       end
 
       it "should deny access when IP class is blacklisted and neighbour classes are whitelisted" do
         @access.blacklist '192.168.0.0/24'
         @access.whitelist '172.16.0.0/24', '10.0.0.0/12', '255.255.0.0/24'
-        @access.denied('192.168.0.1').first.should == '192.168.0.0/24'
+        @access.denied('192.168.0.1').first[:Rule].should == '192.168.0.0/24'
       end
       
       it "should deny access when IP class is blacklisted and contains whitelisted items" do
         @access.blacklist '192.168.0.0/24', '127.0.0.1', '10.0.0.1/12'
         @access.whitelist '192.168.0.1', '192.168.0.3'
-        @access.denied('192.168.0.2').first.should == '192.168.0.0/24'
+        @access.denied('192.168.0.2').first[:Rule].should == '192.168.0.0/24'
       end
 
       it "should not deny access when IP class is whitelisted and parent is whitelisted" do

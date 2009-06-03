@@ -895,11 +895,12 @@ class IPAccessList < NetAddr::Tree
     return super(addr)
   end
   
-  # This method returns an array containing CIDR object of
-  # given address and CIDR object of the matching rule
-  # if the given CIDR contains blacklisted and not whitelisted
-  # address. Otherwise it returns +nil+.
-  #
+  # This method returns a hash containing CIDR object of
+  # given address named +:IP+ and CIDR object of the matching rule
+  # named +:Rule+ if the given CIDR contains blacklisted
+  # and not whitelisted address. Otherwise it returns an empty
+  # hash.
+  # 
   # It should be used to check access for one IP. It is
   # recommended to use it in low-level routines.
   #
@@ -928,6 +929,7 @@ class IPAccessList < NetAddr::Tree
       end
     end
     
+    ret = {}
     li = list if li.nil?
     if (!li.nil? && li.tag[:ACL] == :black && li.matches?(addr))
       if nodup
@@ -937,10 +939,10 @@ class IPAccessList < NetAddr::Tree
         rule = li.safe_dup(:Subnets, :Parent)
         addr = addr.safe_dup
       end
-      return [addr,rule]
-    else
-      return nil
+      ret[:IP] = addr
+      ret[:Rule] = rule
     end
+    return ret
   end
   
   # This method returns +true+ if the given CIDR contains
@@ -951,14 +953,14 @@ class IPAccessList < NetAddr::Tree
   # to use it in low-level routines.
   
   def denied_cidr?(addr)
-    not denied_cidr(addr, true).nil?
+    not denied_cidr(addr, true).empty?
   end
   
   # This method checks if access for IP or IPs is denied.
-  # It returns an array of pairs containing tested CIDR
-  # objects and rules objects. Pair is present in output
-  # if given IP address matches black list rules and
-  # noesn't match white list rules.
+  # It returns an array of hashes containing tested CIDR
+  # objects (named +:IP+) and rules objects (named +:Rule+).
+  # Pair is present in output if given IP address matches
+  # black list rules and noesn't match white list rules.
   # 
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -984,7 +986,7 @@ class IPAccessList < NetAddr::Tree
     args = obj_to_cidr(args)
     args.each do |addr|
       pair = denied_cidr(addr, nodup)
-      found.push(pair) unless pair.nil?
+      found.push(pair) unless pair.empty?
     end
     return found
   end
@@ -1011,7 +1013,7 @@ class IPAccessList < NetAddr::Tree
   # to use it in low-level routines.
   
   def granted_cidr(addr)
-    denied_cidr(addr, true).nil? ? addr : nil
+    denied_cidr(addr, true).empty? ? addr : nil
   end
   
   # This method returns +true+ if the given CIDR is not
@@ -1021,7 +1023,7 @@ class IPAccessList < NetAddr::Tree
   # recommended to use it in low-level routines.
   
   def granted_cidr?(addr)
-    denied_cidr(addr, true).nil?
+    denied_cidr(addr, true).empty?
   end
   
   # This method returns an array of the given CIDR objects that
@@ -1044,7 +1046,7 @@ class IPAccessList < NetAddr::Tree
     args = obj_to_cidr(args)
     args.each do |addr|
       rule = denied_cidr(addr, true)
-      found.push(addr) if rule.nil?
+      found.push(addr) if rule.empty?
     end
     return found
   end
