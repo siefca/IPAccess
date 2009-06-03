@@ -288,8 +288,7 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :initialize do |*args|
-          aa = (args.size > 2) ? args.pop : :global
-          self.acl = aa
+          self.acl = (args.size > 2) ? args.pop : :global
           acl = @acl || IPAccess::Global
           args[0] = self.class.getaddress(args[0])
           acl.check_out_ipstring args[0]
