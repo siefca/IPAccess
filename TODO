@@ -2,11 +2,7 @@
 
 - add more documentation describing access checking workflow
 
-- maybe some day: test input lists even if socket is a client socket (read local socket address)
-
-- add IPAccess methods for adding and deleting from both input and output rulesets
-  OR bidirectional mode with just one list (input) and other list pointing to first
-  problem: global list
+- maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
 
 - overload Ruby 1.9 socket methods
 

@@ -22,7 +22,9 @@ require 'ipaccess/ip_access_errors'
 
 IPAccess::Global = IPAccess.new 'global'
 
-# This modules contains patches for Ruby socket
+# :stopdoc:
+
+# This modules contain patches for Ruby socket
 # classes in order to enable IP access control
 # for them.
 #
@@ -31,6 +33,10 @@ IPAccess::Global = IPAccess.new 'global'
 # class has acl member, which is an IPAccess object.
 
 module IPAccess::Patches
+  
+  # The IPSocketAccess module contains methods
+  # that are present in all classes handling
+  # sockets with IP access control enabled.
 
   module IPSocketAccess
 
@@ -71,30 +77,6 @@ module IPAccess::Patches
   ###################################################################
   # Socket class with IP access control.
   # It uses input and output access lists.
-  #
-  # ==== Example
-  #     require 'socket'
-  #     include Socket::Constants
-  #     
-  #     IPAccess::Global.input.blacklist :localhost         # add localhost to global black list of incomming traffic
-  #     socket = Socket.new(AF_INET, SOCK_STREAM, 0)        # create TCP socket
-  #     sockaddr = Socket.sockaddr_in(31337, '127.0.0.1')   # create sockadr_in structure
-  #     socket.bind(sockaddr)                               # bind to port 31331 and IP 127.0.0.1
-  #     socket.listen(5)                                    # listen on socket
-  #     begin
-  #       c_socket, c_sockaddr = socket.accept_nonblock     # call non-blocking accept for connections
-  #     rescue Errno::EAGAIN, Errno::ECONNABORTED,
-  #            Errno::EPROTO, Errno::EINTR                  
-  #       IO.select([socket])                               # retry on retriable errors
-  #       retry
-  #     rescue IPAccessDenied                               # when access is denied
-  #       c_socket.close                                    # close client socket
-  #       socket.close                                      # close listener
-  #       raise                                             # raise exception
-  #     end
-  #     c_socket.puts "Hello world!"                        # otherwise continue
-  #     c_socket.close
-  #     socket.close
   
   module Socket
     
@@ -290,18 +272,7 @@ module IPAccess::Patches
   ###################################################################
   # TCPSocket class with IP access control.
   # It uses output access lists.
-  #
-  # ==== Example
-  #     list = IPAccess.new 'my list'                     # we will use external access lists
-  #     list.output.block '1.2.3.4/16'                    # block connections to 1.2.0.0/16
-  #     list.output.block 'randomseed.pl'                 # block connections to IP address of randomseed.pl
-  #     socket = TCPSocket.new('randomseed.pl', 80, list) # create connected TCP socket with access control
-  # 
-  # Note that in this example we cannot alter
-  # access list after creating socket since
-  # TCPSocket instance does connect at the very
-  # beginning of existence.
-
+  
   module TCPSocket
 
     include IPSocketAccess
@@ -335,16 +306,7 @@ module IPAccess::Patches
   ###################################################################
   # TCPServer class with IP access control.
   # It uses input access lists.
-  #
-  # ==== Example
-  #     serv = TCPServer.new(31337)                   # create listening TCP socket
-  #     serv.acl = :local                             # create and use local access lists
-  #     serv.acl.input.block :local, :private         # block local and private addresses
-  #     serv.acl.input.permit '127.0.0.5'             # make an exception
-  #     puts serv.acl.input.blacklist                 # show blacklisted IP addresses
-  #     puts serv.acl.input.whitelist                 # show whitelisted IP addresses
-  #     sock = serv.sysaccept                         # accept connection
-
+  
   module TCPServer
 
     include IPSocketAccess
@@ -393,4 +355,47 @@ module IPAccess::Patches
   end # module TCPServer
 
 end # module IPAccess::Patches
+
+# :startdoc:
+
+class IPAccess
+      
+  # This is special method that patches Ruby's standard
+  # library socket handling classes and enables
+  # IP access control for them.
+  # Instances of such altered classes will be
+  # equipped with member called +acl+ which
+  # is a kind of IPAccess and allows you to
+  # manipulate access rules.
+  #
+  # Passed argument may be class object,
+  # string representation of class object
+  # or symbol representing a class object.
+  # 
+  # Currently supported classes are:
+  # +Socket+, +UDPSocket+, +SOCKSSocket+,
+  # +TCPSocket+ and +TCPServer+.
+  # 
+  # Example:
+  # 
+  #     IPAccess.arm TCPSocket                            # arm TCPSocket class  
+  #     IPAccess::Global.input.blacklist 'randomseed.pl'  # add randomseed.pl to global black list
+  #     TCPSocket.new('randomseed.pl', 80)                # try to connect
+  
+  def self.arm(klass)
+    klass_name = klass.name if klass.is_a?(Class)
+    klass_name = klass_name.to_s unless klass.is_a?(String)
+    klass_name = klass_name.to_sym
+    case klass_name
+    when :Socket, :UDPSocket, :SOCKSSocket, :TCPSocket, :TCPServer
+      klass.__send__(:include, Patches.const_get(klass_name))
+    else
+      raise ArgumentError, "cannot enable IP access control for class #{klass_name}"
+    end
+  end
+
+end
+
+
+
 

@@ -19,14 +19,16 @@ require 'ipaddr_list'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_errors'
 
-# This class maintains access set that
-# contains two access lists: +input+ for
-# incomming traffic and +output+ for
-# outgoing traffic. Each access list
-# is an IPAccessList object containing 
-# white and black rules controling IP access.
-# It has methods that are able to check access
-# for given objects containing IP addresses.
+# This class maintains access set used in
+# IP access control. It has methods that do 
+# access checks for given IP addresses.
+# To test if access for certain IP should be
+# denied or granted is uses two access lists:
+# +input+ for incomming traffic and +output+ for
+# outgoing traffic. Each of those list is a kind of
+# IPAccessList object containing access rules
+# (white and black). Use IPAccessList instance
+# methods to add or remove rules from this lists.
 # Both IPv4 and IPv6 addresses are supported.
 # 
 # This class has no methods
@@ -34,13 +36,9 @@ require 'ipaccess/ip_access_errors'
 # allows you to check IP access for already
 # given objects.
 # 
-# Access lists objects containing
-# rules are present in members called +input+ and +output+.
-# Use IPAccessList instance methods to add or remove
-# rules from this lists.
-# 
-# When access for tested IP is denied validating
-# methods of this class throw IPAccessDenied exceptions:
+# When access for tested IP is denied test
+# methods of this class throw exceptions that
+# are subclasses of IPAccessDenied: 
 # IPAccessDenied::Input for input rules and
 # IPAccessDenied::Output in case of output rules.
 # 
@@ -91,7 +89,7 @@ require 'ipaccess/ip_access_errors'
 # globally enable IP access control for original
 # Ruby's socket classes or use special versions
 # of them shipped with this library. To patch original
-# sockets use arm class method of IPAccess and to
+# sockets use IPAccess.arm class method. To
 # use extended classes use classes like IPAccess::TCPSocket.
 
 class IPAccess
@@ -147,7 +145,64 @@ class IPAccess
   def empty?
     @input.empty? && @output.empty?
   end
-
+  
+  # This method removes all rules from both input and
+  # output access list.
+  
+  def prune!
+    @input.prune!
+    @output.prune!
+  end
+  
+  # This method returns true if access set works
+  # in bidirectional mode.
+  
+  def bidirectional?
+    return (@output.object_id == @input.object_id)
+  end
+  
+  # This method switches list to bidirectional
+  # mode if the given argument is not +false+
+  # and is not +nil+. When access set
+  # operates in this mode there is no difference
+  # between incomming and outgoing acceess list.
+  # 
+  # In bidirectional mode each access check
+  # is performed against one list which contains
+  # both input and output rules. Still the only
+  # way to add or delete rules is to straight
+  # call +input+ or +output+. The difference is
+  # these lists are linked together when switched
+  # to bidirectional mode.
+  # 
+  # Be aware that switching mode will alter
+  # your access lists. When switching to
+  # bidirectional it will combine input and
+  # output rules and put it into one list.
+  # When switching back from bidirectional
+  # to normal mode input and output lists
+  # will have the same rules inside.
+  # 
+  # It may be good idea to prune access lists before
+  # switching mode or to switch mode before adding
+  # any rules to avoid unexpected results. You may
+  # of course change mode anyway if you really know
+  # what you are doing.
+  
+  def bidirectional=(enable)
+    enable = enable ? true : false
+    if enable != bidirectional?
+      if enable
+        @input.add @output
+        @output.prune!
+        @output = @input
+      else
+        @output = IPAccessList.new @input
+      end
+    end
+    return nil
+  end
+  
   # This method checks IP access of traffic for
   # CIDR objects. If access is denied it raises an exception
   # reporting first rejected IP. If access is granted it
@@ -175,7 +230,7 @@ class IPAccess
     end
     begin
       peeraddr = Socket.unpack_sockaddr_in(socket.getpeername).last
-    rescue Errno::ENOTCONN, Errno::ENOTSOCK, ArgumentError # socket is not INET, not a socket or not connected
+    rescue Errno::ENOTCONN, Errno::ENOTSOCK, ArgumentError # socket is not INET, not a socket nor connected
       return socket
     end
     peer_ip = NetAddr::CIDR.create(peeraddr)

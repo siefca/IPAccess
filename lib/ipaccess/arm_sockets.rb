@@ -12,4 +12,13 @@
 # enable IP access control in standard
 # Ruby sockets.
 
-require 'ipaccess/'
+require 'socket'
+require 'ipaccess/ip_access'
+require 'ipaccess/ip_access_patches'
+
+IPAccess.arm Socket
+IPAccess.arm UDPSocket
+IPAccess.arm TCPSocket
+IPAccess.arm TCPServer
+IPAccess.arm SOCKSSocket if Object.const_defined?(:SOCKSSocket)
+
