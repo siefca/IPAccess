@@ -110,7 +110,7 @@ class IPAccessList < NetAddr::Tree
   def initialize(*args)
     args = [] if args == [nil]
     super()
-    add!(*args) unless args.empty?
+    add!(args) unless args.empty?
     return self
   end
   
@@ -389,7 +389,7 @@ class IPAccessList < NetAddr::Tree
   # This method calls IPAccessList.obj_to_cidr
   
   def obj_to_cidr(*args)
-    self.class.obj_to_cidr(*args)
+    self.class.obj_to_cidr(args)
   end
     
   # This method finds all matching addresses in the list
@@ -407,7 +407,7 @@ class IPAccessList < NetAddr::Tree
   def grep(*args)
     return [] if empty?
     out_ary = []
-    addrs = obj_to_cidr(*args)
+    addrs = obj_to_cidr(args)
     addrs.each do |addr|
       m = included_cidr(addr)
       out_ary.push( block_given? ? yield(m) : m) unless m.nil?
@@ -432,7 +432,7 @@ class IPAccessList < NetAddr::Tree
   def grep_exact(*args)
     return [] if empty?
     out_ary = []
-    addrs = obj_to_cidr(*args)
+    addrs = obj_to_cidr(args)
     addrs.each do |addr|
       m = included_cidr(addr)
       if (m == addr)
@@ -473,7 +473,7 @@ class IPAccessList < NetAddr::Tree
     acl_list = args.shift if (args.first.is_a?(Symbol) && (args.first == :white || args.first == :black))
     acl_list = args.pop if (args.last.is_a?(Symbol) && (args.last == :white || args.last == :black))
     return nil if args.empty?
-    addrs = obj_to_cidr(*args)
+    addrs = obj_to_cidr(args)
     addrs.each do |addr|
       addr = addr.ipv4 if addr.ipv4_compliant?
       add_list = acl_list.nil? ? addr.tag[:ACL] : acl_list  # object with extra sugar
@@ -533,7 +533,7 @@ class IPAccessList < NetAddr::Tree
     acl_list = args.pop if (args.last.is_a?(Symbol) && (args.last == :white || args.last == :black))
     removed = []
     return removed if (args.empty? || empty?)
-    addrs = obj_to_cidr(*args)
+    addrs = obj_to_cidr(args)
     addrs.each do |addr|
       addr = addr.ipv4 if addr.ipv4_compliant?
       exists = find_me(addr)
@@ -569,7 +569,7 @@ class IPAccessList < NetAddr::Tree
   # which may cause security flaws.
   
   def whitelist(*args)
-    args.empty? ? to_a(:white) : add!(*args, :white)
+    args.empty? ? to_a(:white) : add!(args, :white)
   end
   
   alias_method :add_white,  :whitelist
@@ -585,7 +585,7 @@ class IPAccessList < NetAddr::Tree
   # which may cause security flaws.
   
   def blacklist(*args)
-    args.empty? ? to_a(:black) : add!(*args, :black)
+    args.empty? ? to_a(:black) : add!(args, :black)
   end
   
   alias_method :add_black,  :blacklist
@@ -611,7 +611,7 @@ class IPAccessList < NetAddr::Tree
   def included(*args)
     found = []
     return found if empty?
-    addrs = obj_to_cidr(*args)
+    addrs = obj_to_cidr(args)
     return found if addrs.empty?
     addrs.each do |addr|
       rule = included_cidr(addr)
@@ -632,7 +632,7 @@ class IPAccessList < NetAddr::Tree
 
   def include?(*args)
     return false if empty?
-    addrs = obj_to_cidr(*args)
+    addrs = obj_to_cidr(args)
     return false if addrs.empty?
     addrs.each do |addr|
       rule = included_cidr(addr)
@@ -655,7 +655,7 @@ class IPAccessList < NetAddr::Tree
   
   def included_first(*args)
     return nil if empty?
-    addrs = obj_to_cidr(*args)
+    addrs = obj_to_cidr(args)
     return nil if addrs.empty?
     addrs.each do |addr|
       rule = included_cidr(addr)
@@ -716,7 +716,7 @@ class IPAccessList < NetAddr::Tree
   def rule_exists(list, *args)
     found = []
     return found if empty?
-    addrs = obj_to_cidr(*args)
+    addrs = obj_to_cidr(args)
     return found if addrs.empty?
     addrs.each do |addr|
       rule = rule_exists_cidr(list, addr)
@@ -784,7 +784,7 @@ class IPAccessList < NetAddr::Tree
   # you may pass to it.
   
   def blacklist_rules_exist?(*args)
-    addrs = obj_to_cidr(*args)
+    addrs = obj_to_cidr(args)
     return found if addrs.empty?
     addrs.each do |addr|
       rule = rule_exists_cidr(:black, addr)
@@ -840,7 +840,7 @@ class IPAccessList < NetAddr::Tree
   # you may pass to it.
   
   def whitelist_rules_exist?(*args)
-    addrs = obj_to_cidr(*args)
+    addrs = obj_to_cidr(args)
     return found if addrs.empty?
     addrs.each do |addr|
       rule = rule_exists_cidr(:white, addr)
@@ -981,7 +981,7 @@ class IPAccessList < NetAddr::Tree
     found = []
     return found if empty?
     nodup = args.last.is_a?(TrueClass) ? args.pop : false 
-    args = obj_to_cidr(*args)
+    args = obj_to_cidr(args)
     args.each do |addr|
       pair = denied_cidr(addr, nodup)
       found.push(pair) unless pair.nil?
@@ -997,7 +997,7 @@ class IPAccessList < NetAddr::Tree
   # you may pass to it.
   
   def denied?(*args)
-    not denied(*args, true).empty?
+    not denied(args, true).empty?
   end
   
   alias_method :denied_one?,     :denied?
@@ -1041,7 +1041,7 @@ class IPAccessList < NetAddr::Tree
   def granted(*args)
     found = []
     return found if empty?
-    args = obj_to_cidr(*args)
+    args = obj_to_cidr(args)
     args.each do |addr|
       rule = denied_cidr(addr, true)
       found.push(addr) if rule.nil?
@@ -1061,7 +1061,7 @@ class IPAccessList < NetAddr::Tree
   # which may cause security flaws.
   
   def granted?(*args)
-    denied(*args, true).empty?
+    denied(args, true).empty?
   end
   
   alias_method :granted_one?,     :granted?
@@ -1077,7 +1077,7 @@ class IPAccessList < NetAddr::Tree
   
   def +(*args)
     obj = self.class.new(self)
-    obj.add!(obj_to_cidr(*args))
+    obj.add!(obj_to_cidr(args))
     return obj
   end
   
@@ -1088,7 +1088,7 @@ class IPAccessList < NetAddr::Tree
   
   def -(*args)
     self_copy = self.class.new(self)
-    self_copy.delete(*args)
+    self_copy.delete(args)
     return self_copy
   end
   
@@ -1117,7 +1117,7 @@ class IPAccessList < NetAddr::Tree
   # This operator calls add! method.
 
   def <<(*args)
-    add!(*args)
+    add!(args)
     return self
   end
 

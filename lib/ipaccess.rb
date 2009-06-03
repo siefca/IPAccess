@@ -16,7 +16,7 @@
 # addresses/masks and NetAddr::Tree to maintain
 # access lists.
 
-require 'ipaddr'
+require 'rubygems'
 require 'socket'
 require 'resolv'
 require 'netaddr'

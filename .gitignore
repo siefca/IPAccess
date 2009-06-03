@@ -17,3 +17,4 @@ configure.scan
 autoscan.log
 *.gem
 .DS_Store
+doc

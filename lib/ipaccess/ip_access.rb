@@ -12,13 +12,9 @@
 # IPAccessList objects to implement IP input/output
 # access list.
 
-$LOAD_PATH.unshift '..'
-
 require 'socket'
-require 'ipaddr_list'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_errors'
-#require 'ipaccess/ip_access_patches'
 
 # This class maintains access set used in
 # IP access control. It has methods that do 
@@ -162,7 +158,7 @@ class IPAccess
     return (@output.object_id == @input.object_id)
   end
   
-  # This method switches list to bidirectional
+  # This method switches set to bidirectional
   # mode if the given argument is not +false+
   # and is not +nil+. When access set
   # operates in this mode there is no difference
@@ -214,7 +210,7 @@ class IPAccess
   
   def check(list, exc, *args)
     return args if list.empty?
-    rules = list.denied(*args)
+    rules = list.denied(args)
     unless rules.empty?
       yield(rules.first, args) if block_given?
       scream!(rules.first, exc)

@@ -12,11 +12,7 @@
 # patching Ruby socket classes in order to add
 # IP access control to them.
 
-$LOAD_PATH.unshift '..'
-
-require 'ipaddr'
 require 'socket'
-require 'ipaddr_list'
 require 'ipaccess/ip_access_errors'
 
 IPAccess::Global = IPAccess.new 'global'

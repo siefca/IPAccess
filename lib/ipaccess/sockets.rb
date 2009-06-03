@@ -12,8 +12,6 @@
 # of Ruby socket handling classes equipped
 # with IP access control.
 
-$LOAD_PATH.unshift '..'
-
 require 'socket'
 require 'ipaccess/ip_access'
 require 'ipaccess/ip_access_patches'
@@ -72,7 +70,7 @@ class IPAccess::Socket < Socket
   
   # This method allows you to manipulate local and shared access sets
   # associated with this socket. To control global access set use
-  # IPAccess::Global
+  # +IPAccess::Global+
   def acl; end
   
   include IPAccess::Patches::Socket
@@ -107,7 +105,7 @@ class IPAccess::UDPSocket < UDPSocket
   
   # This method allows you to manipulate local and shared access sets
   # associated with this socket. To control global access set use
-  # IPAccess::Global
+  # +IPAccess::Global+
   def acl; end
   
   include IPAccess::Patches::UDPSocket
@@ -143,7 +141,7 @@ if Object.const_defined?(:SOCKSSocket)
 
     # This method allows you to manipulate local and shared access sets
     # associated with this socket. To control global access set use
-    # IPAccess::Global
+    # +IPAccess::Global+
     def acl; end
     
     include IPAccess::Patches::SOCKSSocket
@@ -193,7 +191,7 @@ class IPAccess::TCPSocket < TCPSocket
   
   # This method allows you to manipulate local and shared access sets
   # associated with this socket. To control global access set use
-  # IPAccess::Global
+  # +IPAccess::Global+
   def acl; end
     
   include IPAccess::Patches::TCPSocket
@@ -241,7 +239,7 @@ class IPAccess::TCPServer < TCPServer
   
   # This method allows you to manipulate local and shared access sets
   # associated with this socket. To control global access set use
-  # IPAccess::Global
+  # +IPAccess::Global+
   def acl; end
   
   include IPAccess::Patches::TCPServer

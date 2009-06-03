@@ -2,7 +2,7 @@ $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
 require 'uri'
 require 'socket'
-require 'ipaddr'
+require 'rubygems'
 require 'ipaccess'
 
 describe IPAccessList do
