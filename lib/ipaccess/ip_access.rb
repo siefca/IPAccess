@@ -18,6 +18,7 @@ require 'socket'
 require 'ipaddr_list'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_errors'
+#require 'ipaccess/ip_access_patches'
 
 # This class maintains access set used in
 # IP access control. It has methods that do 
@@ -68,7 +69,7 @@ require 'ipaccess/ip_access_errors'
 #   req = Net::HTTP::Get.new(url.path)      # create HTTP request
 # 
 #   res.start do                            # start HTTP session
-#     access.check_out(res)                 # check access for socket extracted from http object
+#     access.check_out(res)                 # check access for socket extracted from HTTP object
 #     response = res.request(req)           # read response
 #   end
 #
@@ -128,7 +129,7 @@ class IPAccess
     @output = IPAccessList.new(output)
     return self
   end
-  
+    
   # Raises default exception including remote address and rule object.
   # First argument should be an array containing CIDR objects: a testet address
   # and a matching rule. Second argument should be exception class.
@@ -149,9 +150,9 @@ class IPAccess
   # This method removes all rules from both input and
   # output access list.
   
-  def prune!
-    @input.prune!
-    @output.prune!
+  def clear!
+    @input.clear!
+    @output.clear!
   end
   
   # This method returns true if access set works
@@ -194,7 +195,7 @@ class IPAccess
     if enable != bidirectional?
       if enable
         @input.add @output
-        @output.prune!
+        @output.clear!
         @output = @input
       else
         @output = IPAccessList.new @input
@@ -446,4 +447,7 @@ class IPAccess
   
 end
 
+require 'ipaccess/ip_access_patches'
 
+
+  

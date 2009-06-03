@@ -17,7 +17,6 @@ $LOAD_PATH.unshift '..'
 require 'ipaddr'
 require 'socket'
 require 'ipaddr_list'
-require 'ipaccess/ip_access'
 require 'ipaccess/ip_access_errors'
 
 IPAccess::Global = IPAccess.new 'global'
@@ -289,7 +288,8 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :initialize do |*args|
-          self.acl = (args.size > 2) ? args.pop : :global
+          aa = (args.size > 2) ? args.pop : :global
+          self.acl = aa
           acl = @acl || IPAccess::Global
           args[0] = self.class.getaddress(args[0])
           acl.check_out_ipstring args[0]
@@ -359,14 +359,14 @@ end # module IPAccess::Patches
 # :startdoc:
 
 class IPAccess
-      
-  # This is special method that patches Ruby's standard
+  
+  # This special method patches Ruby's standard
   # library socket handling classes and enables
-  # IP access control for them.
-  # Instances of such altered classes will be
-  # equipped with member called +acl+ which
-  # is a kind of IPAccess and allows you to
-  # manipulate access rules.
+  # IP access control for them. Instances of
+  # such altered classes will be equipped with
+  # member called +acl+ which is a kind of
+  # IPAccess and allows you to manipulate
+  # access rules.
   #
   # Passed argument may be class object,
   # string representation of class object
@@ -379,7 +379,7 @@ class IPAccess
   # Example:
   # 
   #     IPAccess.arm TCPSocket                            # arm TCPSocket class  
-  #     IPAccess::Global.input.blacklist 'randomseed.pl'  # add randomseed.pl to global black list
+  #     IPAccess::Global.output.blacklist 'randomseed.pl' # add randomseed.pl to black list of the global output set
   #     TCPSocket.new('randomseed.pl', 80)                # try to connect
   
   def self.arm(klass)
@@ -393,9 +393,6 @@ class IPAccess
       raise ArgumentError, "cannot enable IP access control for class #{klass_name}"
     end
   end
-
+  
 end
-
-
-
 

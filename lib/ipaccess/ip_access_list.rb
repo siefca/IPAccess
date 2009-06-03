@@ -1100,9 +1100,13 @@ class IPAccessList < NetAddr::Tree
     end.join(sep)
   end
   
-  alias_method :clear, :prune!
-  alias_method :erase, :prune!
-
+  # Remove all elements.
+  
+  def clear!
+    remove!('0.0.0.0/0')
+    remove!('::/0')
+  end
+  
   # This method returns +true+ if the list is empty.
 
   def empty?

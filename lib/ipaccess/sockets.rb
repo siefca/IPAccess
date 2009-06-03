@@ -15,15 +15,16 @@
 $LOAD_PATH.unshift '..'
 
 require 'socket'
-require 'ipaccess'
+require 'ipaccess/ip_access'
 require 'ipaccess/ip_access_patches'
 
 ######################################################
 # Socket class with IP access control.
 # It uses input access lists.
 #
-# This acts same as Socket class but provides special
-# member called +acl+ for controlling IP access.
+# This acts the same way as Socket class but
+# provides special member called +acl+ for
+# controlling IP access.
 # 
 # ==== Example
 #     require 'ipaddr/sockets'
@@ -67,7 +68,7 @@ class IPAccess::Socket < Socket
   #     socket.acl = :global        # use global access set
   #     socket.acl = :local         # create and use local access set
   #     socket.acl = IPAccess.new   # use external (shared) access set
-  def acl=; end
+  def acl=(set); end
   
   # This method allows you to manipulate local and shared access sets
   # associated with this socket. To control global access set use
@@ -80,6 +81,10 @@ end
 ######################################################
 # UDPSocket class with IP access control.
 # It uses input access lists.
+#
+# This acts the same way as UDPSocket class but
+# provides special member called +acl+ for
+# controlling IP access.
 
 class IPAccess::UDPSocket < UDPSocket
   # This method selects IPAccess object that will be used to
@@ -98,7 +103,7 @@ class IPAccess::UDPSocket < UDPSocket
   #     socket.acl = :global        # use global access set
   #     socket.acl = :local         # create and use local access set
   #     socket.acl = IPAccess.new   # use external (shared) access set
-  def acl=; end
+  def acl=(set); end
   
   # This method allows you to manipulate local and shared access sets
   # associated with this socket. To control global access set use
@@ -112,6 +117,11 @@ if Object.const_defined?(:SOCKSSocket)
   ######################################################
   # SOCKSSocket class with IP access control.
   # It uses input access lists.
+  # 
+  # This acts the same way as SOCKSSocket class but
+  # provides special member called +acl+ for
+  # controlling IP access.
+  
   class IPAccess::SOCKSSocket < SOCKSSocket
     # This method selects IPAccess object that will be used to
     # control IP access for a socket. You may assign global access set,
@@ -129,7 +139,7 @@ if Object.const_defined?(:SOCKSSocket)
     #     socket.acl = :global        # use global access set
     #     socket.acl = :local         # create and use local access set
     #     socket.acl = IPAccess.new   # use external (shared) access set
-    def acl=; end
+    def acl=(set); end
 
     # This method allows you to manipulate local and shared access sets
     # associated with this socket. To control global access set use
@@ -143,6 +153,10 @@ end
 ######################################################
 # TCPSocket class with IP access control.
 # It uses output access lists.
+#
+# This acts the same way as TCPSocket class but
+# provides special member called +acl+ for
+# controlling IP access.
 #
 # ==== Example
 #     require 'ipaddr/sockets'
@@ -175,7 +189,7 @@ class IPAccess::TCPSocket < TCPSocket
   #     socket.acl = :global        # use global access set
   #     socket.acl = :local         # create and use local access set
   #     socket.acl = IPAccess.new   # use external (shared) access set
-  def acl=; end
+  def acl=(set); end
   
   # This method allows you to manipulate local and shared access sets
   # associated with this socket. To control global access set use
@@ -188,7 +202,11 @@ end
 ######################################################
 # TCPServer class with IP access control.
 # It uses input access lists.
-#
+# 
+# This acts the same way as TCPServer class but
+# provides special member called +acl+ for
+# controlling IP access.
+# 
 # ==== Example
 #     require 'ipaddr/sockets'
 #     
@@ -219,7 +237,7 @@ class IPAccess::TCPServer < TCPServer
   #     socket.acl = :global        # use global access set
   #     socket.acl = :local         # create and use local access set
   #     socket.acl = IPAccess.new   # use external (shared) access set
-  def acl=; end
+  def acl=(set); end
   
   # This method allows you to manipulate local and shared access sets
   # associated with this socket. To control global access set use
@@ -228,6 +246,5 @@ class IPAccess::TCPServer < TCPServer
   
   include IPAccess::Patches::TCPServer
 end
-
 
 
