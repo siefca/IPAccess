@@ -24,5 +24,3 @@ Errors:
 Other:
 
 - maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
-
-FIX doco for acl= !!!!!!!!!!!!!!!

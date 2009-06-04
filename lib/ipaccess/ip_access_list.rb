@@ -2,7 +2,7 @@
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   This program is licensed under the terms of GNU Lesser General Public License or Ruby License.
+# License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:docs/LGPL-LICENSE.html] or {Ruby License}[link:docs/COPYING.html].
 # 
 # This file contains IPAccessList class, which uses
 # NetAddr::Tree to implement IP access list.
@@ -110,7 +110,7 @@ class IPAccessList < NetAddr::Tree
   # DNS is not reliable and responses may change with time.
   # That may cause security flaws.
   # 
-  # Examples:
+  # ==== Examples
   #     
   #     IPAccessList.new '192.168.0.0/16', '127.0.0.1/255.0.0.0'
   #     IPAccessList.new :private, :local
@@ -125,9 +125,9 @@ class IPAccessList < NetAddr::Tree
   
   # This method converts names to NetAddr::CIDR objects. It returns an array of CIDR objects.
   # 
-  # Allowed input: string(s) (DNS names or IP addresses optionally with masks), number(s) (IP address representation),
-  # IPSocket object(s), URI object(s), IPAddr object(s), Net::HTTP object(s), IPAddrList object(s), NetAddr::CIDR object(s),
-  # NetAddr::Tree object(s), IPAccessList object(s), symbol(s), object(s) that contain file descriptors bound to socket(s),
+  # Allowed input: strings (DNS names or IP addresses optionally with masks), numbers (IP addresses representation),
+  # IPSocket objects, URI objects, IPAddr objects, Net::HTTP objects, IPAddrList objects, NetAddr::CIDR objects,
+  # NetAddr::Tree objects, IPAccessList objects, symbols, objects that contain file descriptors bound to sockets,
   # and arrays of these.
   #
   # ==== Examples
@@ -153,45 +153,41 @@ class IPAccessList < NetAddr::Tree
   # 
   # Known symbols are:
   #
-  # ===== +:all+
-  # Aliases: +:any+, +:anyone+, +:world+, +:internet+, +:net+, +:everything+, +:everyone+, +:everybody+, +:anybody+
-  #
-  # Subvariants: +:ipv4_+ and +:ipv6_+
+  # <b>+:all+</b> (+:any+, +:anyone+, +:world+, +:internet+, +:net+, +:everything+, +:everyone+, +:everybody+, +:anybody+)
+  # 
+  # variants: +:ipv4_+ and +:ipv6_+
   #
   # Creates masked IP address that matches all networks:
   #     – 0.0.0.0/0
   #     – ::/0
   # 
-  # ===== +:broadcast+
-  # Aliases: +:brd+
-  # Subvariants: +:ipv4_+ and +:ipv6_:+
+  # <b>+:broadcast+</b> (+:brd+)
+  # 
+  # variants: +:ipv4_+ and +:ipv6_+
   #
   # Creates masked IP address that matches generic broadcast address:
   #     – 255.255.255.255/32
   #     – ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128
   #
-  # ===== +:local+
-  # Aliases: +:localhost+, +:localdomain+, +:loopback+, +:lo+
+  # <b>+:local+</b> (+:localhost+, +:localdomain+, +:loopback+, +:lo+)
   # 
-  # Subvariants: +:ipv4_+ and +:ipv6_+
+  # variants: +:ipv4_+ and +:ipv6_+
   # 
   # Creates masked IP addresses that match localhost:
   #     – 127.0.0.1/8
   #     – ::1/128
   #
-  # ===== +:auto+
-  # Aliases: +:automatic+, +:linklocal+
+  # <b>+:auto+</b> (+:automatic+, +:linklocal+)
   # 
-  # Subvariants: +:ipv4_+ and +:ipv6_+
+  # variants: +:ipv4_+ and +:ipv6_+
   #  
   # Creates masked IP addresses that match automatically assigned address ranges:
   #     – 169.254.0.0/16
   #     – fe80::/10
   # 
-  # ===== +:private+
-  # Aliases: +:intra+, +:intranet+, +:internal+
+  # <b>+:private+</b> (+:intra+, +:intranet+, +:internal+)
   # 
-  # Subvariants: +:ipv4_+ and +:ipv6_+
+  # variants: +:ipv4_+ and +:ipv6_+
   #
   # Creates masked IP addresses that match private ranges:
   #     – 10.0.0.0/8
@@ -202,20 +198,18 @@ class IPAccessList < NetAddr::Tree
   #     – fc00::/7
   #     – fdde:9e1a:dc85:7374::/64
   # 
-  # ===== +:multicast+
-  # Aliases: +:multi+, +:multiemission+
+  # <b>+:multicast+</b> (+:multi+, +:multiemission+)
   # 
-  # Subvariants: +:ipv4_+ and +:ipv6_+
+  # variants: +:ipv4_+ and +:ipv6_+
   #
   # Creates masked IP addresses that match multicast addresses ranges:
   #     – 224.0.0.0/4
   #     – ff00::/8
   #     – ff02::1:ff00:0/104
   # 
-  # ===== +:reserved+
-  # Aliases: +:example+
+  # <b>+:reserved+</b> (+:example+)
   # 
-  # Subvariants: +:ipv4_+
+  # variants: +:ipv4_+
   # 
   # Creates masked IP addresses that match reserved addresses ranges:
   #     – 192.0.2.0/24
@@ -226,8 +220,7 @@ class IPAccessList < NetAddr::Tree
   #     – 223.255.255.0/24
   #     – 240.0.0.0/4
   # 
-  # ===== +:strange+
-  # Aliases: +:unusual+, +:nonpublic+, +:unpublic+
+  # <b>+:strange+</b> (+:unusual+, +:nonpublic+, +:unpublic+)
   #
   # Creates masked IP addressess that match the following sets (both IPv4 and IPv6):
   #     – :local
