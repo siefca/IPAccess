@@ -13,14 +13,6 @@ Documentation:
 
 - local images?
 
-- fix and standarize headers and add clean legal notice
-
-Errors:
-
-- add some class with method_missing that raises an ArgumentError
-  and then assign its instance to @acl instead of nil when setting
-  list to global
-
 Other:
 
 - maybe some day: test input lists even if socket is a client socket - local socket address permit/deny

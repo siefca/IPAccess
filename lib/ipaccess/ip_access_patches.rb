@@ -20,8 +20,10 @@
 # See the file COPYING for complete licensing information.
 #
 #++
+# 
 
 require 'socket'
+require 'singleton'
 require 'ipaccess/ip_access_errors'
 
 class IPAccess
@@ -46,6 +48,21 @@ end
 
 module IPAccess::Patches
   
+  # This class is a proxy that raises an exception when
+  # any method other than defined in Object class is called.
+  # It behaves like NilClass.
+
+  class GlobalSet
+    
+    include Singleton
+    
+    def method_missing(name, *args)
+      return nil.method(name).call(*args) if nil.respond_to?(name)
+      raise ArgumentError, "cannot access global set from object's scope, use IPAccess::Global"
+    end
+    
+  end
+  
   # The IPSocketAccess module contains methods
   # that are present in all classes handling
   # sockets with IP access control enabled.
@@ -65,7 +82,7 @@ module IPAccess::Patches
       if obj.is_a?(Symbol)
         case obj
         when :global
-          @acl = nil
+          @acl = GlobalSet.instance
         when :private
           @acl = IPAccess.new
         else
@@ -109,7 +126,7 @@ module IPAccess::Patches
         orig_sysaccept          = self.instance_method :sysaccept
         
         define_method :initialize do |*args|
-          @acl = nil
+          @acl = GlobalSet.instance
           orig_initialize(*args)
           return self
         end
@@ -191,10 +208,17 @@ module IPAccess::Patches
       
       base.class_eval do
         
+        orig_initialize         = self.instance_method :initialize
         orig_connect            = self.instance_method :connect
         orig_send               = self.instance_method :send
         orig_recvfrom           = self.instance_method :recvfrom
         orig_recvfrom_nonblock  = self.instance_method :recvfrom_nonblock
+        
+        define_method :initialize do |*args|
+          @acl = GlobalSet.instance
+          orig_initialize(*args)
+          return self
+        end
         
         # connect on steroids.
         define_method :connect do |*args|
@@ -336,7 +360,7 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :initialize do |*args|
-          @acl = nil
+          @acl = GlobalSet.instance
           return orig_initialize.bind(self).call(*args)
         end
 
@@ -405,4 +429,6 @@ class IPAccess
   end
   
 end
+
+
 
