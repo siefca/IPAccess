@@ -15,8 +15,9 @@ Gem::Specification.new do |s|
             "lib/ipaccess/ip_access.rb", "lib/ipaccess/ip_access_errors.rb",
             "lib/ipaccess/ip_access_list.rb", "lib/ipaccess/ip_access_patches.rb",
             "lib/ipaccess/netaddr_patch.rb", "lib/ipaccess/sockets.rb",
+            "lib/ipaccess/ghost_doc.rb", "lib/ipaccess/ghost_doc_acl.rb",
             "docs/LGPL-LICENSE", "Rakefile", "docs/README", "docs/TODO",
-            "docs/COPYING", "docs/LEGAL", "docs/DOWNLOAD", "spec/core_spec.rb",
-            "spec/ip_access_list_spec.rb", "rcov.opts", "spec.opts" ]
+            "docs/COPYING", "docs/LEGAL", "docs/DOWNLOAD", "docs/WELCOME",
+            "spec/core_spec.rb", "spec/ip_access_list_spec.rb", "rcov.opts", "spec.opts" ]
 end
 

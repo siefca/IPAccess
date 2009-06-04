@@ -11,8 +11,6 @@ Documentation:
 
 - add more documentation describing access checking workflow
 
-- local images?
-
 Other:
 
 - maybe some day: test input lists even if socket is a client socket - local socket address permit/deny

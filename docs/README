@@ -1,15 +1,95 @@
+This library provides classes for controlling IP access
+in your programs. You can use it to build your own
+routines checking IP addresses against access lists
+or use altered sockets implementation with IP access
+control enabled that also comes with this library.
 
-== IP Access Control
+There are two basic classes used to maintain access rules:
+IPAccessList and IPAccess.
 
-123
+IP addresses used by all classes are internaly and interfacialy
+represented by NetAddr::CIDR objects (NetAddr::CIDRv4 and NetAddr::CIDRv6).
 
-lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page 
-lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page 
-lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page 
+=== IPAccessList Class
 
-lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page 
-lorem ipsum web web page lorem ipsum web web page 
+This class maintains simple access list.
 
-lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page lorem ipsum web web page 
+Objects of IPAccessList class contain two lists of rules:
+white list and black list. You can add IP rules
+(both IPv4 and IPv6) to this lists and then manually
+check access for provided IP addresses against that
+lists using proper methods. Rules are IP addresses
+that can have netmasks.
 
+When doing access checking white list has precedence
+over black list. If an IP address doesn't match any list,
+methods evaluating access permit it. The default policy
+is to accept. To change the default policy you may want
+to add +:all+ rule to black list which would match all
+addresses and then just whitelist permitted.
+
+The class also provides methods for easy administration
+of lists and method IPAccessList.obj_to_cidr that
+"understands" most common IP representations including
+DNS names, sockets, file descriptors bound to sockets and more.
+
+=== IPAccess Class
+
+This class maintains access set.
+
+Objects of IPAccess class, called access sets, contain two access lists
+(IPAccessList objects) as accessible attributes: +input+ and +output+.
+First list is for maintaining incoming IP traffic and second for outgoing.
+Again, it is your free will to check IP addresses against input/output
+rules or not.
+
+To manage rules you may access attributes directly, using dot operator
+and calling certain methods of IPAccessList objects. To check access
+you may use methods of this class. There are two groups of such methods,
+one for incoming and one for outgoing access checking. There are also different
+variants of this methods for different IP representations. That's because speed
+is important here. If you have an IP address in some socket you should use method
+that checks socket, if your IP is in text format you may want to use method that
+checks IP addresses written as strings.
+
+Access checking methods throw exceptions that are kind of IPAccessDenied.
+These exceptions contain IP addresses, rules that matched and diagnostic message.
+You can distinguish between errors related to incoming and outgoing traffic
+because checking methods throw different kind of exceptions for them:
+IPAccessDenied::Input and IPAccessDenied::Output accordingly.
+
+=== IPAccess::Socket and Co.
+
+If you don't want to write your own access controlling routines
+you may want to use access controlled sockets. These are subclasses
+of Ruby's socket handling classes.
+
+Currently available classes are: IPAccess::Socket,
+IPAccess::TCPSocket, IPAccess::SOCKSSocket,
+IPAccess::UDPSocket, IPAccess::TCPServer and IPAccess::UDPServer.
+
+=== Patched Ruby Sockets
+
+If there is no other way to control access you may use this
+library to patch native socket handling classes of Ruby.
+To do that use special class method called IPAccess.arm 
+
+=== Download
+
+See {DOWNLOAD}[link:docs/DOWNLOAD.html] file for more
+info about obtaining IPAccess.
+
+=== Legal Notice
+
+IPAccess is Copyright (C) 2009 by Paweł Wilk.
+
+IPAccess is copyrighted software owned by Paweł Wilk (pw@gnu.org).
+You may redistribute and/or modify this software as long as you
+comply with either the terms of the LGPL (see the file {LGPL-LICENSE}[link:docs/LGPL-LICENSE.html]),
+or Ruby's license (see the file {COPYING}[link:docs/COPYING.html]).
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS
+OR IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE.
 

@@ -402,9 +402,9 @@ class IPAccess
   # IPAccess and allows you to manipulate
   # access rules.
   #
-  # Passed argument may be class object,
-  # string representation of class object
-  # or symbol representing a class object.
+  # Passed argument may be a class object,
+  # a string representation of a class object
+  # or a symbol representing a class object.
   # 
   # Currently supported classes are:
   # +Socket+, +UDPSocket+, +SOCKSSocket+,
@@ -429,6 +429,4 @@ class IPAccess
   end
   
 end
-
-
 

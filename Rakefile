@@ -21,15 +21,16 @@ end
 
 desc "Generate documentation for the application"
 rd = Rake::RDocTask.new("appdoc") do |rdoc|
-  rdoc.rdoc_dir = 'doc/api'
+  rdoc.rdoc_dir = 'doc'
   rdoc.title    = "IP Access Control"
   rdoc.options += [ '-HN',
                     '-f', 'darkfish',
                     '--charset=utf-8',
-                    '--main=docs/README'
+                    '--main=docs/WELCOME'
                   ]
   rdoc.rdoc_files.include('docs/DOWNLOAD')
   rdoc.rdoc_files.include('docs/README')
+  rdoc.rdoc_files.include('docs/WELCOME')
   rdoc.rdoc_files.include('docs/LGPL-LICENSE')
   rdoc.rdoc_files.include('docs/LEGAL')
   rdoc.rdoc_files.include('docs/COPYING')

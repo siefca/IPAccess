@@ -236,7 +236,7 @@ class IPAccess
     rescue Errno::ENOTCONN, Errno::ENOTSOCK, ArgumentError # socket is not INET, not a socket nor connected
       return socket
     end
-    peer_ip = NetAddr::CIDR.create(peeraddr)
+    peer_ip = NetAddr::CIDR.create(peeraddr.split('%').first)
     pair    = list.denied_cidr(peer_ip, true)
     unless pair.empty?
       yield(pair, socket) if block_given?
@@ -255,7 +255,7 @@ class IPAccess
     rescue ArgumentError # sockaddr is not INET
       return sockaddr
     end
-    peer_ip = NetAddr::CIDR.create(peeraddr)
+    peer_ip = NetAddr::CIDR.create(peeraddr.split('%').first)
     pair    = list.denied_cidr(peer_ip, true)
     unless pair.empty?
       yield(pair, sockaddr) if block_given?
@@ -282,7 +282,7 @@ class IPAccess
   
   def check_ipstring(list, exc, ipstring)
     return ipstring if list.empty?
-    addr = NetAddr::CIDR.create(ipstring)
+    addr = NetAddr::CIDR.create(ipstring.split('%').first)
     pair = list.denied_cidr(addr, true)
     unless pair.empty?
       yield(pair, ipstring) if block_given?

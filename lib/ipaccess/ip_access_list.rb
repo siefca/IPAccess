@@ -35,7 +35,7 @@ require 'ipaccess/netaddr_patch'
 # 
 # ==== Access lists
 # 
-# To control access IPAccessList maintaines
+# To control access IPAccessList maintains
 # two abstract lists: white list and black
 # list. Each list contains rules (CIDR objects
 # with information about IP address and
