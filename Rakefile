@@ -26,7 +26,7 @@ rd = Rake::RDocTask.new("appdoc") do |rdoc|
   rdoc.options += [ '-HN',
                     '-f', 'darkfish',
                     '--charset=utf-8',
-                    '--main=README'
+                    '--main=docs/README'
                   ]
   rdoc.rdoc_files.include('docs/DOWNLOAD')
   rdoc.rdoc_files.include('docs/README')

@@ -11,7 +11,9 @@ Documentation:
 
 - add more documentation describing access checking workflow
 
-- move docs to docs subdirectory
+- local images?
+
+- fix and standarize headers and add clean legal notice
 
 Errors:
 
@@ -21,7 +23,6 @@ Errors:
 
 Other:
 
-- re-check where we can use *args
-
 - maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
 
+FIX doco for acl= !!!!!!!!!!!!!!!

@@ -1,16 +1,26 @@
 # encoding: utf-8
-#
-# == Simple and handy IP access control.
-#
+# 
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
 # License::   This program is licensed under the terms of GNU Lesser General Public License or Ruby License.
 # 
-# === ip_access_errors
-# 
 # This file contains IPAccessDenied class
 # used to report access denials by
 # IPAccess objects.
+#
+#--
+# 
+# Copyright (C) 2009 by Paweł Wilk. All Rights Reserved.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of either: 1) the GNU Lesser General Public License
+# as published by the Free Software Foundation; either version 3 of the
+# License, or (at your option) any later version; or 2) Ruby's License.
+# 
+# See the file COPYING for complete licensing information.
+#
+#++
+
 
 # This class handles IP access denied exceptions.
  
