@@ -67,8 +67,26 @@ describe IPAccessList do
         lambda { z = IPAccessList.new [tree] }.should_not raise_error
       end
      
-    end # inicializer
-      
+    end # initializer
+    
+    describe "rules" do
+    
+      before(:each) do
+        @access = IPAccessList.new
+        @access.blacklist :local, '192.168.0.1', :private
+        @access.whitelist '172.16.10.0/24', '192.168.0.2'
+      end
+
+      it "should be searchable by matching IP to rules" do
+        @access.included('192.168.0.1').first.should == '192.168.0.1/32'
+        @access.included('192.168.0.2').first.should == '192.168.0.2/32'
+        @access.included('192.168.2.5').first.should == '192.168.0.0/16'
+        @access.included('1.2.3.5').first.should == nil
+        @access.included('127.0.0.5/16').first.should == '127.0.0.0/8'
+      end
+        
+    end # rules
+    
     describe "access" do
     
       before(:each) do
