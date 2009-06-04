@@ -130,6 +130,8 @@ class IPAccessList < NetAddr::Tree
   # NetAddr::Tree objects, IPAccessList objects, symbols, objects that contain file descriptors bound to sockets,
   # and arrays of these.
   #
+  # In case of resolving the IPv6 link-local addresses zone index is removed.
+  #
   # ==== Examples
   # 
   #     obj_to_cidr("127.0.0.1")                      # uses IP address
@@ -271,7 +273,7 @@ class IPAccessList < NetAddr::Tree
     
     # Socket - immediate generation
     if obj.respond_to?(:getpeername)
-      peeraddr = Socket.unpack_sockaddr_in(obj.getpeername).last
+      peeraddr = Socket.unpack_sockaddr_in(obj.getpeername).last.split('%').first
       return [NetAddr::CIDR.create(peeraddr)]
     end
     
@@ -368,12 +370,12 @@ class IPAccessList < NetAddr::Tree
         end
       end
       begin
-        obj = NetAddr::CIDR.create(obj)
+        obj = NetAddr::CIDR.create(obj.split('%').first)
       rescue NetAddr::ValidationError
         addresses = Resolv::getaddresses(obj)
         addresses.map! do |addr|
           begin
-            NetAddr::CIDR.create(addr)
+            NetAddr::CIDR.create(addr.split('%').first)
           rescue ArgumentError
             nil
           end
