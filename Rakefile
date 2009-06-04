@@ -10,7 +10,7 @@ require "fileutils"
 require 'rdoc'
 require "rake/rdoctask"
 
-task :default => :spec_coverage
+task :default => :spec
 
 desc "install by setup.rb"
 task :install do
@@ -28,10 +28,11 @@ rd = Rake::RDocTask.new("appdoc") do |rdoc|
                     '--charset=utf-8',
                     '--main=README'
                   ]
-  rdoc.rdoc_files.include('DOWNLOAD')
-  rdoc.rdoc_files.include('README')
-  rdoc.rdoc_files.include('TODO')
-  rdoc.rdoc_files.include('LGPL-LICENSE')
+  rdoc.rdoc_files.include('docs/DOWNLOAD')
+  rdoc.rdoc_files.include('docs/README')
+  rdoc.rdoc_files.include('docs/LGPL-LICENSE')
+  rdoc.rdoc_files.include('docs/LEGAL')
+  rdoc.rdoc_files.include('docs/COPYING')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 

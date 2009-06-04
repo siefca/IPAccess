@@ -207,7 +207,7 @@ class IPAccess
   
   def check(list, exc, *args)
     return args if list.empty?
-    pairs = list.denied(args)
+    pairs = list.denied(*args)
     unless pairs.empty?
       yield(pairs.first, args) if block_given?
       scream!(pairs.first, exc)
