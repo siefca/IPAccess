@@ -3,5 +3,15 @@
 
 === Latest source code
 
+Latest sources tree can be viewed on https://github.com/siefca/IPAccess/tree
+
+Public Git repository is available, to clone it use:
+
+ 		git clone git://github.com/siefca/IPAccess.git
+
 === Gem
+
+Gem can be downloaded from: http://rubyforge.org/projects/ipaccess/ or using Rubygems:
+
+ 		gem install ipaccess
 
