@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
             "lib/ipaccess/ghost_doc.rb", "lib/ipaccess/ghost_doc_acl.rb",
             "docs/LGPL-LICENSE", "Rakefile", "docs/README", "docs/TODO",
             "docs/COPYING", "docs/LEGAL", "docs/DOWNLOAD", "docs/WELCOME",
+            "examples/tcp_socket.rb",
             "spec/core_spec.rb", "spec/ip_access_list_spec.rb", "spec/rcov.opts",
             "spec/spec.opts" ]
 end
