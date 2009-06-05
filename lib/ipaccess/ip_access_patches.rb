@@ -56,12 +56,15 @@ module IPAccess::Patches
     
     include Singleton
     
+    def nil?; true end
+    
     def method_missing(name, *args)
       return nil.method(name).call(*args) if nil.respond_to?(name)
       raise ArgumentError, "cannot access global set from object's scope, use IPAccess::Global"
     end
     
   end
+  
   
   # The IPSocketAccess module contains methods
   # that are present in all classes handling
@@ -133,7 +136,7 @@ module IPAccess::Patches
 
         # accept on steroids.
         define_method :accept do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_accept.bind(self).call(*args)
           acl.check_in_socket(ret.first)
           return ret
@@ -141,7 +144,7 @@ module IPAccess::Patches
 
         # accept_nonblock on steroids.
         define_method :accept_nonblock do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_accept_nonblock.bind(self).call(*args)
           acl.check_in_socket(ret.first)
           return ret
@@ -149,7 +152,7 @@ module IPAccess::Patches
 
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_accept.bind(self).call(*args)
           acl.check_in_sockaddr(ret.last)
           return ret
@@ -157,14 +160,14 @@ module IPAccess::Patches
 
         # connect on steroids.
         define_method :connect do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           acl.check_out_sockaddr(args.first)
           return orig_connect.bind(self).call(*args)
         end
 
         # recvfrom on steroids.
         define_method :recvfrom do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_recvfrom.bind(self).call(*args)
           peer_ip = ret[1][3]
           family = ret[1][0]
@@ -176,7 +179,7 @@ module IPAccess::Patches
 
         # recvfrom_nonblock on steroids.
         define_method :recvfrom_nonblock do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_recvfrom_nonblock.bind(self).call(*args)
           peer_ip = ret[1][3]
           family = ret[1][0]
@@ -222,7 +225,7 @@ module IPAccess::Patches
         
         # connect on steroids.
         define_method :connect do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           peer_ip = self.class.getaddress(args.shift)
           acl.check_out_sockaddr(peer_ip)
           return orig_connect.bind(self).call(peer_ip, *args)
@@ -232,7 +235,7 @@ module IPAccess::Patches
         define_method :send do |*args|
           hostname = args[2]
           return orig_send(*args) if hostname.nil?
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           peer_ip = self.class.getaddress(hostname)
           acl.check_out_sockaddr(peer_ip)
           args[2] = peer_ip
@@ -241,7 +244,7 @@ module IPAccess::Patches
 
         # recvfrom on steroids.
         define_method :recvfrom do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_recvfrom.bind(self).call(*args)
           peer_ip = ret[1][3]
           family = ret[1][0]
@@ -253,7 +256,7 @@ module IPAccess::Patches
 
         # recvfrom_nonblock on steroids.
         define_method :recvfrom_nonblock do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_recvfrom_nonblock.bind(self).call(*args)
           peer_ip = ret[1][3]
           family = ret[1][0]
@@ -290,7 +293,7 @@ module IPAccess::Patches
         # initialize on steroids.
         define_method :initialize do |*args|
           self.acl = (args.size > 2) ? args.pop : :global
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           args[0] = self.class.getaddress(args[0])
           acl.check_out_ipstring args[0]
           orig_initialize.bind(self).call(*args)
@@ -324,7 +327,7 @@ module IPAccess::Patches
         # initialize on steroids.
         define_method :initialize do |*args|
           self.acl = (args.size > 2) ? args.pop : :global
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           args[0] = self.class.getaddress(args[0])
           acl.check_out_ipstring args[0]
           orig_initialize.bind(self).call(*args)
@@ -366,19 +369,19 @@ module IPAccess::Patches
 
         # accept on steroids.
         define_method :accept do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           acl.check_in_socket orig_accept.bind(self).call(*args)
         end
 
         # accept_nonblock on steroids.
         define_method :accept_nonblock do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           acl.check_in_socket orig_accept_nonblock.bind(self).call(*args)
         end
 
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
-          acl = @acl || IPAccess::Global
+          acl = @acl.nil? ? IPAccess::Global : @acl
           acl.check_in_fd orig_sysaccept.bind(self).call(*args)
         end
 
