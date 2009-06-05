@@ -1,6 +1,4 @@
 
-- FIX TCPSocket / SOCKSSocket argument problem
-
 Specification:
 
 - add missing rspec examples
@@ -17,3 +15,4 @@ Other:
 
 - maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
 - inspect methods?
+
