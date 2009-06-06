@@ -25,28 +25,53 @@ require 'socket'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_errors'
 
-# This class maintains access set used in
-# IP access control. It has methods that do 
-# access checks for given IP addresses.
-# To test if access for certain IP should be
-# denied or granted is uses two access lists:
-# +input+ for incoming traffic and +output+ for
-# outgoing traffic. Each of those list is a kind of
-# IPAccessList object containing access rules
-# (white and black). Use IPAccessList instance
-# methods to add or remove rules from this lists.
-# Both IPv4 and IPv6 addresses are supported.
+# This class maintains an access set.
 # 
-# This class has no methods
-# that actualy do network operations, it just
-# allows you to check IP access for already
-# given objects.
+# Objects of IPAccess class, called <b>access sets</b>,
+# contain two access lists which are available
+# as accessible attributes: +input+ and +output+.
 # 
-# When access for tested IP is denied test
-# methods of this class throw exceptions that
-# are subclasses of IPAccessDenied: 
-# IPAccessDenied::Input for input rules and
-# IPAccessDenied::Output in case of output rules.
+# ==== Input and output
+# 
+# First list is for maintaining incoming IP
+# traffic and second for outgoing traffic.
+# Again, it is your free will to check IP addresses
+# against input/output rules or not.
+# 
+# ==== Rules management
+# 
+# These two lists are instances of IPAccessList.
+# Use IPAccessList instance methods to add or remove
+# rules from this lists referenced by +input+ and
+# +output+ attributes. Both IPv4 and IPv6 addresses
+# are supported.
+# 
+# ==== Checking access
+# 
+# To check access you may call methods belonging
+# to lists but it is recommended to use methods
+# defined by this class. There are two groups
+# of such methods, one for checking incoming traffic
+# and the other one for checking outgoing traffic.
+# 
+# There are also different variants of this methods
+# for different IP representations. That's because
+# speed is important here. If you have a socket object
+# you want to test then you should use method that
+# checks sockets. If your IP is in text format you
+# may want to use method that checks IP addresses
+# written as strings.
+# 
+# ==== Exceptions
+# 
+# Access checking methods throw exceptions that are
+# kind of IPAccessDenied. These exceptions contain
+# IP addresses, rules that matched and diagnostic message.
+# You can distinguish between errors related to incoming
+# and outgoing traffic because checking methods throw
+# different kind of exceptions dependently on
+# what traffic caused them: IPAccessDenied::Input and
+# IPAccessDenied::Output accordingly.
 # 
 # ==== Usage examples
 # 

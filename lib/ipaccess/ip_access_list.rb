@@ -26,45 +26,37 @@ require 'resolv'
 require 'netaddr'
 require 'ipaccess/netaddr_patch'
 
-# This class implements easy to
-# manage IP access list based on NetAddr::Tree
-# which uses binary search to speed up
-# matching process. It stores data in a tree
-# of NetAddr::CIDR objects and allows to add,
-# remove and search them.
+# This class maintains a simple access list.
 # 
 # ==== Access lists
 # 
-# To control access IPAccessList maintains
-# two abstract lists: white list and black
-# list. Each list contains rules (CIDR objects
-# with information about IP address and
-# network mask). Access is evaluated as
-# blocked when tested IP address matches
-# rule from black list and not matches any rule
-# from white list. Basically, white list rules
-# override black list rules.
+# IPAccessList objects contain two <b>lists of rules</b>:
+# <b>white list</b> and <b>black list</b>. You can add IP rules
+# (both IPv4 and IPv6) to these lists. *Rules* are IP
+# addresses with netmasks.
 # 
-# To be precise: in order to increase
-# lookups performance internally there
-# are no real lists but one tree containing
-# specially marked objects.
+# ==== Rules management
 # 
-# ==== Basic Operations
+# The class provides methods for easy administration
+# of lists and makes use of method IPAccessList.obj_to_cidr that
+# "understands" most common IP representations including
+# DNS names, sockets, file descriptors bound to sockets and more.
 # 
-# This class has no methods that actualy
-# do network operations, it just allows
-# you to check IP against black and
-# white list. There are 2 major types
-# of operations you can perform: rules
-# management and access checks.
+# ==== Checking access
 # 
-# Rules management methods allow you to
-# add, remove and find IP access rules.
-# Access checks let you test if given
-# address or addresses are allowed or
-# denied to perform network operations
-# according to rules.
+# You may check access for provided IP addresses against
+# white and black lists using proper methods. An address will match
+# if it's in a range of defined rule.
+# 
+# Access is evaluated as denied when tested IP
+# address matches rule from black list and not
+# matches any rule from white list.
+# In other words: white list has precedence over black list.
+# If an IP address doesn't match any rule from any list then
+# methods evaluating access permit it. The default policy is
+# to accept. To change the default policy you may want to add
+# +:all+ rule to a black list which would match all addresses,
+# then just whitelist permitted.
 #
 # ==== IPv4 and IPv6
 # 

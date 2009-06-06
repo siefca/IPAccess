@@ -1,4 +1,9 @@
 
+Blocks:
+
+- possibility to add block to access lists, the block will be evaluated when match
+- pass sockets, etc when block called
+
 Specification:
 
 - add missing rspec examples
@@ -10,9 +15,12 @@ Ruby 1.9 sockets:
 Documentation:
 
 - add more documentation describing access checking workflow
+- precise that return value from check is pair in many places
 
 Other:
 
 - maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
 - inspect methods?
+
+
 

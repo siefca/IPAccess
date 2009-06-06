@@ -18,3 +18,4 @@ autoscan.log
 *.gem
 .DS_Store
 doc
+pkg

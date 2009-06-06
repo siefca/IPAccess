@@ -1,4 +1,11 @@
-$:.unshift File.join(File.dirname(__FILE__), "..", "lib")
+# encoding: utf-8
+# -*- ruby -*-
+ 
+$:.unshift File.join(File.dirname(__FILE__), "lib")
+
+require 'rubygems'
+gem 'hoe', '>=2.0.0'
+require 'hoe'
 
 require "rake"
 require "rake/clean"
@@ -6,6 +13,7 @@ require 'spec/version'
 require 'spec/rake/spectask'
 
 require "fileutils"
+require 'ipaccess'
 
 require 'rdoc'
 require "rake/rdoctask"
@@ -17,24 +25,54 @@ task :install do
   sh "sudo ruby setup.rb install"
 end
 
-### Docs
+### Gem
 
-desc "Generate documentation for the application"
-rd = Rake::RDocTask.new("appdoc") do |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "IP Access Control"
-  rdoc.options += [ '-HN',
-                    '-f', 'darkfish',
-                    '--charset=utf-8',
-                    '--main=docs/WELCOME'
-                  ]
-  rdoc.rdoc_files.include('docs/DOWNLOAD')
-  rdoc.rdoc_files.include('docs/README')
-  rdoc.rdoc_files.include('docs/WELCOME')
-  rdoc.rdoc_files.include('docs/LGPL-LICENSE')
-  rdoc.rdoc_files.include('docs/LEGAL')
-  rdoc.rdoc_files.include('docs/COPYING')
-  rdoc.rdoc_files.include('lib/**/*.rb')
+Hoe.new IPAccess::NAME do |hoe|
+  hoe.version = IPAccess::VERSION
+  hoe.summary = IPAccess::SUMMARY
+  hoe.description = IPAccess::DESC
+  hoe.email = IPAccess::EMAIL
+  hoe.url = IPAccess::HOMEPAGE
+  hoe.rubyforge_name = IPAccess::NAME
+  hoe.author = IPAccess::AUTHOR
+  hoe.remote_rdoc_dir = ''
+  hoe.extra_dev_deps = [["netaddr",">= 1.5.0"]]
+  hoe.rspec_options = ['--options', 'spec/spec.opts']
+  hoe.readme_file = 'docs/README'
+  hoe.history_file = 'docs/HISTORY'
+  hoe.extra_rdoc_files = ["docs/README", "docs/USAGE",
+                          "docs/LGPL-LICENSE",
+                          "docs/LEGAL", "docs/HISTORY",
+                          "docs/COPYING"]
+end
+
+task 'Manifest.txt' do
+  puts 'generating Manifest.txt from git'
+  sh %{git ls-files > Manifest.txt}
+  sh %{git add Manifest.txt}
+end
+
+task 'ChangeLog' do
+  sh %{git log > ChangeLog}
+end
+
+desc "Fix documentation's file permissions"
+task :docperm do
+  sh %{chmod -R a+rX doc}
+end
+
+#task :doc => [:appdoc, :docperm]
+
+### Sign & Publish
+
+desc "Create signed tag in Git"
+task :tag do
+  sh %{git tag -u #{IPAccess::EMAIL} v#{IPAccess::VERSION} -m 'version #{IPAccess::VERSION}'}
+end
+
+desc "Create external GnuPG signature for Gem"
+task :gemsign do
+  sh %{gpg -u #{IPAccess::EMAIL} -ab pkg/#{IPAccess::NAME}-#{IPAccess::VERSION}.gem -o pkg/#{IPAccess::NAME}-#{IPAccess::VERSION}.gem.sig}
 end
 
 ### Specs

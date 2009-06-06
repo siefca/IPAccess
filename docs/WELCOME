@@ -1,8 +1,0 @@
-This library provides classes for controlling IP access
-in your programs. You can use it to build your own
-routines checking IP addresses against access lists
-or use altered sockets implementation with IP access
-control enabled that also comes with this library.
-
-If you want to know more it's good idea to see the README file.
-
