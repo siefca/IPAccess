@@ -1,12 +1,13 @@
-.gitignore
+Manifest.txt
 Rakefile
 docs/COPYING
+docs/HISTORY
 docs/LEGAL
 docs/LGPL-LICENSE
 docs/README
 docs/TODO
 examples/tcp_socket.rb
-ipaccess.gemspec
+examples/text_message.rb
 lib/ipaccess.rb
 lib/ipaccess/arm_sockets.rb
 lib/ipaccess/ghost_doc.rb
@@ -16,8 +17,8 @@ lib/ipaccess/ip_access_errors.rb
 lib/ipaccess/ip_access_list.rb
 lib/ipaccess/ip_access_patches.rb
 lib/ipaccess/netaddr_patch.rb
+lib/ipaccess/socket.rb
 lib/ipaccess/sockets.rb
-spec/core_spec.rb
 spec/ip_access_list_spec.rb
 spec/rcov.opts
 spec/spec.opts

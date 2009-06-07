@@ -1,5 +1,7 @@
 = IP Access Control
 
+== codename: <i>Mother in Law</i>
+
 * http://ipaccess.rubyforge.org
 * http://rubyforge.org/projects/ipaccess
 * https://github.com/siefca/IPAccess/tree
@@ -73,10 +75,12 @@ control IP access.
 === Structures
 
 IP addresses used by the classes are internaly and interfacialy
-represented by NetAddr::CIDR objects (NetAddr::CIDRv4 and
-NetAddr::CIDRv6). Due to performance reasons any access list
-is not really a list but is internally represented as a tree
-(NetAddr::Tree) with special tags.
+represented by NetAddr::CIDR[http://netaddr.rubyforge.org/classes/NetAddr/CIDR.html]
+objects (NetAddr::CIDRv4[http://netaddr.rubyforge.org/classes/NetAddr/CIDRv4.html] and
+NetAddr::CIDRv6[http://netaddr.rubyforge.org/classes/NetAddr/CIDRv6.html]). Due to
+performance reasons any access list internally is represented as a tree
+(NetAddr::Tree[http://netaddr.rubyforge.org/classes/NetAddr/Tree.html])
+with special tags assigning rules to virtual lists.
 
 === Simple scenarios
 

@@ -18,7 +18,7 @@ require 'ipaccess'
 require 'rdoc'
 require "rake/rdoctask"
 
-task :default => :spec
+#task :default => :spec
 
 desc "install by setup.rb"
 task :install do
@@ -38,9 +38,10 @@ Hoe.new IPAccess::NAME do |hoe|
   hoe.remote_rdoc_dir = ''
   hoe.extra_dev_deps = [["netaddr",">= 1.5.0"]]
   hoe.rspec_options = ['--options', 'spec/spec.opts']
+  hoe.rsync_args << '--chmod=a+rX'
   hoe.readme_file = 'docs/README'
   hoe.history_file = 'docs/HISTORY'
-  hoe.extra_rdoc_files = ["docs/README", "docs/USAGE",
+  hoe.extra_rdoc_files = ["docs/README",
                           "docs/LGPL-LICENSE",
                           "docs/LEGAL", "docs/HISTORY",
                           "docs/COPYING"]
