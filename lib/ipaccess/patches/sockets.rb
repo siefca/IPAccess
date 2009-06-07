@@ -25,19 +25,8 @@
 # 
 
 require 'socket'
-require 'singleton'
 require 'ipaccess/ip_access_errors'
 require 'ipaccess/patches/generic'
-
-class IPAccess
-
-  # This is global access set, used by
-  # default by all socket handling
-  # classes with enabled IP access control.
-  
-  Global = IPAccess.new 'global'
-
-end
 
 # :stopdoc:
 

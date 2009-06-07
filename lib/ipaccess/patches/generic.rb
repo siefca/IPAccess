@@ -5,10 +5,8 @@
 # License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:docs/LGPL-LICENSE.html] or {Ruby License}[link:docs/COPYING.html].
 # 
 # Modules contained in this file are meant for
-# patching Ruby socket classes in order to add
-# IP access control to them. It is also used
-# to create variants of socket handling classes
-# with IP access control.
+# patching Ruby classes in order to add
+# IP access control to them.
 # 
 #--
 # 
