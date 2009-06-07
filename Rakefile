@@ -77,26 +77,26 @@ end
 
 ### Specs
 
-spec_opts = proc{File.read("spec/spec.opts").split}
-spec_core_files     = FileList['spec/core_spec.rb']
-spec_all_files      = spec_core_files
+#spec_opts = proc{File.read("spec/spec.opts").split}
+#spec_core_files     = FileList['spec/core_spec.rb']
+#spec_all_files      = spec_core_files
 
-desc "Run core specs"
-Spec::Rake::SpecTask.new("spec_core") do |t|
-  t.spec_files = spec_core_files
-  t.spec_opts  = spec_opts.call
-  t.libs << "lib"
-end
-
-desc "Run all specs"
-Spec::Rake::SpecTask.new("spec") do |t|
-  t.spec_files = spec_all_files
-  t.spec_opts  = spec_opts.call
-  t.libs << "lib"
-end
-
-desc "Check documentation coverage"
-task :dcov do
-  sh %{find lib -name '*.rb' | xargs dcov}
-end
+#desc "Run core specs"
+#Spec::Rake::SpecTask.new("spec_core") do |t|
+#  t.spec_files = spec_core_files
+#  t.spec_opts  = spec_opts.call
+#  t.libs << "lib"
+#end
+#
+#desc "Run all specs"
+#Spec::Rake::SpecTask.new("spec") do |t|
+#  t.spec_files = spec_all_files
+#  t.spec_opts  = spec_opts.call
+#  t.libs << "lib"
+#end
+#
+#desc "Check documentation coverage"
+#task :dcov do
+#  sh %{find lib -name '*.rb' | xargs dcov}
+#end
 
