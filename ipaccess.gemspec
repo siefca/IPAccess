@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = %q{ipaccess}
-  s.version = "0.0.2"
+  s.version = "0.0.3"
   s.date = %q{2009-05-10}
   s.rubyforge_project = %q{ipaccess}
   s.summary = %q{IP Access Control}
