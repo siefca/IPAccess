@@ -3,10 +3,6 @@
  
 $:.unshift File.join(File.dirname(__FILE__), "lib")
 
-require 'rubygems'
-gem 'hoe', '>=2.0.0'
-require 'hoe'
-
 require "rake"
 require "rake/clean"
 require 'spec/version'
@@ -17,6 +13,10 @@ require 'ipaccess'
 
 require 'rdoc'
 require "rake/rdoctask"
+
+require 'rubygems'
+gem 'hoe', '>=2.0.0'
+require 'hoe'
 
 #task :default => :spec
 
@@ -49,7 +49,7 @@ end
 
 task 'Manifest.txt' do
   puts 'generating Manifest.txt from git'
-  sh %{git ls-files > Manifest.txt}
+  sh %{git ls-files | grep -v gitignore > Manifest.txt}
   sh %{git add Manifest.txt}
 end
 
@@ -75,29 +75,4 @@ desc "Create external GnuPG signature for Gem"
 task :gemsign do
   sh %{gpg -u #{IPAccess::EMAIL} -ab pkg/#{IPAccess::NAME}-#{IPAccess::VERSION}.gem -o pkg/#{IPAccess::NAME}-#{IPAccess::VERSION}.gem.sig}
 end
-
-### Specs
-
-#spec_opts = proc{File.read("spec/spec.opts").split}
-#spec_core_files     = FileList['spec/core_spec.rb']
-#spec_all_files      = spec_core_files
-
-#desc "Run core specs"
-#Spec::Rake::SpecTask.new("spec_core") do |t|
-#  t.spec_files = spec_core_files
-#  t.spec_opts  = spec_opts.call
-#  t.libs << "lib"
-#end
-#
-#desc "Run all specs"
-#Spec::Rake::SpecTask.new("spec") do |t|
-#  t.spec_files = spec_all_files
-#  t.spec_opts  = spec_opts.call
-#  t.libs << "lib"
-#end
-#
-#desc "Check documentation coverage"
-#task :dcov do
-#  sh %{find lib -name '*.rb' | xargs dcov}
-#end
 
