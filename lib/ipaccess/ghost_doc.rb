@@ -31,7 +31,8 @@
 # controlling IP access.
 # 
 # ==== Example
-#     require 'ipaddr/sockets'
+#     require 'socket'
+#     require 'ipaccess'
 #     include Socket::Constants
 #     
 #     IPAccess::Global.input.blacklist :localhost             # add localhost to global access set
@@ -174,7 +175,8 @@ end
 # controlling IP access.
 # 
 # ==== Example
-#     require 'ipaddr/sockets'
+#     require 'socket'
+#     require 'ipaccess'
 #     
 #     serv = IPAccess::TCPServer.new(31337)         # create listening TCP socket
 #     serv.acl = :private                           # create and use private access set
@@ -191,6 +193,9 @@ class IPAccess::TCPServer
   #  
   # ==== Example
   # 
+  #     require 'socket'
+  #     require 'ipaccess'
+  #     
   #     socket = IPAccess::TCPServer.new(31337)   # create TCP server
   #     socket.acl = :global                      # use global access set
   #     socket.acl = :private                     # create and use individual access set

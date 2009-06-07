@@ -31,12 +31,11 @@ require 'netaddr'
 require 'ipaccess/netaddr_patch'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access'
-require 'ipaccess/sockets'
 
-class IPAccess
+class IPAccess #:nodoc:
   AUTHOR    = "Paweł Wilk"
   NAME      = "ipaccess"
-  VERSION   = "1.0.0"
+  VERSION   = "0.0.2"
   EMAIL     = "siefca@gnu.org"
   SUMMARY   = "IP Access Control"
   DESC      = "This library allows you to control IP access for sockets and other objects"

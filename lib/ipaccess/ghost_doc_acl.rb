@@ -2,9 +2,9 @@
 # control IP access for a socket. You may assign global access set,
 # create local access set or use shared set.
 # 
-# - If argument is +:global+ it uses global access set.
-# - If argument is +:private+ it creates an empty, private access set.
-# - If argument is an IPAccess object then it is used as external, shared set.
+# - If an argument is +:global+ it uses global access set.
+# - If an argument is +:private+ it creates an empty, private access set.
+# - If an argument is an IPAccess object then it is used as external, shared set.
 # 
 # ==== Global access set
 # 

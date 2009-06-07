@@ -24,4 +24,30 @@
 # 
 #++
 
-require 'ipaccess/socket'
+require 'socket'
+require 'ipaccess/ip_access'
+require 'ipaccess/ip_access_patches'
+
+
+class IPAccess::Socket < Socket
+  include IPAccess::Patches::Socket
+end
+
+class IPAccess::UDPSocket < UDPSocket
+  include IPAccess::Patches::UDPSocket
+end
+
+if Object.const_defined?(:SOCKSSocket)
+  class IPAccess::SOCKSSocket < SOCKSSocket
+    include IPAccess::Patches::SOCKSSocket
+  end
+end
+
+class IPAccess::TCPSocket < TCPSocket
+  include IPAccess::Patches::TCPSocket
+end
+
+class IPAccess::TCPServer < TCPServer
+  include IPAccess::Patches::TCPServer
+end
+

@@ -415,6 +415,8 @@ class IPAccess
   # 
   # Example:
   # 
+  #     require 'ipaccess/socket'                         # load sockets subsystem and IPAccess.arm method
+  # 
   #     IPAccess.arm TCPSocket                            # arm TCPSocket class  
   #     IPAccess::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
   #     TCPSocket.new('randomseed.pl', 80)                # try to connect
