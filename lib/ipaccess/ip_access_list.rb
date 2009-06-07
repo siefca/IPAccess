@@ -20,7 +20,6 @@
 #
 #++
 
-require 'ipaddr'
 require 'socket'
 require 'resolv'
 require 'netaddr'
@@ -255,9 +254,6 @@ class IPAccessList < NetAddr::Tree
     # number - immediate generation
     return [NetAddr::CIDR.create(obj)] if obj.is_a?(Numeric)
 
-    # IPAddr - fetch IP/mask string
-    obj = obj.native.inspect.split[1].chomp('>')[5..-1] if obj.is_a?(IPAddr)
-
     # object containing socket member (e.g. Net::HTTP) - fetch socket
     if obj.respond_to?(:socket)
       obj = obj.socket 
@@ -345,7 +341,7 @@ class IPAccessList < NetAddr::Tree
                            :reserved,
                            :multicast)
       else
-        raise ArgumentError, "Provided symbol is unknown: #{obj.to_s}"
+        raise ArgumentError, "provided symbol is unknown: #{obj.to_s}"
       end
       return obj.map { |addr| NetAddr::CIDR.create(addr) } if obj.is_a?(Array)
     end
@@ -353,8 +349,13 @@ class IPAccessList < NetAddr::Tree
     # URI or something that responds to host method - fetch string
     obj = obj.host if obj.respond_to?(:host)
     
-    # IPAddrList - immediate generation
-    return obj.to_a if obj.class.name.to_sym == :IPAddrList
+    # objects of external classes 
+    case obj.class.name.to_sym
+    when :IPAddr                                          # IPAddr - fetch IP/mask string
+      obj = obj.native.inspect.split[1].chomp('>')[5..-1]
+    when :IPAddrList                                      # IPAddrList - pass array to parse
+      return obj_to_cidr(obj.to_a)
+    end
     
     # string or similar - immediate generation
     if obj.respond_to?(:to_s)

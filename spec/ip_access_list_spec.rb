@@ -3,7 +3,14 @@ $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 require 'uri'
 require 'socket'
 require 'rubygems'
+require 'ipaddr'
 require 'ipaccess'
+require 'ipaccess/socket'
+
+begin
+  require 'ipaddr_list'
+rescue LoadError
+end
 
 describe IPAccessList do
  
@@ -39,6 +46,12 @@ describe IPAccessList do
 
       it "should take an array of IPAddr objects as parameter" do
         lambda { IPAccessList.new [IPAddr.new("127.0.0.1"), IPAddr.new("192.168.1.1")] }.should_not raise_error
+      end
+
+      if Kernel.const_defined?(:IPAddrList)
+        it "should take an IPAddrList object as parameter" do
+          lambda { IPAccessList.new IPAddrList.new(["127.0.0.1", "192.168.1.1"]) }.should_not raise_error
+        end
       end
 
       it "should take an array of numbers as parameter" do
