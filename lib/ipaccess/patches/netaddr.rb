@@ -23,21 +23,22 @@
 require 'netaddr'
 
 # This module contains few new methods extending
-# original NetAddr module.
+# original NetAddr[http://netaddr.rubyforge.org/classes/NetAddr.html] module.
 
 module NetAddr
 
-  # :stopdoc:
-  
+  # This class contains methods extending
+  # original CIDR[http://netaddr.rubyforge.org/classes/NetAddr/CIDR.html] class.
+
   class CIDR
   
-    # Returns +true+ if the IP address is an IPv4-mapped IPv6 address.
+    # Returns +true+ if an IP address is IPv4-mapped IPv6 address.
 
     def ipv4_mapped?
       return @version == 6 && (@ip >> 32) == 0xffff
     end
 
-    # Returns +true+ if the IP address is an IPv4-compatible IPv6 address.
+    # Returns +true+ if an IP address is IPv4-compatible IPv6 address.
 
     def ipv4_compat?
       return false if @version != 6
@@ -46,7 +47,7 @@ module NetAddr
       return (a != 0 && a != 1)
     end
 
-    # Returns +true+ if the IP address is an IPv4-compatible or
+    # Returns +true+ if an IP address is IPv4-compatible or
     # IPv4-mapped IPv6 address.
 
     def ipv4_compliant?
@@ -73,6 +74,9 @@ module NetAddr
     end
     
   end # class CIDR
+  
+  # This class contains methods extending
+  # original CIDRv4[http://netaddr.rubyforge.org/classes/NetAddr/CIDRv4.html] class.
   
   class CIDRv4
       
@@ -101,6 +105,9 @@ module NetAddr
         
   end # class CIDRv4
 
+  # This class contains methods extending
+  # original CIDRv6[http://netaddr.rubyforge.org/classes/NetAddr/CIDRv6.html] class.
+  
   class CIDRv6
   
     def ipv4
@@ -120,8 +127,6 @@ module NetAddr
     alias_method :to_ipv4, :ipv4
     
   end # class CIDRv4
-  
-  # :startdoc:
   
 end # module NetAddr
 

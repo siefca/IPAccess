@@ -321,6 +321,7 @@ class IPAccess
   
   def check_fd(list, exc, fd)
     check_socket(list, exc, Socket.for_fd(fd))
+    return fd
   end
   private :check_fd
   

@@ -1,3 +1,13 @@
+=== 1.0.1 / 2009-06-07 (Mother in Law)
+
+* 1 major enhancement
+
+  * Using sockets is not obligatory – to load altered sockets one should require it explicitly
+
+* 2 bugfixes
+
+  * IPAccess.obj_to_cidr now properly converts IPAddrList objects to an array of NetAddr::CIDR objects
+  * IPAccess.check_fd returns file descriptor when IP is permitted instead of temporary socket object
 
 === 0.0.1 / 2009-06-06
 

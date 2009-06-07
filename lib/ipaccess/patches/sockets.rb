@@ -6,7 +6,9 @@
 # 
 # Modules contained in this file are meant for
 # patching Ruby socket classes in order to add
-# IP access control to them.
+# IP access control to them. It is also used
+# to create variants of socket handling classes
+# with IP access control.
 # 
 #--
 # 
@@ -25,6 +27,7 @@
 require 'socket'
 require 'singleton'
 require 'ipaccess/ip_access_errors'
+require 'ipaccess/patches/generic'
 
 class IPAccess
 
@@ -47,63 +50,7 @@ end
 # class has acl member, which is an IPAccess object.
 
 module IPAccess::Patches
-  
-  # This class is a proxy that raises an exception when
-  # any method other than defined in Object class is called.
-  # It behaves like NilClass.
-
-  class GlobalSet
     
-    include Singleton
-    
-    def nil?; true end
-    
-    def method_missing(name, *args)
-      return nil.method(name).call(*args) if nil.respond_to?(name)
-      raise ArgumentError, "cannot access global set from object's scope, use IPAccess::Global"
-    end
-    
-  end
-  
-  
-  # The IPSocketAccess module contains methods
-  # that are present in all classes handling
-  # sockets with IP access control enabled.
-
-  module IPSocketAccess
-
-    # This method enables usage of internal IP access list for object.
-    # If argument is IPAccess object then it is used.
-    # 
-    # ==== Example
-    #
-    #     socket.acl = :global        # use global access set
-    #     socket.acl = :private       # create and use individual access set
-    #     socket.acl = IPAccess.new   # use external (shared) access set
-
-    def acl=(obj)
-      if obj.is_a?(Symbol)
-        case obj
-        when :global
-          @acl = GlobalSet.instance
-        when :private
-          @acl = IPAccess.new
-        else
-          raise ArgumentError, "bad access list selector, use: :global or :private"
-        end
-      elsif obj.is_a?(IPAccess)
-        @acl = obj 
-      else
-        raise ArgumentError, "bad access list"
-      end
-    end
-
-    attr_reader :acl
-    alias_method :access=, :acl=
-    alias_method :access, :acl
-
-  end
-  
   ###################################################################
   # Socket class with IP access control.
   # It uses input and output access lists.
@@ -390,7 +337,7 @@ module IPAccess::Patches
     end # self.included
 
   end # module TCPServer
-
+  
 end # module IPAccess::Patches
 
 # :startdoc:

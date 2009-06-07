@@ -1,6 +1,6 @@
 = IP Access Control
 
-== codename: <i>Mother in Law</i>
+=== codename: <b><tt>Mother in Law</tt></b>
 
 * http://ipaccess.rubyforge.org
 * http://rubyforge.org/projects/ipaccess
@@ -39,7 +39,7 @@ control IP access.
 
 == Synopsis
 
-	require 'ipaccess'
+	require 'ipaccess/socket'			# load sockets subsystem
 
 	ip_from_user = '192.168.5.5'		# IP given by untrusted user
 
@@ -105,12 +105,20 @@ that will do the job:
 * IPAccess::UDPSocket
 * IPAccess::TCPServer
 
+Before using any of them you must issue:
+
+* <tt>require 'ipaccess/socket'</tt>
+
 ==== Patching Ruby Sockets
 
 If there is no other way to control access than to
 alter the whole sockets subsystem you may use \IPAccess
 library to patch native socket handling classes of Ruby.
 To do that use special class method called IPAccess.arm
+
+Before using IPAccess.arm you must load it using:
+
+* <tt>require 'ipaccess/socket'</tt>
 
 == License
 

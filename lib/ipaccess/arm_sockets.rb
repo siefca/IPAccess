@@ -23,7 +23,7 @@
 
 require 'socket'
 require 'ipaccess/ip_access'
-require 'ipaccess/ip_access_patches'
+require 'ipaccess/patches/sockets'
 
 IPAccess.arm Socket
 IPAccess.arm UDPSocket

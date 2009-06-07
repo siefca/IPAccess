@@ -31,8 +31,8 @@
 # controlling IP access.
 # 
 # ==== Example
-#     require 'socket'
-#     require 'ipaccess'
+#     require 'socket'                                        # load native sockets
+#     require 'ipaccess/socket'                               # load sockets subsystem and IPAccess.arm method
 #     include Socket::Constants
 #     
 #     IPAccess::Global.input.blacklist :localhost             # add localhost to global access set
@@ -60,6 +60,8 @@ class IPAccess::Socket
   #:include:ghost_doc_acl.rb
   #  
   # ==== Example
+  #
+  #     require 'ipaccess/socket'   # load sockets subsystem
   # 
   #     socket = IPAccess::Socket.new(AF_INET, SOCK_STREAM, 0)
   #     socket.acl = :global        # use global access set
@@ -86,7 +88,9 @@ class IPAccess::UDPSocket
   #:include:ghost_doc_acl.rb
   #  
   # ==== Example
-  # 
+  #
+  #     require 'ipaccess/socket'   # load sockets subsystem
+  #      
   #     socket = IPAccess::UDPSocket.new
   #     socket.acl = :global        # use global access set
   #     socket.acl = :private       # create and use individual access set
@@ -112,6 +116,8 @@ class IPAccess::SOCKSSocket
   #:include:ghost_doc_acl.rb
   #  
   # ==== Example
+  #
+  #     require 'ipaccess/socket'                                           # load sockets subsystem
   # 
   #     acl_set = IPAccess.new                                              # create shared access set
   #     acl_set.output.block 'randomseed.pl'                                # block connections to this host
@@ -146,6 +152,8 @@ class IPAccess::TCPSocket
   #  
   # ==== Example
   # 
+  #     require 'ipaccess/socket'                                         # load sockets subsystem
+  #     
   #     acl_set = IPAccess.new                                            # create shared access set
   #     acl_set.output.block 'randomseed.pl'                              # block connections to this host
   #     
@@ -175,8 +183,8 @@ end
 # controlling IP access.
 # 
 # ==== Example
-#     require 'socket'
-#     require 'ipaccess'
+#     
+#     require 'ipaccess/socket'                     # load sockets subsystem
 #     
 #     serv = IPAccess::TCPServer.new(31337)         # create listening TCP socket
 #     serv.acl = :private                           # create and use private access set
@@ -193,8 +201,7 @@ class IPAccess::TCPServer
   #  
   # ==== Example
   # 
-  #     require 'socket'
-  #     require 'ipaccess'
+  #     require 'ipaccess/socket'                 # load sockets subsystem
   #     
   #     socket = IPAccess::TCPServer.new(31337)   # create TCP server
   #     socket.acl = :global                      # use global access set

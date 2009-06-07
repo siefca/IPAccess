@@ -23,7 +23,7 @@
 require 'socket'
 require 'resolv'
 require 'netaddr'
-require 'ipaccess/netaddr_patch'
+require 'ipaccess/patches/netaddr'
 
 # This class maintains a simple access list.
 # 

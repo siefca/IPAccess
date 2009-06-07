@@ -26,7 +26,7 @@
 
 require 'socket'
 require 'ipaccess/ip_access'
-require 'ipaccess/ip_access_patches'
+require 'ipaccess/patches/sockets'
 
 
 class IPAccess::Socket < Socket
