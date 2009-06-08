@@ -24,23 +24,56 @@
 #++
 # 
 
+require 'socket'
 require 'net/http'
 require 'ipaccess/ip_access_errors'
 require 'ipaccess/patches/generic'
 
 # :stopdoc:
 
-# This modules contain patches for Ruby socket
-# classes in order to enable IP access control
-# for them.
-#
-# This module patches socket handling classes
-# to use IP access control. Each patched socket
-# class has acl member, which is an IPAccess object.
+module IPAccess::Patches::Net
+  
+  ###################################################################
+  # Net::HTTP class with IP access control.
+  # It uses output access lists.
+  
+  module HTTP
+    
+    include IPAccess::Patches::ACL
 
-module IPAccess::Patches
-  
-  
+    def self.included(base)
+      
+      marker = (base.name =~ /IPAccess/) ? base.superclass : base
+      return if marker.instance_variable_defined?(:@uses_ipaccess)    
+      base.instance_variable_set(:@uses_ipaccess, true)
+      
+      base.class_eval do
+        
+        orig_initialize       = self.instance_method :initialize
+        orig_conn_address     = self.instance_method :conn_address
+        
+        define_method :initialize do |*args|
+          self.acl = (args.size > 2) ? args.pop : :global
+          #acl = @acl.nil? ? IPAccess::Global : @acl
+          #ipaddr = TCPSocket.getaddress(args.first)
+          #acl.check_out_ipstring ipaddr
+          orig_initialize.bind(self).call(*args)
+        end
+        
+        # conn_address on steroids.
+        define_method :conn_address do
+          acl = @acl.nil? ? IPAccess::Global : @acl
+          addr = orig_conn_address.bind(self).call
+          ipaddr = TCPSocket.getaddress(addr)
+          acl.check_out_ipstring ipaddr
+        end
+        private :conn_address
+        
+      end # base.class_eval
+
+    end # self.included
+    
+  end # module HTTP
   
 end # module IPAccess::Patches
 

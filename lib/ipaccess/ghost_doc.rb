@@ -216,3 +216,34 @@ class IPAccess::TCPServer
   
 end
 
+######################################################
+# Net::HTTP class with IP access control.
+# It uses output access lists.
+# 
+# This acts the same way as Net::HTTP class but
+# provides special member called +acl+ for
+# controlling IP access.
+# 
+# ==== Example
+#     
+
+class IPAccess::NET::HTTP
+  #:include:ghost_doc_acl.rb
+  #  
+  # ==== Example
+  # 
+  #     require 'ipaccess/socket'                 # load sockets subsystem
+  #     
+  #     socket = IPAccess::TCPServer.new(31337)   # create TCP server
+  #     socket.acl = :global                      # use global access set
+  #     socket.acl = :private                     # create and use individual access set
+  #     socket.acl = IPAccess.new                 # use external (shared) access set
+  def acl=(set); end
+  
+  # This member allows you to manipulate local and shared access sets
+  # associated with this socket. To control global access set use
+  # IPAccess::Global
+  attr_reader :acl
+  
+end
+

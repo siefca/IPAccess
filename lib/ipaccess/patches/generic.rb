@@ -32,9 +32,60 @@ class IPAccess
   # classes with enabled IP access control.
   
   Global = IPAccess.new 'global'
-
+  
+  # This special method patches Ruby's standard
+  # library classes and enables IP access control
+  # for them. Instances of such altered classes
+  # will be equipped with member called +acl+
+  # which is a kind of IPAccess and allows you
+  # to manipulate access rules.
+  #
+  # Passed argument may be a class object,
+  # a string representation of a class object
+  # or a symbol representing a class object.
+  # 
+  # Currently supported classes are:
+  # +Socket+, +UDPSocket+, +SOCKSSocket+,
+  # +TCPSocket+ and +TCPServer+.
+  # 
+  # Example 1:
+  # 
+  #     require 'ipaccess/socket'                         # load sockets subsystem and IPAccess.arm method
+  # 
+  #     IPAccess.arm TCPSocket                            # arm TCPSocket class  
+  #     IPAccess::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
+  #     TCPSocket.new('randomseed.pl', 80)                # try to connect
+  # 
+  # Example 2:
+  # 
+  #     require 'ipaccess/net/http'                       # load net/http subsystem and IPAccess.arm method
+  # 
+  #     IPAccess.arm Net::HTTP                            # arm TCPSocket class  
+  #     IPAccess::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
+  #     TCPSocket.new('randomseed.pl', 80)                # try to connect
+  
+  def self.arm(klass)
+    if klass.is_a?(Class)
+      klass_name = klass.name 
+    else
+      klass_name = klass.to_s
+      klass = Kernel
+      klass_name.to_s.split('::').each do |k|
+        klass = klass.const_get(k)
+      end
+    end
+    begin
+      patch_klass = IPAccess::Patches
+      klass_name.split('::').each do |k|
+        patch_klass = patch_klass.const_get(k)
+      end
+    rescue NameError
+      raise ArgumentError, "cannot enable IP access control, unknown class #{klass_name}"
+    end
+    klass.__send__(:include, patch_klass)
+  end
+  
 end
-
 
 # This module patches network classes
 # to use IP access control. Each patched 
@@ -59,11 +110,11 @@ module IPAccess::Patches
     
   end
   
-  # The IPSocketAccess module contains methods
+  # The ACL module contains methods
   # that are present in all classes handling
-  # sockets with IP access control enabled.
+  # objects with IP access control enabled.
 
-  module IPSocketAccess
+  module ACL
 
     # This method enables usage of internal IP access list for object.
     # If argument is IPAccess object then it is used.

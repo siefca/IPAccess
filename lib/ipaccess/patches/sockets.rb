@@ -46,7 +46,7 @@ module IPAccess::Patches
   
   module Socket
     
-    include IPSocketAccess
+    include IPAccess::Patches::ACL
 
     def self.included(base)
       
@@ -66,7 +66,7 @@ module IPAccess::Patches
         
         define_method :initialize do |*args|
           @acl = GlobalSet.instance
-          orig_initialize(*args)
+          orig_initialize.bind(self).call(*args)
           return self
         end
 
@@ -137,7 +137,7 @@ module IPAccess::Patches
 
   module UDPSocket
 
-    include IPSocketAccess
+    include IPAccess::Patches::ACL
 
     def self.included(base)
       
@@ -155,7 +155,7 @@ module IPAccess::Patches
         
         define_method :initialize do |*args|
           @acl = GlobalSet.instance
-          orig_initialize(*args)
+          orig_initialize.bind(self).call(*args)
           return self
         end
         
@@ -214,7 +214,7 @@ module IPAccess::Patches
 
   module SOCKSocket
 
-    include IPSocketAccess
+    include IPAccess::Patches::ACL
 
     def self.included(base)
       
@@ -248,7 +248,7 @@ module IPAccess::Patches
   
   module TCPSocket
 
-    include IPSocketAccess
+    include IPAccess::Patches::ACL
 
     def self.included(base)
       
@@ -282,7 +282,7 @@ module IPAccess::Patches
   
   module TCPServer
 
-    include IPSocketAccess
+    include IPAccess::Patches::ACL
 
     def self.included(base)
       
@@ -330,44 +330,4 @@ module IPAccess::Patches
 end # module IPAccess::Patches
 
 # :startdoc:
-
-class IPAccess
-  
-  # This special method patches Ruby's standard
-  # library socket handling classes and enables
-  # IP access control for them. Instances of
-  # such altered classes will be equipped with
-  # member called +acl+ which is a kind of
-  # IPAccess and allows you to manipulate
-  # access rules.
-  #
-  # Passed argument may be a class object,
-  # a string representation of a class object
-  # or a symbol representing a class object.
-  # 
-  # Currently supported classes are:
-  # +Socket+, +UDPSocket+, +SOCKSSocket+,
-  # +TCPSocket+ and +TCPServer+.
-  # 
-  # Example:
-  # 
-  #     require 'ipaccess/socket'                         # load sockets subsystem and IPAccess.arm method
-  # 
-  #     IPAccess.arm TCPSocket                            # arm TCPSocket class  
-  #     IPAccess::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
-  #     TCPSocket.new('randomseed.pl', 80)                # try to connect
-  
-  def self.arm(klass)
-    klass_name = klass.name if klass.is_a?(Class)
-    klass_name = klass_name.to_s unless klass.is_a?(String)
-    klass_name = klass_name.to_sym
-    case klass_name
-    when :Socket, :UDPSocket, :SOCKSSocket, :TCPSocket, :TCPServer
-      klass.__send__(:include, Patches.const_get(klass_name))
-    else
-      raise ArgumentError, "cannot enable IP access control for class #{klass_name}"
-    end
-  end
-  
-end
 
