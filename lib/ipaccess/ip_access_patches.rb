@@ -130,8 +130,7 @@ module IPAccess::Patches
         
         define_method :initialize do |*args|
           @acl = GlobalSet.instance
-          orig_initialize(*args)
-          return self
+          orig_initialize.bind(self).call(*args)
         end
 
         # accept on steroids.
@@ -219,8 +218,7 @@ module IPAccess::Patches
         
         define_method :initialize do |*args|
           @acl = GlobalSet.instance
-          orig_initialize(*args)
-          return self
+          orig_initialize.bind(self).call(*args)
         end
         
         # connect on steroids.
@@ -234,7 +232,7 @@ module IPAccess::Patches
         # send on steroids.
         define_method :send do |*args|
           hostname = args[2]
-          return orig_send(*args) if hostname.nil?
+          return orig_send.bind(self).call(*args) if hostname.nil?
           acl = @acl.nil? ? IPAccess::Global : @acl
           peer_ip = self.class.getaddress(hostname)
           acl.check_out_sockaddr(peer_ip)
@@ -297,7 +295,6 @@ module IPAccess::Patches
           args[0] = self.class.getaddress(args[0])
           acl.check_out_ipstring args[0]
           orig_initialize.bind(self).call(*args)
-          return self
         end
         
       end # base.class_eval
@@ -331,7 +328,6 @@ module IPAccess::Patches
           args[0] = self.class.getaddress(args[0])
           acl.check_out_ipstring args[0]
           orig_initialize.bind(self).call(*args)
-          return self
         end
         
       end # base.class_eval
@@ -364,7 +360,7 @@ module IPAccess::Patches
         # initialize on steroids.
         define_method :initialize do |*args|
           @acl = GlobalSet.instance
-          return orig_initialize.bind(self).call(*args)
+          orig_initialize.bind(self).call(*args)
         end
 
         # accept on steroids.
