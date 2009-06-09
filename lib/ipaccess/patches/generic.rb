@@ -46,9 +46,9 @@ class IPAccess
   # 
   # Currently supported classes are:
   # +Socket+, +UDPSocket+, +SOCKSSocket+,
-  # +TCPSocket+ and +TCPServer+.
+  # +TCPSocket+, +TCPServer+ and +Net::HTTP+.
   # 
-  # Example 1:
+  # ==== Example 1 – sockets
   # 
   #     require 'ipaccess/socket'                         # load sockets subsystem and IPAccess.arm method
   # 
@@ -56,13 +56,13 @@ class IPAccess
   #     IPAccess::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
   #     TCPSocket.new('randomseed.pl', 80)                # try to connect
   # 
-  # Example 2:
+  # ==== Example 2 – HTTP
   # 
   #     require 'ipaccess/net/http'                       # load net/http subsystem and IPAccess.arm method
   # 
   #     IPAccess.arm Net::HTTP                            # arm TCPSocket class  
   #     IPAccess::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
-  #     TCPSocket.new('randomseed.pl', 80)                # try to connect
+  #     Net::HTTP.get_print('randomseed.pl', '/i.html')   # try to connect
   
   def self.arm(klass)
     if klass.is_a?(Class)
@@ -80,7 +80,7 @@ class IPAccess
         patch_klass = patch_klass.const_get(k)
       end
     rescue NameError
-      raise ArgumentError, "cannot enable IP access control, unknown class #{klass_name}"
+      raise ArgumentError, "cannot enable IP access control for class #{klass_name}"
     end
     klass.__send__(:include, patch_klass)
   end
