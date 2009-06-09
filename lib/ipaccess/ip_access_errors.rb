@@ -42,9 +42,9 @@ class IPAccessDenied < Errno::EACCES
   
   def list_desc
     if (@access_list.is_a?(IPAccess) && !@access_list.name.to_s.empty?)
-      "#{@access_list.name} "
+      @access_list.name
     elsif @access_list.is_a?(String)
-      "#{@access_list} "
+      @access_list
     else
       ""
     end
@@ -64,7 +64,7 @@ class IPAccessDenied < Errno::EACCES
     elsif @rule.is_a?(String)
       return " rule: #{@rule}"
     else
-      return ""
+      return " rule"
     end
   end
   

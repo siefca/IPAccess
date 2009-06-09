@@ -3,6 +3,9 @@
  
 $:.unshift File.join(File.dirname(__FILE__), "lib")
 
+require 'rubygems'
+gem 'hoe', '>=2.0.0'
+
 require "rake"
 require "rake/clean"
 require 'spec/version'
@@ -11,11 +14,6 @@ require 'spec/rake/spectask'
 require "fileutils"
 require 'ipaccess'
 
-require 'rdoc'
-require "rake/rdoctask"
-
-require 'rubygems'
-gem 'hoe', '>=2.0.0'
 require 'hoe'
 
 #task :default => :spec

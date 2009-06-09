@@ -1,25 +1,25 @@
 
-=== Blocks:
+=== Blocks
 
 - possibility to add block to access lists, the block will be evaluated when match
 - pass sockets, etc when block called
 
-=== Specification:
+=== Specification
 
 - add missing rspec examples
 
-=== Sockets:
+=== Sockets
 
 - overload Ruby 1.9 socket methods
 - patch OpenSSL::Socket
 - patch Net::HTTP and familiar
 
-=== Documentation:
+=== Documentation
 
 - add more documentation describing access checking workflow
 - precise that return value from check is pair (in many places)
 
-=== Other:
+=== Other
 
 - create server sockets with list given in initializer
 - maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
