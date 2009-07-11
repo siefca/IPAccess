@@ -4,25 +4,27 @@ routines checking IP addresses against access lists
 or use altered sockets implementation with IP access
 control enabled that also comes with this library.
 
-There are two basic classes used to maintain access rules:
-IPAccessList and IPAccess.
+There are two basic classes that can be used to
+maintain access rules: IPAccessList and IPAccess.
 
-IP addresses used by all classes are internaly and interfacialy
-represented by NetAddr::CIDR objects (NetAddr::CIDRv4 and NetAddr::CIDRv6).
+In all classes the IP addresses are internaly
+and interfacialy represented by NetAddr::CIDR objects
+(NetAddr::CIDRv4 and NetAddr::CIDRv6).
 
 === IPAccessList Class
 
-This class maintains simple access list.
+This class maintains simple access list containing
+whitelisted and blacklisted entries.
 
-Objects of IPAccessList class contain two lists of rules:
+IPAccessList objects contain two lists of rules:
 white list and black list. You can add IP rules
 (both IPv4 and IPv6) to this lists and then manually
 check access for provided IP addresses against that
 lists using proper methods. Rules are IP addresses
 that can have netmasks.
 
-When doing access checking white list has precedence
-over black list. If an IP address doesn't match any list,
+When doing access checking a white list has precedence
+over a black list. If an IP address doesn't match any list,
 methods evaluating access permit it. The default policy
 is to accept. To change the default policy you may want
 to add +:all+ rule to black list which would match all
@@ -35,7 +37,8 @@ DNS names, sockets, file descriptors bound to sockets and more.
 
 === IPAccess Class
 
-This class maintains access set.
+This class maintains access set containing access lists
+for input and output.
 
 Objects of IPAccess class, called access sets, contain two access lists
 (IPAccessList objects) as accessible attributes: +input+ and +output+.
