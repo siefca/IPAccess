@@ -141,7 +141,26 @@ module IPAccess::Patches
         raise ArgumentError, "bad access list"
       end
     end
+    
+    # This method returns +true+ if the given object can be used to initialize ACL.
+    # Otherwise it returns +false+.
+    
+    def IPAccess.valid_acl?(obj)
+      if obj.is_a?(Symbol)
+        return true if (obj == :global || obj == :private)
+      elsif obj.is_a?(IPAccess)
+        return true
+      end
+      return false
+    end
 
+    # This method returns +true+ if the given object can be used to initialize ACL.
+    # Otherwise it returns +false+.
+        
+    def valid_acl?(obj)
+      IPAccess.valid_acl?(obj)
+    end
+    
     attr_reader :acl
     alias_method :access=, :acl=
     alias_method :access, :acl

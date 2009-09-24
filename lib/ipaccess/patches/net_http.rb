@@ -49,15 +49,38 @@ module IPAccess::Patches::Net
       
       base.class_eval do
         
-        orig_initialize       = self.instance_method :initialize
+        # override new() since it's not usual.
+        (class << self; self; end).class_eval do
+          alias_method :__new, :new
+        	private :__new
+        	
+        	define_method :new do |*args|
+        	  late_acl = :global
+        	  late_acl = args.pop if IPAccess::valid_acl?(args.last)
+        	  obj = __new(*args)
+        	  obj.acl = late_acl if obj.respond_to?(:acl)
+        	  return obj
+      	  end
+    	  end
+        
+        orig_start            = self.instance_method :start
         orig_conn_address     = self.instance_method :conn_address
         
-        define_method :initialize do |*args|
-          self.acl = (args.size > 2) ? args.pop : :global
-          #acl = @acl.nil? ? IPAccess::Global : @acl
-          #ipaddr = TCPSocket.getaddress(args.first)
-          #acl.check_out_ipstring ipaddr
-          orig_initialize.bind(self).call(*args)
+        # start on steroids.
+        define_method :start do |*args|
+          if valid_acl?(args.last)
+            acl = args.pop
+          else
+            acl = @acl.nil? ? IPAccess::Global : @acl
+          end
+          if (!args.first.nil? && !args.first.empty?)
+            ipaddr = TCPSocket.getaddress(args.first)
+            acl.check_out_ipstring ipaddr
+          end
+          # FIXME!!!!!!!!!!!!!!!
+          # first add something that will extract IP address and test it
+          # even it wasn't given as an argument
+          orig_start.bind(self).call
         end
         
         # conn_address on steroids.

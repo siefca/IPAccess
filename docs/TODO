@@ -17,7 +17,7 @@
 === Documentation
 
 - add more documentation describing access checking workflow
-- precise that return value from check is pair (in many places)
+- precise that return value from check is a pair (in many places)
 
 === Other
 
