@@ -22,16 +22,19 @@ IP matches them. Second class is more general –
 it throws exceptions and distinguishes between
 incoming and outgoing IP traffic using two lists.
 
-Special variants of socket handling classes
-mentioned earlies use IPAccess objects to
-control IP access.
+Two major classes described above do not interfere
+with any networking classes and/or objects unless
+you code it to do that. However, this library
+also contains special variants of socket handling
+classes mentioned earlier that use IPAccess objects
+to control access of real TCP/IP traffic in an easy way.
 
 == Features
 
 * manages white and black lists of IP rules
 * maintains input and output access sets based on lists
 * accepts many formats of IP addresses (strings, sockets, DNS and more)
-* helps to easy check access and raise an exception
+* helps to automate access checks and raises exceptions
 * allows to match and search of IP addresses in rules' lists and sets
 * provides variants of socket handling classes with IP access control
 * has special methods for patching native socket handling classes
