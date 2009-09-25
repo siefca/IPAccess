@@ -1,49 +1,58 @@
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
 require 'ipaccess/net/http'
+require 'uri'
+
+url = URI.parse('http://randomseed.pl/index.html')
 
 # Add host's IP by to black list of global output access set
 IPAccess::Global.output.blacklist 'randomseed.pl'
 
-# Variant 0: private access set with Net::HTTP variant
+# Create custom access set with one blacklisted IP
+acl = IPAccess.new
+acl.output.blacklist 'randomseed.pl'
 
-url = URI.parse('http://randomseed.pl/index.html')
+###### Example cases
+
+# Case 0: simple setup with custom ACL
+
+res = IPAccess::Net::HTTP.start(url.host, url.port, acl) { |http|
+  http.get("/#{url.path}")
+}
+
+# Case 1: custom access set with Net::HTTP variant
+
 req = Net::HTTP::Get.new(url.path)
-htt = IPAccess::Net::HTTP.new(url.host, url.port, :private)
-htt.acl.output.blacklist 'randomseed.pl'
+htt = IPAccess::Net::HTTP.new(url.host, url.port, acl)
 res = htt.start { |http|
   http.request(req)
 }
 
-# Variant 0b: global access set with Net::HTTP variant
+# Case 2: global access set with Net::HTTP variant
 
-url = URI.parse('http://randomseed.pl/index.html')
 req = Net::HTTP::Get.new(url.path)
 htt = IPAccess::Net::HTTP.new(url.host, url.port)
 res = htt.start { |http|
   http.request(req)
 }
 
-# Variant 1: global access set with Net::HTTP variant
+# Case 3: global access set with Net::HTTP variant
 
-url = URI.parse('http://randomseed.pl/index.html')
 req = Net::HTTP::Get.new(url.path)
 res = IPAccess::Net::HTTP.start(url.host, url.port) { |http|
   http.request(req)
 }
 
-# Variant 2: 
+# Case 4: get_print with custom ACL
 
-# Call IPAccess::Net::HTTP.get_print with private list
-IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html'
+IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html', acl
 
-# Variant 3:
+# Case 5: arming Net::HTTP class
 
 # Arm Net::HTTP class of Ruby
 IPAccess.arm Net::HTTP
-
 # Call IPAccess::Net::HTTP.get_print
-#IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html'
-
+IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html'
 # Call Net::HTTP.get_print
-#Net::HTTP.get_print 'randomseed.pl', '/index.html'
+Net::HTTP.get_print 'randomseed.pl', '/index.html'
+

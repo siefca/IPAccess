@@ -40,7 +40,7 @@ module IPAccess::Patches::Net
   module HTTP
     
     include IPAccess::Patches::ACL
-
+    
     def self.included(base)
       
       marker = (base.name =~ /IPAccess/) ? base.superclass : base
@@ -49,39 +49,45 @@ module IPAccess::Patches::Net
       
       base.class_eval do
         
-        # override new() since it's not usual.
         (class << self; self; end).class_eval do
-          alias_method :__new, :new
-        	private :__new
+          alias_method :__ipac_new, :new
+        	private :__ipac_new
         	
+        	# override HTTP.new() since it's not usual.
         	define_method :new do |*args|
-        	  late_acl = :global
-        	  late_acl = args.pop if IPAccess::valid_acl?(args.last)
-        	  obj = __new(*args)
+        	  late_acl = IPAccess::valid_acl?(args.last) ? args.pop : :global
+        	  obj = __ipac_new(*args)
         	  obj.acl = late_acl if obj.respond_to?(:acl)
         	  return obj
       	  end
+          
+          # overwrite HTTP.start()
+          def start(address, *args, &block) # :yield: +http+
+            acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+            port, p_addr, p_port, p_user, p_pass = *args
+            new(address, port, p_addr, p_port, p_user, p_pass, acl).start(&block)
+          end
+
+          # overwrite HTTP.get_response()
+        	def get_response(uri_or_host, *args, &block)
+        	  acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+        	  path, port = *args
+        	  if path
+              host = uri_or_host
+              new(host, (port || Net::HTTP.default_port), acl).start { |http|
+                return http.request_get(path, &block)
+              }
+            else
+              uri = uri_or_host
+              new(uri.host, uri.port, acl).start { |http|
+                return http.request_get(uri.request_uri, &block)
+              }
+            end
+          end
+      	
     	  end
         
-        orig_start            = self.instance_method :start
         orig_conn_address     = self.instance_method :conn_address
-        
-        # start on steroids.
-        define_method :start do |*args|
-          if valid_acl?(args.last)
-            acl = args.pop
-          else
-            acl = @acl.nil? ? IPAccess::Global : @acl
-          end
-          if (!args.first.nil? && !args.first.empty?)
-            ipaddr = TCPSocket.getaddress(args.first)
-            acl.check_out_ipstring ipaddr
-          end
-          # FIXME!!!!!!!!!!!!!!!
-          # first add something that will extract IP address and test it
-          # even it wasn't given as an argument
-          orig_start.bind(self).call
-        end
         
         # conn_address on steroids.
         define_method :conn_address do

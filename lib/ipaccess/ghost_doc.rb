@@ -224,20 +224,67 @@ end
 # provides special member called +acl+ for
 # controlling IP access.
 # 
-# ==== Example
+# You can pass access set in various ways: while
+# creating HTTP object or while starting HTTP session.
+# You can also rely on global access set.
+# 
+# ==== Examples
+#
+# ===== Global ACL and simple method
+#
+#     require 'ipaccess/net/http'
 #     
+#     IPAccess::Global.output.blacklist 'randomseed.pl'
+#     IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html'
+# 
+# ===== Custom ACL and simple method
+#
+#     require 'ipaccess/net/http'
+#     
+#     acl = IPAccess.new
+#     acl.output.blacklist 'randomseed.pl'
+#     IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html', acl
+# 
+# ===== Custom ACL and generic method with starting session with temporary object
+#
+#     require 'ipaccess/net/http'
+#     require 'uri'
+#     
+#     acl = IPAccess.new
+#     acl.output.blacklist 'randomseed.pl'
+#     url = URI.parse('http://randomseed.pl/index.html')
+#     res = IPAccess::Net::HTTP.start(url.host, url.port, acl) { |http|
+#       http.get("/")
+#     }
+# 
+# ===== Custom ACL initialized while creating HTTP object
+# 
+#     require 'ipaccess/net/http'                           # load Net::HTTP variant
+#     
+#     req = Net::HTTP::Get.new('/index.html')           
+#     htt = IPAccess::Net::HTTP.new('randomseed.pl',        # create Net::HTTP variant
+#                                   80,                     
+#                                   :private)               # with private access set
+#     
+#     htt.acl.output.blacklist 'randomseed.pl'              # blacklist randomseed.pl
+#     res = htt.start { |http|                              # start HTTP session
+#       http.request(req)                                   # and send the request
+#     }
+#
 
 class IPAccess::NET::HTTP
   #:include:ghost_doc_acl.rb
   #  
   # ==== Example
   # 
-  #     require 'ipaccess/socket'                 # load sockets subsystem
+  #     require 'ipaccess/net/http'                         # load Net::HTTP variant
   #     
-  #     socket = IPAccess::TCPServer.new(31337)   # create TCP server
-  #     socket.acl = :global                      # use global access set
-  #     socket.acl = :private                     # create and use individual access set
-  #     socket.acl = IPAccess.new                 # use external (shared) access set
+  #     http = IPAccess::Net::HTTP.new('randomseed.pl', 80) # create HTTP object
+  # 
+  #     http.acl = :global                      # use global access set
+  #     http.acl = :private                     # create and use individual access set
+  #     http.acl = IPAccess.new                 # use external (shared) access set
+  #
   def acl=(set); end
   
   # This member allows you to manipulate local and shared access sets
