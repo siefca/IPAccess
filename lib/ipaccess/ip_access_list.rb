@@ -248,11 +248,17 @@ class IPAccessList < NetAddr::Tree
 
     # object containing socket member (e.g. Net::HTTP) - fetch socket
     if obj.respond_to?(:socket)
-      obj = obj.socket 
+      obj = obj.socket
+    elsif obj.respond_to?(:sock)
+      obj = obj.sock
     elsif obj.respond_to?(:client_socket)
       obj = obj.client_socket
     elsif obj.instance_variable_defined?(:@socket)
       obj = obj.instance_variable_get(:@socket)
+    elsif obj.instance_variable_defined?(:@client_socket)
+      obj = obj.instance_variable_get(:@client_socket)
+    elsif obj.instance_variable_defined?(:@sock)
+      obj = obj.instance_variable_get(:@sock)
     end 
     obj = obj.io if (obj.respond_to?(:io) && obj.io.respond_to?(:getpeername))
     
