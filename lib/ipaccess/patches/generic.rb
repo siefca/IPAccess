@@ -168,7 +168,7 @@ module IPAccess::Patches
     # 
     # Eatch class that patches Ruby's networking class should redefine this method.
     
-    def acl_recheck(ipaddr)
+    def acl_recheck
       ;
     end
     
