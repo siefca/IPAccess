@@ -12,6 +12,8 @@ IPAccess::Global.output.blacklist 'randomseed.pl'
 acl = IPAccess.new
 acl.output.blacklist 'randomseed.pl'
 
+acb = IPAccess.new
+
 ###### Example cases
 
 # Case 0: simple setup with custom ACL
@@ -51,8 +53,6 @@ IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html', acl
 
 # Arm Net::HTTP class of Ruby
 IPAccess.arm Net::HTTP
-# Call IPAccess::Net::HTTP.get_print
-IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html'
 # Call Net::HTTP.get_print
 Net::HTTP.get_print 'randomseed.pl', '/index.html'
 
