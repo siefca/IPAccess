@@ -65,14 +65,19 @@ class IPAccess
   #     Net::HTTP.get_print('randomseed.pl', '/i.html')   # try to connect
   
   def self.arm(klass)
-    if klass.is_a?(Class)
+    singleton_obj = nil
+    if klass.is_a?(Class)                                 # regular class
       klass_name = klass.name 
-    else
+    elsif (klass.is_a?(Symbol) || klass.is_a?(String))    # regular class as a string or symbol
       klass_name = klass.to_s
       klass = Kernel
       klass_name.to_s.split('::').each do |k|
         klass = klass.const_get(k)
       end
+    else                                                  # regular object (will patch singleton of this object)
+      klass_name = klass.class.name
+      singleton_obj = klass
+      klass = (class <<klass; self; end)
     end
     begin
       patch_klass = IPAccess::Patches
@@ -83,6 +88,7 @@ class IPAccess
       raise ArgumentError, "cannot enable IP access control for class #{klass_name}"
     end
     klass.__send__(:include, patch_klass)
+    singleton_obj.__send__(:__ipa_singleton_hook) unless singleton_obj.nil?
   end
   
 end
