@@ -28,6 +28,7 @@ require 'socket'
 require 'net/http'
 require 'ipaccess/ip_access_errors'
 require 'ipaccess/patches/generic'
+require 'ipaccess/patches/sockets'
 
 # :stopdoc:
 
@@ -49,45 +50,78 @@ module IPAccess::Patches::Net
       
       base.class_eval do
         
-        (class << self; self; end).class_eval do
-          alias_method :__ipac_new, :new
-        	private :__ipac_new
+        # CLASS METHODS
+        unless (base.name.nil? && base.class.name == "Class")
+          (class << self; self; end).class_eval do
+            alias_method :__ipac_new, :new
+        	  private :__ipac_new
         	
-        	# override HTTP.new() since it's not usual.
-        	define_method :new do |*args|
-        	  late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
-        	  obj = __ipac_new(*args)
-        	  obj.acl = late_acl if obj.respond_to?(:acl)
-        	  return obj
-      	  end
+        	  # override HTTP.new() since it's not usual.
+        	  define_method :new do |*args|
+        	    late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+        	    obj = __ipac_new(*args)
+        	    obj.acl = late_acl if obj.respond_to?(:acl)
+        	    return obj
+      	    end
           
-          # overwrite HTTP.start()
-          def start(address, *args, &block) # :yield: +http+
-            acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
-            port, p_addr, p_port, p_user, p_pass = *args
-            new(address, port, p_addr, p_port, p_user, p_pass, acl).start(&block)
-          end
-
-          # overwrite HTTP.get_response()
-        	def get_response(uri_or_host, *args, &block)
-        	  acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
-        	  path, port = *args
-        	  if path
-              host = uri_or_host
-              new(host, (port || Net::HTTP.default_port), acl).start { |http|
-                return http.request_get(path, &block)
-              }
-            else
-              uri = uri_or_host
-              new(uri.host, uri.port, acl).start { |http|
-                return http.request_get(uri.request_uri, &block)
-              }
+            # overwrite HTTP.start()
+            def start(address, *args, &block) # :yield: +http+
+              acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+              port, p_addr, p_port, p_user, p_pass = *args
+              new(address, port, p_addr, p_port, p_user, p_pass, acl).start(&block)
             end
-          end
+
+            # overwrite HTTP.get_response()
+        	  def get_response(uri_or_host, *args, &block)
+        	    acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+        	    path, port = *args
+        	    if path
+                host = uri_or_host
+                new(host, (port || Net::HTTP.default_port), acl).start { |http|
+                  return http.request_get(path, &block)
+                }
+              else
+                uri = uri_or_host
+                new(uri.host, uri.port, acl).start { |http|
+                  return http.request_get(uri.request_uri, &block)
+                }
+              end
+            end
+            
+      	  end
       	
-    	  end
+    	  end # class methods
         
         orig_conn_address     = self.instance_method :conn_address
+        orig_on_connect       = self.instance_method :on_connect
+        
+        # this hook will be called each time @acl is reassigned
+        define_method :acl_recheck do
+          acl = @acl.nil? ? IPAccess::Global : @acl
+          begin
+            sock = @socket
+            sock = sock.io if (!sock.nil? && sock.respond_to?(:io) && sock.io.respond_to?(:getpeername))
+            acl.check_out_socket sock
+          rescue IPAccessDenied
+            begin
+              self.finish
+            rescue IOError
+            end
+            raise
+          end
+          if sock.is_a?(TCPSocket)
+            unless sock.respond_to?(:acl)
+              (class <<sock; self; end).__send__(:include, IPAccess::Patches::TCPSocket)
+            end
+            sock.acl = acl if sock.acl != acl # share socket's access set with Net::Telnet object
+          end
+          nil
+        end
+        
+        # on_connect on steroids.
+        define_method :on_connect do
+          acl_recheck # check address form socket to be sure
+        end
         
         # conn_address on steroids.
         define_method :conn_address do
@@ -95,8 +129,16 @@ module IPAccess::Patches::Net
           addr = orig_conn_address.bind(self).call
           ipaddr = TCPSocket.getaddress(addr)
           acl.check_out_ipstring ipaddr
+          return ipaddr
         end
         private :conn_address
+        
+        # SINGLETON HOOKS
+        def __ipa_singleton_hook(acl=nil)
+          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl_recheck
+        end # singleton hooks
+        private :__ipa_singleton_hook
         
       end # base.class_eval
 

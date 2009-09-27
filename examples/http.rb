@@ -12,17 +12,27 @@ IPAccess::Global.output.blacklist 'randomseed.pl'
 acl = IPAccess.new
 acl.output.blacklist 'randomseed.pl'
 
-acb = IPAccess.new
-
 ###### Example cases
 
-# Case 0: simple setup with custom ACL
+# Case 0: custom access set and patched single instance
+
+req = Net::HTTP::Get.new("/")
+htt = Net::HTTP.new(url.host, url.port)
+
+res = htt.start { |http|
+  http.request(req)
+}
+
+IPAccess.arm htt, acl
+htt.start
+
+# Case 1: simple setup with custom ACL
 
 res = IPAccess::Net::HTTP.start(url.host, url.port, acl) { |http|
   http.get("/#{url.path}")
 }
 
-# Case 1: custom access set with Net::HTTP variant
+# Case 2: custom access set with Net::HTTP variant
 
 req = Net::HTTP::Get.new(url.path)
 htt = IPAccess::Net::HTTP.new(url.host, url.port, acl)
@@ -30,7 +40,7 @@ res = htt.start { |http|
   http.request(req)
 }
 
-# Case 2: global access set with Net::HTTP variant
+# Case 3: global access set with Net::HTTP variant
 
 req = Net::HTTP::Get.new(url.path)
 htt = IPAccess::Net::HTTP.new(url.host, url.port)
@@ -38,18 +48,18 @@ res = htt.start { |http|
   http.request(req)
 }
 
-# Case 3: global access set with Net::HTTP variant
+# Case 4: global access set with Net::HTTP variant
 
 req = Net::HTTP::Get.new(url.path)
 res = IPAccess::Net::HTTP.start(url.host, url.port) { |http|
   http.request(req)
 }
 
-# Case 4: get_print with custom ACL
+# Case 5: get_print with custom ACL
 
 IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html', acl
 
-# Case 5: arming Net::HTTP class
+# Case 6: arming Net::HTTP class
 
 # Arm Net::HTTP class of Ruby
 IPAccess.arm Net::HTTP

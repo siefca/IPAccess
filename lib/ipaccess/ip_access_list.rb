@@ -259,7 +259,7 @@ class IPAccessList < NetAddr::Tree
       obj = obj.instance_variable_get(:@client_socket)
     elsif obj.instance_variable_defined?(:@sock)
       obj = obj.instance_variable_get(:@sock)
-    end 
+    end
     obj = obj.io if (obj.respond_to?(:io) && obj.io.respond_to?(:getpeername))
     
     # some file descriptor but not socket - fetch socket
