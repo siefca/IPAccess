@@ -51,8 +51,8 @@ module IPAccess::Patches::Net
       base.class_eval do
         
         orig_initialize     = self.instance_method :initialize
-               
-        # this hook will be called each time acl is changed
+         
+        # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           acl = @acl.nil? ? IPAccess::Global : @acl
           begin
@@ -61,6 +61,13 @@ module IPAccess::Patches::Net
             self.close
             raise
           end
+          if @sock.is_a?(TCPSocket)
+            unless @sock.respond_to?(:acl)
+              (class <<@sock; self; end).__send__(:include, IPAccess::Patches::TCPSocket)
+            end
+            @sock.acl = acl if @sock.acl != acl # share socket's access set with Net::Telnet object
+          end
+          nil
         end
         
         # initialize on steroids
@@ -74,11 +81,7 @@ module IPAccess::Patches::Net
           acl.check_out_ipstring options["Host"]
           args[0] = options
           ret = orig_initialize.bind(self).call(*args, &block)
-          if @sock.is_a?(TCPSocket)
-            (class <<@sock; self; end).__send__(:include, IPAccess::Patches::TCPSocket)
-            @sock.acl = acl # share socket's access set with Net::Telnet object
-          end
-          self.acl_recheck # for sure
+          self.acl_recheck
           return ret
         end
         
@@ -86,6 +89,14 @@ module IPAccess::Patches::Net
         def initialize(*args, &block)
           __ipacall__initialize(block, *args)
         end
+        
+        # SINGLETON HOOKS
+        def __ipa_singleton_hook(acl=nil)
+          acl = acl.nil? ? @options["ACL"] : acl
+          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl_recheck
+        end # singleton hooks
+        private :__ipa_singleton_hook
         
       end # base.class_eval
 
