@@ -5,7 +5,7 @@
 # License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:docs/LGPL-LICENSE.html] or {Ruby License}[link:docs/COPYING.html].
 # 
 # Modules contained in this file are meant for
-# patching Ruby Net::HTTP classe in order to add
+# patching Ruby's Net::HTTP classes in order to add
 # IP access control to  it. It is also used
 # to create variant of Net::HTTP class
 # with IP access control.
@@ -55,7 +55,7 @@ module IPAccess::Patches::Net
         	
         	# override HTTP.new() since it's not usual.
         	define_method :new do |*args|
-        	  late_acl = IPAccess::valid_acl?(args.last) ? args.pop : :global
+        	  late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
         	  obj = __ipac_new(*args)
         	  obj.acl = late_acl if obj.respond_to?(:acl)
         	  return obj
