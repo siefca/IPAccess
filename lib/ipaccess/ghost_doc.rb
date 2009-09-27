@@ -294,3 +294,28 @@ class IPAccess::NET::HTTP
   
 end
 
+class IPAccess::NET::Telnet
+  #:include:ghost_doc_acl.rb
+  #  
+  # ==== Example
+  # 
+  #     require 'ipaccess/net/telnet'             # load Net::Telnet variant
+  #     
+  #     opts = {}
+  #     opts["Host"] = 'randomseed.pl'
+  #     opts["ACL"] = IPAccess.new                # shared ACL
+  #     telnet = IPAccess::Net::Telnet.new(opts)  # create connected Telnet object
+  # 
+  #     telnet.acl = :global                      # use global access set
+  #     telnet.acl = :private                     # create and use individual access set
+  #     telnet.acl = IPAccess.new                 # use external (shared) access set
+  #
+  def acl=(set); end
+  
+  # This member allows you to manipulate local and shared access sets
+  # associated with this socket. To control global access set use
+  # IPAccess::Global
+  attr_reader :acl
+  
+end
+
