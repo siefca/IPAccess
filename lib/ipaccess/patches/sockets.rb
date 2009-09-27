@@ -65,7 +65,7 @@ module IPAccess::Patches
         orig_sysaccept          = self.instance_method :sysaccept
         
         define_method :initialize do |*args|
-          @acl = GlobalSet.instance
+          @acl = IPAccess::GlobalSet.instance
           orig_initialize.bind(self).call(*args)
           return self
         end
@@ -154,7 +154,7 @@ module IPAccess::Patches
         orig_recvfrom_nonblock  = self.instance_method :recvfrom_nonblock
         
         define_method :initialize do |*args|
-          @acl = GlobalSet.instance
+          @acl = IPAccess::GlobalSet.instance
           orig_initialize.bind(self).call(*args)
           return self
         end
@@ -299,7 +299,7 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :initialize do |*args|
-          @acl = GlobalSet.instance
+          @acl = IPAccess::GlobalSet.instance
           return orig_initialize.bind(self).call(*args)
         end
 
