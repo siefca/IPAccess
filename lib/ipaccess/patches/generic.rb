@@ -136,7 +136,11 @@ module IPAccess::Patches
           raise ArgumentError, "bad access list selector, use: :global or :private"
         end
       elsif obj.is_a?(IPAccess)
-        @acl = obj 
+        if obj == IPAccess::Global
+          @acl = GlobalSet.instance
+        else
+          @acl = obj
+        end
       else
         raise ArgumentError, "bad access list"
       end
