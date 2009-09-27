@@ -258,7 +258,7 @@ class IPAccess
     end
     begin
       peeraddr = Socket.unpack_sockaddr_in(socket.getpeername).last
-    rescue Errno::ENOTCONN, Errno::ENOTSOCK, ArgumentError # socket is not INET, not a socket nor connected
+    rescue IOError, Errno::ENOTCONN, Errno::ENOTSOCK, ArgumentError # socket is not INET, not a socket nor connected
       return socket
     end
     peer_ip = NetAddr::CIDR.create(peeraddr.split('%').first)
