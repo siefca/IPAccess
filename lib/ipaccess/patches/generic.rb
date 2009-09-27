@@ -33,6 +33,34 @@ class IPAccess
   
   Global = IPAccess.new 'global'
   
+  # This method returns +true+ when
+  # the instance is not real IPAccess object
+  # but a reference to the IPAccess::Global,
+  # which should be reached by that name.
+  # It returns +false+ in case of regular
+  # IPAccess objects.
+  # 
+  # This method is present only if
+  # patching engine had been loaded.
+  
+  def global?; false end
+  
+  # :stopdoc:
+  
+  def Global.global?; true end
+  
+  def Global.==(obj)
+    return true if obj.object_id == IPAccess::GlobalSet.instance.object_id
+    super(obj)
+  end
+  
+  def Global.===(obj)
+    return true if obj.object_id == IPAccess::GlobalSet.instance.object_id
+    super(obj)
+  end
+  
+  # :startdoc:
+  
   # This special method patches Ruby's standard
   # library classes and enables IP access control
   # for them. Instances of such altered classes
@@ -63,8 +91,22 @@ class IPAccess
   #     IPAccess.arm Net::HTTP                            # arm TCPSocket class  
   #     IPAccess::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
   #     Net::HTTP.get_print('randomseed.pl', '/i.html')   # try to connect
+  # 
+  # ==== Example 3 – single networking object
+  # 
+  #     require 'ipaccess/net/telnet'                     # load Net::Telnet version and IPAccess.arm method
+  # 
+  #     opts = {}
+  #     opts["Host"]  = 'randomseed.pl'
+  #     opts["Port"]  = '80'
+  #     
+  #     t = Net::Telnet.new(opts)                         # try to connect to remote host
+  #     
+  #     acl = IPAccess.new                                # create custom access set
+  #     acl.output.blacklist 'randomseed.pl'              # blacklist host
+  #     IPAccess.arm t, acl                               # arm Telnet object
   
-  def self.arm(klass)
+  def self.arm(klass, acl=nil)
     singleton_obj = nil
     if klass.is_a?(Class)                                 # regular class
       klass_name = klass.name 
@@ -88,7 +130,7 @@ class IPAccess
       raise ArgumentError, "cannot enable IP access control for class #{klass_name}"
     end
     klass.__send__(:include, patch_klass)
-    singleton_obj.__send__(:__ipa_singleton_hook) unless singleton_obj.nil?
+    singleton_obj.__send__(:__ipa_singleton_hook, acl) unless singleton_obj.nil?
   end
   
 end
@@ -103,12 +145,33 @@ module IPAccess::Patches
   # any method other than defined in Object class is called.
   # It behaves like NilClass.
 
-  class GlobalSet
+  class IPAccess::GlobalSet
     
     include Singleton
     
+    # imitate nil
     def nil?; true end
     
+    # repport itself as IPAccess::Global
+    def global?; true end
+    
+    # return +true+ when compared to IPAccess::Global
+    def ==(obj)
+      return true if obj.object_id == IPAccess::Global.object_id
+      method_missing(:==, obj)
+    end
+
+    def ===(obj)
+      return true if obj.object_id == IPAccess::Global.object_id
+      method_missing(:===, obj)
+    end
+    
+    # imitate IPAccess::Global when inspected
+    def inspect
+      IPAccess::Global.inspect
+    end
+    
+    # imitate nil even more and disallow direct ACL modifications
     def method_missing(name, *args)
       return nil.method(name).call(*args) if nil.respond_to?(name)
       raise ArgumentError, "cannot access global set from object's scope, use IPAccess::Global"
@@ -135,7 +198,7 @@ module IPAccess::Patches
       if obj.is_a?(Symbol)
         case obj
         when :global
-          @acl = GlobalSet.instance
+          @acl = IPAccess::GlobalSet.instance
         when :private
           @acl = IPAccess.new
         else
@@ -143,10 +206,12 @@ module IPAccess::Patches
         end
       elsif obj.is_a?(IPAccess)
         if obj == IPAccess::Global
-          @acl = GlobalSet.instance
+          @acl = IPAccess::GlobalSet.instance
         else
           @acl = obj
         end
+      elsif obj.nil?
+        @acl = IPAccess::GlobalSet.instance
       else
         raise ArgumentError, "bad access list"
       end
