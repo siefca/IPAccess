@@ -140,6 +140,7 @@ module IPAccess::Patches
       else
         raise ArgumentError, "bad access list"
       end
+      self.acl_recheck if self.respond_to?(:acl_recheck)
     end
     
     # This method returns +true+ if the given object can be used to initialize ACL.
