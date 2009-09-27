@@ -28,6 +28,7 @@ require 'socket'
 require 'net/telnet'
 require 'ipaccess/ip_access_errors'
 require 'ipaccess/patches/generic'
+require 'ipaccess/patches/sockets'
 
 # :stopdoc:
 
@@ -73,6 +74,10 @@ module IPAccess::Patches::Net
           acl.check_out_ipstring options["Host"]
           args[0] = options
           ret = orig_initialize.bind(self).call(*args, &block)
+          if @sock.is_a?(TCPSocket)
+            (class <<@sock; self; end).__send__(:include, IPAccess::Patches::TCPSocket)
+            @sock.acl = acl # share socket's access set with Net::Telnet object
+          end
           self.acl_recheck # for sure
           return ret
         end
