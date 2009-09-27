@@ -161,6 +161,16 @@ module IPAccess::Patches
       IPAccess.valid_acl?(obj)
     end
     
+    # This method should be called each time the access set related to an object
+    # is changed and there is a need to validate remote peer again since it might be
+    # blacklisted. It taked one argument which should be IP address given as a String.
+    # 
+    # Eatch class that patches Ruby's networking class should redefine this method.
+    
+    def acl_recheck(ipaddr)
+      ;
+    end
+    
     attr_reader :acl
     alias_method :access=, :acl=
     alias_method :access, :acl
