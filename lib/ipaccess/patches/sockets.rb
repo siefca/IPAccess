@@ -228,7 +228,7 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :initialize do |*args|
-          self.acl = (args.size > 2) ? args.pop : :global
+          self.acl = valid_acl?(args.last) ? args.pop : :global
           acl = @acl.nil? ? IPAccess::Global : @acl
           args[0] = self.class.getaddress(args[0])
           acl.check_out_ipstring args[0]
@@ -262,7 +262,7 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :initialize do |*args|
-          self.acl = (args.size > 2) ? args.pop : :global
+          self.acl = valid_acl?(args.last) ? args.pop : :global
           acl = @acl.nil? ? IPAccess::Global : @acl
           args[0] = self.class.getaddress(args[0])
           acl.check_out_ipstring args[0]
