@@ -31,6 +31,7 @@
 # controlling IP access.
 # 
 # ==== Example
+#     
 #     require 'socket'                                        # load native sockets
 #     require 'ipaccess/socket'                               # load sockets subsystem and IPAccess.arm method
 #     include Socket::Constants
@@ -88,7 +89,7 @@ class IPAccess::UDPSocket
   #:include:ghost_doc_acl.rb
   #  
   # ==== Example
-  #
+  #     
   #     require 'ipaccess/socket'   # load sockets subsystem
   #      
   #     socket = IPAccess::UDPSocket.new
@@ -146,10 +147,19 @@ end
 # This acts the same way as TCPSocket class but
 # provides special member called +acl+ for
 # controlling IP access.
+# 
+# ==== Example
+# 
+#     require 'ipaccess/socket'                                         # load sockets subsystem
+#     
+#     acl_set = IPAccess.new                                            # create shared access set
+#     acl_set.output.block 'randomseed.pl'                              # block connections to this host
+#     
+#     socket = IPAccess::TCPSocket.new('randomseed.pl', 80)
 
 class IPAccess::TCPSocket
   #:include:ghost_doc_acl.rb
-  #  
+  # 
   # ==== Example
   # 
   #     require 'ipaccess/socket'                                         # load sockets subsystem
@@ -158,7 +168,6 @@ class IPAccess::TCPSocket
   #     acl_set.output.block 'randomseed.pl'                              # block connections to this host
   #     
   #     socket = IPAccess::TCPSocket.new('randomseed.pl', 80)             # use global access set
-  #     socket = IPAccess::TCPSocket.new('randomseed.pl', 80, :private)   # use private access set (!?!)
   #     socket = IPAccess::TCPSocket.new('randomseed.pl', 80, acl_set)    # use shared access set
   #
   # Because SOCKSSocket objects tend to open connection when

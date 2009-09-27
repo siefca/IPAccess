@@ -1,27 +1,17 @@
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
-require 'ipaccess/net/telnet'
-
-acl = IPAccess.new
-
-# Add host's IP by to black list
-acl.output.blacklist 'localhost'
-
-# Arm Net::Telnet class of Ruby
-#IPAccess.arm Net::Telnet
+require 'ipaccess/net/telnet'                     # load Net::Telnet version and IPAccess.arm method
 
 opts = {}
-opts["Host"] = 'randomseed.pl'
-opts["Port"] = '80'
-opts["ACL"] = acl
+opts["Host"]  = 'randomseed.pl'
+opts["Port"]  = '80'
 
-# Try to connect to remote host
-t = IPAccess::Net::Telnet.new(opts)
+t = Net::Telnet.new(opts)                         # try to connect to remote host
 
-# add new rule and check again
-acl.output.blacklist 'randomseed.pl'
+acl = IPAccess.new                                # create custom access set
+IPAccess.arm t, acl                               # arm single Telnet object
 
-# same, shared access sets:
+acl.output.blacklist 'randomseed.pl'              # blacklist host
 
 puts acl.output         # original access set
 puts t.sock.acl.output  # socket's access set
