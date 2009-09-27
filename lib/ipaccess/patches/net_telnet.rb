@@ -50,14 +50,12 @@ module IPAccess::Patches::Net
       base.class_eval do
         
         orig_initialize     = self.instance_method :initialize
-        orig_acl            = self.instance_method :acl
-        
+               
         # this hook will be called each time acl is changed
         define_method :acl_recheck do
-          ipaddr = Socket.unpack_sockaddr_in(@sock.getpeername).last.split('%').first
           acl = @acl.nil? ? IPAccess::Global : @acl
           begin
-            acl.check_out_ipstring ipaddr unless (ipaddr.nil? || ipaddr.empty?)
+            acl.check_out_socket @sock
           rescue IPAccessDenied
             self.close
             raise
