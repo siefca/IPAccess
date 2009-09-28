@@ -30,6 +30,8 @@ class IPAccess
   # This is global access set, used by
   # default by all socket handling
   # classes with enabled IP access control.
+  # It is present only when patching
+  # engine is loaded.
   
   Global = IPAccess.new 'global'
   
@@ -104,7 +106,7 @@ class IPAccess
   #     
   #     acl = IPAccess.new                                # create custom access set
   #     acl.output.blacklist 'randomseed.pl'              # blacklist host
-  #     IPAccess.arm t, acl                               # arm Telnet object
+  #     IPAccess.arm t, acl                               # arm Telnet object and pass optional ACL
   
   def self.arm(klass, acl=nil)
     singleton_obj = nil
@@ -136,8 +138,8 @@ class IPAccess
 end
 
 # This module patches network classes
-# to use IP access control. Each patched 
-# class has acl member, which is an IPAccess object.
+# to enforce IP access control for them. Each patched 
+# class has the acl member, which is an IPAccess object.
 
 module IPAccess::Patches
   
@@ -180,9 +182,9 @@ module IPAccess::Patches
   end
   
   # The ACL module contains methods
-  # that are present in all classes handling
+  # that are present in all networking
   # objects with IP access control enabled.
-
+  
   module ACL
 
     # This method enables usage of internal IP access list for object.
@@ -238,10 +240,12 @@ module IPAccess::Patches
     end
     
     # This method should be called each time the access set related to an object
-    # is changed and there is a need to validate remote peer again since it might be
-    # blacklisted. It taked one argument which should be IP address given as a String.
+    # is changed and there is a need to validate remote peer again, since it might be
+    # blacklisted.
     # 
-    # Eatch class that patches Ruby's networking class should redefine this method.
+    # Eatch class that patches Ruby's networking class should redefine this method
+    # and call it in a proper place (e.g. from hook executed when singleton methods
+    # are added to networking object).
     
     def acl_recheck
       ;
