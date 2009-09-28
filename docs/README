@@ -36,9 +36,10 @@ to control access of real TCP/IP traffic in an easy way.
 * accepts many formats of IP addresses (strings, sockets, DNS and more)
 * helps to automate access checks and raises exceptions
 * allows to match and search of IP addresses in rules' lists and sets
+* bases on nice library \NetAddr and uses trees to store data
 * provides variants of socket handling classes with IP access control
 * has special methods for patching native socket handling classes
-* is based on nice library \NetAddr and uses trees to store data
+* has special methods for patching single networking objects
 
 == Synopsis
 
@@ -46,7 +47,7 @@ to control access of real TCP/IP traffic in an easy way.
 
 	ip_from_user = '192.168.5.5'		# IP given by untrusted user
 
-	acl = IPAccess.new			# new access set
+	acl = IPAccess.new					# new access set
 	acl.output.block :private, :local	# blacklisted private and local subnets
 	
 	socket = IPAccess::TCPSocket(ip_from_user, 80, acl)
@@ -73,9 +74,63 @@ to control access of real TCP/IP traffic in an easy way.
 
 * <tt>sudo gem install ipaccess</tt>
 
-== Internals
+== Usage
 
-=== Structures
+=== Classes
+
+==== Handling access sets and access lists
+
+If you need just an IP access lists that you would handle in your own way
+you may want to use two classes:
+
+* IPAccess to maintain access sets (containing input and output access lists)
+* IPAccessList to maintain single access list
+
+==== Handling socket classes
+
+If you want standard sockets to have access control enabled
+you may want to use:
+
+* IPAccess::Socket (or issue IPAccess.arm Socket)
+* IPAccess::TCPSocket (or issue IPAccess.arm TCPSocket)
+* IPAccess::UDPSocket (or issue IPAccess.arm UDPSocket)
+* IPAccess::SOCKSocket (or issue IPAccess.arm SOCKSocket)
+* IPAccess::TCPServer (or issue IPAccess.arm TCPServer)
+
+Before using any of them you must issue:
+
+* <tt>require 'ipaccess/socket'</tt>
+
+Using the IPAccess.arm causes standard socket class to be altered,
+while \IPAccess:: classes are just new variants of socket
+handling classes.
+
+==== Handling other supported networking classes
+
+If you want some working objects to have access control enabled
+you may want to use:
+
+* IPAccess::Net::HTTP (or issue IPAccess.arm Net::HTTP)
+* IPAccess::Net::Telnet (or issue IPAccess.arm Net::Telnet)
+
+==== Handling single objects
+
+If you want to enable access control for single networking
+object from the list shown above you may issue:
+
+	require 'ipaccess/net/http'
+	obj = Net::HTTP.new(host, port)
+	IPAccess.arm obj
+
+or
+
+	require 'ipaccess/socket'
+	socket = IPAccess::TCPServer.new(31337)
+	IPAccess.arm socket
+	
+..and so on.
+
+=== Note about internal structures
 
 IP addresses used by the classes are internaly and interfacialy
 represented by NetAddr::CIDR[http://netaddr.rubyforge.org/classes/NetAddr/CIDR.html]
@@ -96,32 +151,6 @@ For your convenience such altered sockets may use
 global, local or shared access sets. To get more
 information about that see documentation for some
 of them.
-
-==== Using \IPAccess sockets
-
-Here are subclasses of Ruby's socket handling classes
-that will do the job:
-
-* IPAccess::Socket
-* IPAccess::TCPSocket
-* IPAccess::SOCKSSocket
-* IPAccess::UDPSocket
-* IPAccess::TCPServer
-
-Before using any of them you must issue:
-
-* <tt>require 'ipaccess/socket'</tt>
-
-==== Patching Ruby Sockets
-
-If there is no other way to control access than to
-alter the whole sockets subsystem you may use \IPAccess
-library to patch native socket handling classes of Ruby.
-To do that use special class method called IPAccess.arm
-
-Before using IPAccess.arm you must load it using:
-
-* <tt>require 'ipaccess/socket'</tt>
 
 == License
 
