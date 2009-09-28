@@ -125,6 +125,12 @@ module IPAccess::Patches
           return ret
         end
         
+        # SINGLETON HOOKS
+        def __ipa_singleton_hook(acl=nil)
+          self.acl = acl.nil? ? IPAccess::Global : acl
+        end # singleton hooks
+        private :__ipa_singleton_hook
+        
       end # base.class_eval
       
     end # self.included
@@ -201,7 +207,13 @@ module IPAccess::Patches
           end
           return ret
         end
-    
+        
+        # SINGLETON HOOKS
+        def __ipa_singleton_hook(acl=nil)
+          self.acl = acl.nil? ? IPAccess::Global : acl
+        end # singleton hooks
+        private :__ipa_singleton_hook
+        
       end # base.class_eval
 
     end # self.included
@@ -236,6 +248,28 @@ module IPAccess::Patches
           return self
         end
         
+        # this hook will be called each time @acl is reassigned
+        define_method :acl_recheck do
+          acl = @acl.nil? ? IPAccess::Global : @acl
+          begin
+            acl.check_out_socket self
+          rescue IPAccessDenied
+            begin
+              self.close
+            rescue IOError
+            end
+            raise
+          end
+          nil
+        end
+        
+        # SINGLETON HOOKS
+        def __ipa_singleton_hook(acl=nil)
+          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl_recheck
+        end # singleton hooks
+        private :__ipa_singleton_hook
+        
       end # base.class_eval
 
     end # self.included
@@ -269,6 +303,28 @@ module IPAccess::Patches
           orig_initialize.bind(self).call(*args)
           return self
         end
+        
+        # this hook will be called each time @acl is reassigned
+        define_method :acl_recheck do
+          acl = @acl.nil? ? IPAccess::Global : @acl
+          begin
+            acl.check_out_socket self
+          rescue IPAccessDenied
+            begin
+              self.close
+            rescue IOError
+            end
+            raise
+          end
+          nil
+        end
+        
+        # SINGLETON HOOKS
+        def __ipa_singleton_hook(acl=nil)
+          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl_recheck
+        end # singleton hooks
+        private :__ipa_singleton_hook
         
       end # base.class_eval
 
@@ -320,7 +376,29 @@ module IPAccess::Patches
           acl = @acl.nil? ? IPAccess::Global : @acl
           acl.check_in_fd orig_sysaccept.bind(self).call(*args)
         end
-
+        
+        # this hook will be called each time @acl is reassigned
+        define_method :acl_recheck do
+          acl = @acl.nil? ? IPAccess::Global : @acl
+          begin
+            acl.check_in_socket self
+          rescue IPAccessDenied
+            begin
+              self.close
+            rescue IOError
+            end
+            raise
+          end
+          nil
+        end
+        
+        # SINGLETON HOOKS
+        def __ipa_singleton_hook(acl=nil)
+          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl_recheck
+        end # singleton hooks
+        private :__ipa_singleton_hook
+        
       end # base.class_eval
 
     end # self.included
