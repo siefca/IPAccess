@@ -73,6 +73,9 @@ class IPAccess
   # Passed argument may be a class object,
   # a string representation of a class object
   # or a symbol representing a class object.
+  #
+  # This method returns object that has
+  # been patched.
   # 
   # Currently supported classes are:
   # +Socket+, +UDPSocket+, +SOCKSSocket+,
@@ -133,6 +136,7 @@ class IPAccess
     end
     klass.__send__(:include, patch_klass)
     singleton_obj.__send__(:__ipa_singleton_hook, acl) unless singleton_obj.nil?
+    return klass
   end
   
 end
