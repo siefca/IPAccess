@@ -3,7 +3,7 @@
 
 - possibility to add block to access lists, the block will be evaluated when match
 - possibility to add block to sockets and familiar, the block will be evaluated when access is denied but before connection is dropped (if it is)
-- pass sockets, etc when block called
+- pass sockets, etc. when block called
 
 === Specification
 
@@ -14,7 +14,9 @@
 - overload Ruby 1.9 socket methods
 - patch OpenSSL::Socket
 - patch Net::HTTP and familiar
-- consider trigger that re-evaluates connected object in case of change in its ACL
+- arm socket objects real-time when used by Net::HTTP and familiar (shared ACLs)
+- allow arming of objects' singletons [todo: how to distinguish between singleton class and regular class]
+- utilize @debug_mode in certain networking objects to pring access denied message
 
 === Documentation
 
