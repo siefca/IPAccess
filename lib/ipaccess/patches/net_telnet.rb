@@ -60,7 +60,7 @@ module IPAccess::Patches::Net
             self.close
             raise
           end
-          if @sock.is_a?(TCPSocket)
+          if (@sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && @sock.is_a?(SOCKSSocket)))
             IPAccess.arm(@sock, acl) unless @sock.respond_to?(:acl)
             @sock.acl = self.acl if @sock.acl != self.acl # share socket's access set with Net::Telnet object
           end
