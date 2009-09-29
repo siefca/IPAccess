@@ -5,8 +5,8 @@
 # License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:docs/LGPL-LICENSE.html] or {Ruby License}[link:docs/COPYING.html].
 # 
 # Modules contained in this file are meant for
-# patching Ruby's Net::Telnet classes in order to add
-# IP access control to  it. It is also used
+# patching Ruby's Net::Telnet class in order to add
+# IP access control to it. It is also used
 # to create variant of Net::Telnet class
 # with IP access control.
 # 
@@ -61,10 +61,8 @@ module IPAccess::Patches::Net
             raise
           end
           if @sock.is_a?(TCPSocket)
-            unless @sock.respond_to?(:acl)
-              (class <<@sock; self; end).__send__(:include, IPAccess::Patches::TCPSocket)
-            end
-            @sock.acl = acl if @sock.acl != acl # share socket's access set with Net::Telnet object
+            IPAccess.arm(@sock, acl) unless @sock.respond_to?(:acl)
+            @sock.acl = self.acl if @sock.acl != self.acl # share socket's access set with Net::Telnet object
           end
           nil
         end

@@ -19,15 +19,13 @@ acl.output.blacklist 'randomseed.pl'
 req = Net::HTTP::Get.new("/")
 htt = Net::HTTP.new(url.host, url.port)
 
+IPAccess.arm htt, acl
+
 res = htt.start { |http|
   http.request(req)
 }
 
-IPAccess.arm htt, acl
-htt.start
-
 # Case 1: simple setup with custom ACL
-
 res = IPAccess::Net::HTTP.start(url.host, url.port, acl) { |http|
   http.get("/#{url.path}")
 }
