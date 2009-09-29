@@ -53,51 +53,87 @@ module IPAccess::Patches::Net
         # CLASS METHODS
         unless (base.name.nil? && base.class.name == "Class")
           (class << self; self; end).class_eval do
-            alias_method :__ipac_new, :new
-        	  private :__ipac_new
-        	
-        	  # override HTTP.new() since it's not usual.
-        	  define_method :new do |*args|
+            
+            # overwrite HTTP.new() since it's not usual.
+        	  define_method :new do |address, *args|
         	    late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
-        	    obj = __ipac_new(*args)
-        	    obj.acl = late_acl if obj.respond_to?(:acl)
-        	    return obj
-      	    end
-          
+        	    port, p_addr, p_port, p_user, p_pass = *args
+              h = Proxy(p_addr, p_port, p_user, p_pass).newobj(address, port, late_acl)
+              h.instance_eval {
+                @newimpl = ::Net::HTTP.version_1_2?
+              }
+              h
+            end
+            
             # overwrite HTTP.start()
-            def start(address, *args, &block) # :yield: +http+
+            define_method :__ipacall__start do |block, address, *args|
               acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
               port, p_addr, p_port, p_user, p_pass = *args
               new(address, port, p_addr, p_port, p_user, p_pass, acl).start(&block)
             end
+            
+            # block passing wrapper for Ruby 1.8
+            def start(*args, &block)
+              __ipacall__start(block, *args)
+            end
 
             # overwrite HTTP.get_response()
-        	  def get_response(uri_or_host, *args, &block)
-        	    acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+        	  define_method :__ipacall__get_response do |block, uri_or_host, *args|
+        	    late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
         	    path, port = *args
         	    if path
                 host = uri_or_host
-                new(host, (port || Net::HTTP.default_port), acl).start { |http|
+                new(host, (port || Net::HTTP.default_port), late_acl).start { |http|
                   return http.request_get(path, &block)
                 }
               else
                 uri = uri_or_host
-                new(uri.host, uri.port, acl).start { |http|
+                new(uri.host, uri.port, late_acl).start { |http|
                   return http.request_get(uri.request_uri, &block)
                 }
               end
+            end
+            
+            # block passing wrapper for Ruby 1.8
+            def get_response(*args, &block)
+              __ipacall__get_response(block, *args)
             end
             
       	  end
       	
     	  end # class methods
         
+        orig_initialize       = self.instance_method :initialize
         orig_conn_address     = self.instance_method :conn_address
         orig_on_connect       = self.instance_method :on_connect
         
+        # initialize on steroids
+        define_method  :__ipacall__initialize do |block, *args|
+          self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+          orig_initialize.bind(self).call(*args, &block)
+        end
+        
+        # block passing wrapper for Ruby 1.8
+        def initialize(*args, &block)
+          __ipacall__initialize(block, *args)
+        end
+                
+        # on_connect on steroids.
+        define_method :on_connect do
+          acl_recheck # check address form socket to be sure
+        end
+        
+        # conn_address on steroids.
+        define_method :conn_address do
+          addr = orig_conn_address.bind(self).call
+          ipaddr = TCPSocket.getaddress(addr)
+          real_acl.check_out_ipstring ipaddr
+          return ipaddr
+        end
+        private :conn_address
+        
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          acl = @acl.nil? ? IPAccess::Global : @acl
           begin
             sock = @socket
             sock = sock.io if (!sock.nil? && sock.respond_to?(:io) && sock.io.respond_to?(:getpeername))
