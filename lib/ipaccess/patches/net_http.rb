@@ -101,7 +101,7 @@ module IPAccess::Patches::Net
           begin
             sock = @socket
             sock = sock.io if (!sock.nil? && sock.respond_to?(:io) && sock.io.respond_to?(:getpeername))
-            acl.check_out_socket sock
+            real_acl.check_out_socket sock
           rescue IPAccessDenied
             begin
               self.finish

@@ -65,69 +65,63 @@ module IPAccess::Patches
         orig_sysaccept          = self.instance_method :sysaccept
         
         define_method :initialize do |*args|
-          @acl = IPAccess::GlobalSet.instance
+          self.acl = :global
           orig_initialize.bind(self).call(*args)
           return self
         end
 
         # accept on steroids.
         define_method :accept do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_accept.bind(self).call(*args)
-          acl.check_in_socket(ret.first)
+          real_acl.check_in_socket(ret.first)
           return ret
         end
 
         # accept_nonblock on steroids.
         define_method :accept_nonblock do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_accept_nonblock.bind(self).call(*args)
-          acl.check_in_socket(ret.first)
+          real_acl.check_in_socket(ret.first)
           return ret
         end
 
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_accept.bind(self).call(*args)
-          acl.check_in_sockaddr(ret.last)
+          real_acl.check_in_sockaddr(ret.last)
           return ret
         end
 
         # connect on steroids.
         define_method :connect do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
-          acl.check_out_sockaddr(args.first)
+          real_acl.check_out_sockaddr(args.first)
           return orig_connect.bind(self).call(*args)
         end
 
         # recvfrom on steroids.
         define_method :recvfrom do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_recvfrom.bind(self).call(*args)
           peer_ip = ret[1][3]
           family = ret[1][0]
           if (family == "AF_INET" || family == "AF_INET6")
-            acl.check_in_ipstring(peer_ip)
+            real_acl.check_in_ipstring(peer_ip)
           end
           return ret
         end
 
         # recvfrom_nonblock on steroids.
         define_method :recvfrom_nonblock do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_recvfrom_nonblock.bind(self).call(*args)
           peer_ip = ret[1][3]
           family = ret[1][0]
           if (family == "AF_INET" || family == "AF_INET6")
-            acl.check_in_ipstring(peer_ip)
+            real_acl.check_in_ipstring(peer_ip)
           end
           return ret
         end
         
         # SINGLETON HOOKS
         def __ipa_singleton_hook(acl=nil)
-          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl = acl
         end # singleton hooks
         private :__ipa_singleton_hook
         
@@ -160,57 +154,53 @@ module IPAccess::Patches
         orig_recvfrom_nonblock  = self.instance_method :recvfrom_nonblock
         
         define_method :initialize do |*args|
-          @acl = IPAccess::GlobalSet.instance
+          self.acl = :global
           orig_initialize.bind(self).call(*args)
           return self
         end
         
         # connect on steroids.
         define_method :connect do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
           peer_ip = self.class.getaddress(args.shift)
-          acl.check_out_sockaddr(peer_ip)
+          real_acl.check_out_sockaddr(peer_ip)
           return orig_connect.bind(self).call(peer_ip, *args)
         end
 
         # send on steroids.
         define_method :send do |*args|
           hostname = args[2]
-          return orig_send(*args) if hostname.nil?
-          acl = @acl.nil? ? IPAccess::Global : @acl
+          return orig_send.bind(self).call(*args) if hostname.nil?
           peer_ip = self.class.getaddress(hostname)
-          acl.check_out_sockaddr(peer_ip)
+          real_acl.check_out_sockaddr(peer_ip)
           args[2] = peer_ip
           return orig_send.bind(self).call(*args)
         end
 
         # recvfrom on steroids.
         define_method :recvfrom do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_recvfrom.bind(self).call(*args)
           peer_ip = ret[1][3]
           family = ret[1][0]
           if (family == "AF_INET" || family == "AF_INET6")
-            acl.check_in_ipstring(peer_ip)
+            real_acl.check_in_ipstring(peer_ip)
           end
           return ret
         end
 
         # recvfrom_nonblock on steroids.
         define_method :recvfrom_nonblock do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
           ret = orig_recvfrom_nonblock.bind(self).call(*args)
           peer_ip = ret[1][3]
           family = ret[1][0]
           if (family == "AF_INET" || family == "AF_INET6")
-            acl.check_in_ipstring(peer_ip)
+            real_acl.check_in_ipstring(peer_ip)
           end
           return ret
         end
         
         # SINGLETON HOOKS
         def __ipa_singleton_hook(acl=nil)
-          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl = acl
         end # singleton hooks
         private :__ipa_singleton_hook
         
@@ -241,18 +231,16 @@ module IPAccess::Patches
         # initialize on steroids.
         define_method :initialize do |*args|
           self.acl = valid_acl?(args.last) ? args.pop : :global
-          acl = @acl.nil? ? IPAccess::Global : @acl
           args[0] = self.class.getaddress(args[0])
-          acl.check_out_ipstring args[0]
+          real_acl.check_out_ipstring args[0]
           orig_initialize.bind(self).call(*args)
           return self
         end
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          acl = @acl.nil? ? IPAccess::Global : @acl
           begin
-            acl.check_out_socket self
+            real_acl.check_out_socket self
           rescue IPAccessDenied
             begin
               self.close
@@ -265,7 +253,7 @@ module IPAccess::Patches
         
         # SINGLETON HOOKS
         def __ipa_singleton_hook(acl=nil)
-          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl = acl
           self.acl_recheck
         end # singleton hooks
         private :__ipa_singleton_hook
@@ -297,18 +285,16 @@ module IPAccess::Patches
         # initialize on steroids.
         define_method :initialize do |*args|
           self.acl = valid_acl?(args.last) ? args.pop : :global
-          acl = @acl.nil? ? IPAccess::Global : @acl
           args[0] = self.class.getaddress(args[0])
-          acl.check_out_ipstring args[0]
+          real_acl.check_out_ipstring args[0]
           orig_initialize.bind(self).call(*args)
           return self
         end
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          acl = @acl.nil? ? IPAccess::Global : @acl
           begin
-            acl.check_out_socket self
+            real_acl.check_out_socket self
           rescue IPAccessDenied
             begin
               self.close
@@ -321,7 +307,7 @@ module IPAccess::Patches
         
         # SINGLETON HOOKS
         def __ipa_singleton_hook(acl=nil)
-          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl = acl
           self.acl_recheck
         end # singleton hooks
         private :__ipa_singleton_hook
@@ -355,33 +341,29 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :initialize do |*args|
-          @acl = IPAccess::GlobalSet.instance
+          self.acl = :global
           return orig_initialize.bind(self).call(*args)
         end
 
         # accept on steroids.
         define_method :accept do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
-          acl.check_in_socket orig_accept.bind(self).call(*args)
+          real_acl.check_in_socket orig_accept.bind(self).call(*args)
         end
 
         # accept_nonblock on steroids.
         define_method :accept_nonblock do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
-          acl.check_in_socket orig_accept_nonblock.bind(self).call(*args)
+          real_acl.check_in_socket orig_accept_nonblock.bind(self).call(*args)
         end
 
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
-          acl = @acl.nil? ? IPAccess::Global : @acl
-          acl.check_in_fd orig_sysaccept.bind(self).call(*args)
+          real_acl.check_in_fd orig_sysaccept.bind(self).call(*args)
         end
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          acl = @acl.nil? ? IPAccess::Global : @acl
           begin
-            acl.check_in_socket self
+            real_acl.check_in_socket self
           rescue IPAccessDenied
             begin
               self.close
@@ -394,7 +376,7 @@ module IPAccess::Patches
         
         # SINGLETON HOOKS
         def __ipa_singleton_hook(acl=nil)
-          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl = acl
           self.acl_recheck
         end # singleton hooks
         private :__ipa_singleton_hook

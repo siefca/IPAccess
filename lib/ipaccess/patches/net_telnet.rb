@@ -51,12 +51,11 @@ module IPAccess::Patches::Net
       base.class_eval do
         
         orig_initialize     = self.instance_method :initialize
-         
+        
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          acl = @acl.nil? ? IPAccess::Global : @acl
           begin
-            acl.check_out_socket @sock
+            self.acl.check_out_socket @sock
           rescue IPAccessDenied
             self.close
             raise
@@ -75,10 +74,9 @@ module IPAccess::Patches::Net
           options = args.first
           options["ACL"] = args.pop if (IPAccess.valid_acl?(args.last) && options.is_a?(Hash))
           options["Host"] = "localhost" unless options.has_key?("Host")
-          self.acl = valid_acl?(options["ACL"]) ? options["ACL"] : :global
+          self.acl = IPAccess.valid_acl?(options["ACL"]) ? options["ACL"] : :global
           options["Host"] = TCPSocket.getaddress(options["Host"])
-          acl = @acl.nil? ? IPAccess::Global : @acl
-          acl.check_out_ipstring options["Host"]
+          self.acl.check_out_ipstring options["Host"]
           args[0] = options
           ret = orig_initialize.bind(self).call(*args, &block)
           self.acl_recheck
@@ -92,8 +90,7 @@ module IPAccess::Patches::Net
         
         # SINGLETON HOOKS
         def __ipa_singleton_hook(acl=nil)
-          acl = acl.nil? ? @options["ACL"] : acl
-          self.acl = acl.nil? ? IPAccess::Global : acl
+          self.acl = acl.nil? ? @options["ACL"] : acl
           self.acl_recheck
         end # singleton hooks
         private :__ipa_singleton_hook

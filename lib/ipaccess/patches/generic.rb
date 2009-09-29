@@ -251,6 +251,19 @@ module IPAccess::Patches
       ;
     end
     
+    # This method return current access set for an object.
+    # 
+    # Ifaccess set (@acl) is somehow set to +nil+
+    # (which should never happend) or to IPAccess::GlobalSet
+    # (which is internal singleton used to mark that @acl should
+    # point to the global set) it will return a reference
+    # to the global access set IPAccess::Global.
+    
+    def real_acl
+      @acl.nil? ? IPAccess::Global : @acl
+    end
+    private :real_acl
+    
     attr_reader :acl
     alias_method :access=, :acl=
     alias_method :access, :acl
