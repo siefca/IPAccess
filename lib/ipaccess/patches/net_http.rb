@@ -144,9 +144,9 @@ module IPAccess::Patches::Net
             end
             raise
           end
-          if (sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && sock.is_a?(SOCKSSocket)))
-            IPAccess.arm(sock, acl) unless sock.respond_to?(:acl)
-            sock.acl = self.acl if sock.acl != self.acl # share socket's access set with Net::HTTP object
+          if (late_sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && late_sock.is_a?(SOCKSSocket)))
+            IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
+            late_sock.acl = self.acl if late_sock.acl != self.acl # share socket's access set with Net::HTTP object
           end
           nil
         end

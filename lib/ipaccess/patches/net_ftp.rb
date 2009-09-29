@@ -94,12 +94,12 @@ module IPAccess::Patches::Net
         define_method :open_socket do |host, port|
           host = TCPSocket.getaddress(host)
           real_acl.check_out_ipstring host
-          sock = orig_open_socket.bind(self).call(host, port)
-          if (sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && sock.is_a?(SOCKSSocket)))
-            IPAccess.arm(sock, acl) unless sock.respond_to?(:acl)
-            sock.acl = self.acl if sock.acl != self.acl
+          late_sock = orig_open_socket.bind(self).call(host, port)
+          if (late_sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && late_sock.is_a?(SOCKSSocket)))
+            IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
+            late_sock.acl = self.acl if late_sock.acl != self.acl
           end
-          return sock
+          return late_sock
         end
         private :open_socket
         
@@ -122,8 +122,8 @@ module IPAccess::Patches::Net
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           begin
-            sock = @sock
-            real_acl.check_out_socket sock
+            late_sock = @sock
+            real_acl.check_out_socket late_sock
           rescue IPAccessDenied
             begin
               self.close
@@ -131,9 +131,9 @@ module IPAccess::Patches::Net
             end
             raise
           end
-          if (sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && sock.is_a?(SOCKSSocket)))
-            IPAccess.arm(sock, acl) unless sock.respond_to?(:acl)
-            sock.acl = self.acl if sock.acl != self.acl # share socket's access set with Net::FTP object
+          if (late_sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && late_sock.is_a?(SOCKSSocket)))
+            IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
+            late_sock.acl = self.acl if late_sock.acl != self.acl # share socket's access set with Net::FTP object
           end
           nil
         end
