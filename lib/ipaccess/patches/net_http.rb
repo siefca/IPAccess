@@ -54,15 +54,14 @@ module IPAccess::Patches::Net
         unless (base.name.nil? && base.class.name == "Class")
           (class << self; self; end).class_eval do
             
-            # overwrite HTTP.new() since it's not usual.
+            alias :__ipac__orig_new :new
+            
+            # overload HTTP.new() since it's not usual.
         	  define_method :new do |address, *args|
         	    late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
-        	    port, p_addr, p_port, p_user, p_pass = *args
-              h = Proxy(p_addr, p_port, p_user, p_pass).newobj(address, port, late_acl)
-              h.instance_eval {
-                @newimpl = ::Net::HTTP.version_1_2?
-              }
-              h
+              obj = __ipac__orig_new(address, *args)
+              obj.acl = late_acl unless obj.acl == late_acl
+              return obj
             end
             
             # overwrite HTTP.start()
