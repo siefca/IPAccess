@@ -115,11 +115,20 @@ class IPAccess
     singleton_obj = nil
     if klass.is_a?(Class)                                 # regular class
       klass_name = klass.name 
-    elsif (klass.is_a?(Symbol) || klass.is_a?(String))    # regular class as a string or symbol
+    elsif (klass.is_a?(Symbol) || klass.is_a?(String))
       klass_name = klass.to_s
-      klass = Kernel
-      klass_name.to_s.split('::').each do |k|
-        klass = klass.const_get(k)
+      if klass.name.downcase == "sockets"                 # just a bunch of sockets
+        IPAccess.arm Socket
+        IPAccess.arm UDPSocket
+        IPAccess.arm TCPSocket
+        IPAccess.arm TCPServer
+        IPAccess.arm SOCKSSocket if Object.const_defined?(:SOCKSSocket)
+        return
+      else                                                # regular class as a string or symbol
+        klass = Kernel
+        klass_name.to_s.split('::').each do |k|
+          klass = klass.const_get(k)
+        end
       end
     else                                                  # regular object (will patch singleton of this object)
       klass_name = klass.class.name
