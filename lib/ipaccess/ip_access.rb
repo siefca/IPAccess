@@ -473,6 +473,15 @@ class IPAccess
     check_fd(@output, IPAccessDenied::Output, fd)
   end
   
+  # This method shows access set in human readable form.
+  
+  def show
+    "ACL for incomming traffic:\n\n"  +
+    @input.show                       +
+    "\nACL for outgoing traffic:\n\n" +
+    @output.show + "\n\n"
+  end
+  
 end
 
 
