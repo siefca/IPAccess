@@ -22,7 +22,7 @@
 
 require 'netaddr'
 
-# This module contains few new methods extending
+# This module contains a few new methods extending
 # original NetAddr[http://netaddr.rubyforge.org/classes/NetAddr.html] module.
 
 module NetAddr
