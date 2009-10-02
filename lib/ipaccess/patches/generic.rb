@@ -118,11 +118,7 @@ class IPAccess
     elsif (klass.is_a?(Symbol) || klass.is_a?(String))
       klass_name = klass.to_s
       if klass.name.downcase == "sockets"                 # just a bunch of sockets
-        IPAccess.arm Socket
-        IPAccess.arm UDPSocket
-        IPAccess.arm TCPSocket
-        IPAccess.arm TCPServer
-        IPAccess.arm SOCKSSocket if Object.const_defined?(:SOCKSSocket)
+        require 'ipaccess/arm_sockets'
         return
       else                                                # regular class as a string or symbol
         klass = Kernel

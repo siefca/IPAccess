@@ -7,6 +7,9 @@
 # By requiring this file you are able to
 # enable IP access control for all
 # standard Ruby sockets.
+#
+# This file is loaded and executed
+# when +IPAccess.arm(:sockets)+ is called.
 # 
 #--
 # 
