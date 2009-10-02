@@ -75,9 +75,8 @@ module IPAccess::Patches::Net
         
         orig_initialize       = self.instance_method :initialize
         orig_open_socket      = self.instance_method :open_socket
-        orig_sendcmd          = self.instance_method :sendcmd
+        #orig_sendcmd          = self.instance_method :sendcmd
         orig_makeport         = self.instance_method :makeport
-        orig_sendport         = self.instance_method :sendport
         
         # initialize on steroids
         define_method  :__ipacall__initialize do |block, *args|
@@ -104,10 +103,10 @@ module IPAccess::Patches::Net
         private :open_socket
         
         # sendcmd on steroids.
-        define_method :sendcmd do |*args|
-          acl_recheck
-          orig_sendcmd.bind(self).call(*args)
-        end
+        #define_method :sendcmd do |*args|
+        #  acl_recheck
+        #  orig_sendcmd.bind(self).call(*args)
+        #end
         
         # makeport on steroids.
         define_method :makeport do
