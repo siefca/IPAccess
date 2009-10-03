@@ -118,8 +118,8 @@ class IPAccessList < NetAddr::Tree
   # 
   # Allowed input: strings (DNS names or IP addresses optionally with masks), numbers (IP addresses representation),
   # IPSocket objects, URI objects, IPAddr objects, Net::HTTP objects, IPAddrList objects, NetAddr::CIDR objects,
-  # NetAddr::Tree objects, IPAccessList objects, symbols, objects that contain file descriptors bound to sockets,
-  # and arrays of these.
+  # NetAddr::Tree objects, IPAccessList objects, symbols, objects that contain file descriptors bound to sockets
+  # (including OpenSSL sockets) and arrays of these.
   #
   # In case of resolving the IPv6 link-local addresses zone index is removed.
   #
@@ -137,6 +137,7 @@ class IPAccessList < NetAddr::Tree
   #     obj_to_cidr NetAddr::CIDR.create("10.0.0.1")  # uses NetAddr object
   #     obj_to_cidr URI('http://www.pl/')             # uses URI
   #     obj_to_cidr 'http://www.pl/'                  # uses extracted host string
+  #     obj_to_cidr 'somehost.xx'                     # uses host string (fetches ALL addresses from DNS)
   #
   # ==== Special symbols
   #
