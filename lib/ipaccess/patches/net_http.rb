@@ -120,6 +120,7 @@ module IPAccess::Patches::Net
         # on_connect on steroids.
         define_method :on_connect do
           acl_recheck # check address form socket to be sure
+          orig_on_connect.bind(self).call
         end
         
         # conn_address on steroids.
