@@ -106,7 +106,7 @@ module IPAccess::Patches::Net
         orig_conn_address     = self.instance_method :conn_address
         orig_on_connect       = self.instance_method :on_connect
         
-        # initialize on steroids
+        # initialize on steroids.
         define_method  :__ipacall__initialize do |block, *args|
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           orig_initialize.bind(self).call(*args, &block)

@@ -63,7 +63,7 @@ module IPAccess::Patches::Net
           nil
         end
         
-        # initialize on steroids
+        # initialize on steroids.
         define_method  :__ipacall__initialize do |block, *args|
           options = args.first
           options["ACL"] = args.pop if (IPAccess.valid_acl?(args.last) && options.is_a?(Hash))

@@ -78,7 +78,7 @@ module IPAccess::Patches::Net
         #orig_sendcmd          = self.instance_method :sendcmd
         orig_makeport         = self.instance_method :makeport
         
-        # initialize on steroids
+        # initialize on steroids.
         define_method  :__ipacall__initialize do |block, *args|
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           orig_initialize.bind(self).call(*args, &block)

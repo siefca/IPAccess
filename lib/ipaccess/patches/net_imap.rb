@@ -54,7 +54,7 @@ module IPAccess::Patches::Net
         orig_authenticate     = self.instance_method :authenticate
         orig_start_tls_session= self.instance_method :start_tls_session
         
-        # initialize on steroids
+        # initialize on steroids.
         define_method  :__ipacall__initialize do |block, host, *args|
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           ipaddr = TCPSocket.getaddress(host)
@@ -65,7 +65,7 @@ module IPAccess::Patches::Net
           return obj
         end
         
-        # authenticate on steroids
+        # authenticate on steroids.
         define_method :authenticate do |auth_type, *args|
           self.acl_recheck
           orig_authenticate.bind(self).call(auth_type, *args)
@@ -76,7 +76,7 @@ module IPAccess::Patches::Net
           __ipacall__initialize(block, host, *args)
         end
         
-        # start_tls_session on steroids
+        # start_tls_session on steroids.
         define_method :start_tls_session do |params|
           ret = orig_start_tls_session.bind(self).call(params)
           self.acl_recheck
