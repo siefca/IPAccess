@@ -899,18 +899,21 @@ class IPAccessList < NetAddr::Tree
     return super(addr)
   end
   
-  # This method returns a hash containing CIDR object of
-  # given address named +:IP+ and CIDR object of the matching rule
-  # named +:Rule+ if the given CIDR contains blacklisted
-  # and not whitelisted address. Otherwise it returns an empty
-  # hash.
+  # This method should be used to check whether access
+  # is denied for the IP given as argument. It is
+  # recommended to use it in low-level routines. 
   # 
-  # It should be used to check access for one IP. It is
-  # recommended to use it in low-level routines.
-  #
+  # This method returns a hash containing pair of CIDR objects.
+  # First, indexed as +:IP+, contains an IP address.
+  # Second, indexed as +:Rule+, contains matching rule.
+  # Matching means that IP is blacklisted and is not
+  # whitelisted.
+  # 
+  # If there is no match it returns an empty hash.
+  # 
   # To not create copy of object when reporting rule
   # but to use reference to original entry you may set
-  # second argument +true+. Use this with caution since
+  # second argument to +true+. Use this with caution since
   # modifying returned object may affect internal
   # structure of access list.
   
@@ -963,7 +966,7 @@ class IPAccessList < NetAddr::Tree
   # This method checks if access for IP or IPs is denied.
   # It returns an array of hashes containing tested CIDR
   # objects (named +:IP+) and rules objects (named +:Rule+).
-  # Pair is present in output if given IP address matches
+  # This pair is present in returned hash if given IP address matches
   # black list rules and noesn't match white list rules.
   # 
   # See obj_to_cidr description for more info about arguments
@@ -1011,7 +1014,7 @@ class IPAccessList < NetAddr::Tree
   alias_method :denied_one_of?,  :denied?
   
   # This method returns given CIDR object
-  # if the given CIDR is not blacklisted or whitelisted.
+  # if the given CIDR is not blacklisted or is whitelisted.
   # Otherwise it returns +nil+.
   #
   # It should be used to check access for one IP. It is recommended
@@ -1022,7 +1025,7 @@ class IPAccessList < NetAddr::Tree
   end
   
   # This method returns +true+ if the given CIDR is not
-  # blacklisted or whitelisted. Otherwise it returns +false+.
+  # blacklisted or is whitelisted. Otherwise it returns +false+.
   # 
   # It should be used to check access for one IP. It is
   # recommended to use it in low-level routines.

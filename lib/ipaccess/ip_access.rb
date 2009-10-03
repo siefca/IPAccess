@@ -328,8 +328,9 @@ class IPAccess
   # This method checks access for the given objects
   # containing IP information against input access list.
   # If access is denied it raises an exception reporting
-  # first rejected IP and a matching rule. If access is
-  # granted it returns an array containing the given arguments.
+  # a pair of values (first rejected IP and a matching rule).
+  # If access is granted it returns an array containing
+  # the given arguments.
   # 
   # See IPAccessList.obj_to_cidr description for more info
   # about arguments you may pass to it.
@@ -345,8 +346,9 @@ class IPAccess
   # This method checks access for the given objects
   # containing IP information against output access list.
   # If access is denied it raises an exception reporting
-  # first rejected IP and a matching rule. If access is
-  # granted it returns an array containing the given arguments.
+  # a pair of values (first rejected IP and a matching rule).
+  # If access is granted it returns an array containing
+  # the given arguments.
   # 
   # See IPAccessList.obj_to_cidr description for more info
   # about arguments you may pass to it.
@@ -362,8 +364,8 @@ class IPAccess
   # This method checks access for the given CIDR object
   # containing IP information against input access list.
   # If access is denied it raises an exception reporting
-  # rejected IP and a matching rule. If access is granted
-  # it returns the given argument.
+  # a pair of values (rejected IP and a matching rule).
+  # If access is granted it returns the given argument.
   # 
   # Expected argument should be kind of NetAddr::CIDR.
 
@@ -374,8 +376,8 @@ class IPAccess
   # This method checks access for the given CIDR object
   # containing IP information against output access list.
   # If access is denied it raises an exception reporting
-  # rejected IP and a matching rule. If access is granted
-  # it returns the given argument.
+  # a pair of values (rejected IP and a matching rule).
+  # If access is granted it returns the given argument.
   # 
   # Expected argument should be kind of NetAddr::CIDR.
   
@@ -386,8 +388,8 @@ class IPAccess
   # This method checks access for the given string
   # containing IP information against input access list.
   # If access is denied it raises an exception reporting
-  # rejected IP and a matching rule. If access is granted
-  # it returns the given argument.
+  # a pair of values (rejected IP and a matching rule).
+  # If access is granted it returns the given argument.
   
   def check_in_ipstring(ipstring)
     check_ipstring(@input, IPAccessDenied::Input, ipstring)
@@ -396,8 +398,8 @@ class IPAccess
   # This method checks access for the given string
   # containing IP information against output access list.
   # If access is denied it raises an exception reporting
-  # rejected IP and a matching rule. If access is granted
-  # it returns the given argument.
+  # a pair of values (rejected IP and a matching rule).
+  # If access is granted it returns the given argument.
   
   def check_out_ipstring(ipstring)
     check_ipstring(@output, IPAccessDenied::Output, ipstring)
@@ -406,8 +408,8 @@ class IPAccess
   # This method checks access for the given socket object
   # containing IP information against input access list.
   # If access is denied it raises an exception reporting
-  # rejected IP and a matching rule. If access is granted
-  # it returns the given argument.
+  # a pair of values (rejected IP and a matching rule).
+  # If access is granted it returns the given argument.
   # 
   # Expected argument should be kind of IPSocket.
   
@@ -418,8 +420,8 @@ class IPAccess
   # This method checks access for the given socket object
   # containing IP information against output access list.
   # If access is denied it raises an exception reporting
-  # rejected IP and a matching rule. If access is granted
-  # it returns the given argument.
+  # a pair of values (rejected IP and a matching rule).
+  # If access is granted it returns the given argument.
   # 
   # Expected argument should be kind of IPSocket.
   
@@ -430,8 +432,8 @@ class IPAccess
   # This method checks access for the given sockaddr structure
   # containing IP information against input access list.
   # If access is denied it raises an exception reporting
-  # rejected IP and a matching rule. If access is granted
-  # it returns the given argument.
+  # a pair of values (rejected IP and a matching rule).
+  # If access is granted it returns the given argument.
   
   def check_in_sockaddr(sockaddr)
     check_sockaddr(@input, IPAccessDenied::Input, sockaddr)
@@ -450,8 +452,8 @@ class IPAccess
   # This method checks access for the given file descriptor
   # containing IP information against input access list.
   # If access is denied it raises an exception reporting
-  # rejected IP and a matching rule. If access is granted
-  # it returns the given argument.
+  # a pair of values (rejected IP and a matching rule).
+  # If access is granted it returns the given argument.
   # 
   # Expected argument should be a number representing a valid
   # file descriptor bound to an IP socket.
@@ -463,8 +465,8 @@ class IPAccess
   # This method checks access for the given file descriptor
   # containing IP information against output access list.
   # If access is denied it raises an exception reporting
-  # rejected IP and a matching rule. If access is granted
-  # it returns the given argument.
+  # a pair of values (rejected IP and a matching rule).
+  # If access is granted it returns the given argument.
   # 
   # Expected argument should be a number representing a valid
   # file descriptor bound to an IP socket.
@@ -476,9 +478,11 @@ class IPAccess
   # This method shows access set in human readable form.
   
   def show
-    "ACL for incomming traffic:\n\n"  +
-    @input.show                       +
-    "\nACL for outgoing traffic:\n\n" +
+    ".=========================================.\n"   +
+    ". ACL for incomming traffic:\n\n"                +
+    @input.show                                       +
+    "\n.=========================================.\n" +
+    ". ACL for outgoing traffic:\n\n"                 +
     @output.show + "\n\n"
   end
   
