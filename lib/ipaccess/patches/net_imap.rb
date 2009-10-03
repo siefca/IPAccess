@@ -86,18 +86,13 @@ module IPAccess::Patches::Net
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           begin
-            late_sock = (defined?(OpenSSL) && @sock.is_a?(OpenSSL::SSL::SSLSocket)) ? @sock.to_io : @sock
-            real_acl.check_out_socket late_sock
+            try_arm_and_check_socket @sock
           rescue IPAccessDenied
             begin
               self.disconnect unless disconnected?
             rescue IOError
             end
             raise
-          end
-          if (late_sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && late_sock.is_a?(SOCKSSocket)))
-            IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
-            late_sock.acl = self.acl if late_sock.acl != self.acl # share socket's access set with Net::IMAP object
           end
           nil
         end

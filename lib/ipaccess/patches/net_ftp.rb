@@ -36,7 +36,7 @@ module IPAccess::Patches::Net
   
   ###################################################################
   # Net::FTP class with IP access control.
-  # It uses output access lists.
+  # It uses output and occasionally input access lists.
   
   module FTP
     
@@ -93,12 +93,7 @@ module IPAccess::Patches::Net
         define_method :open_socket do |host, port|
           host = TCPSocket.getaddress(host)
           real_acl.check_out_ipstring host
-          late_sock = orig_open_socket.bind(self).call(host, port)
-          if (late_sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && late_sock.is_a?(SOCKSSocket)))
-            IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
-            late_sock.acl = self.acl if late_sock.acl != self.acl
-          end
-          return late_sock
+          try_arm_and_check_socket( orig_open_socket.bind(self).call(host, port) )
         end
         private :open_socket
         
@@ -111,9 +106,9 @@ module IPAccess::Patches::Net
         # makeport on steroids.
         define_method :makeport do
           late_sock = orig_makeport.bind(self).call
-          if (late_sock.is_a?(TCPServer) || late_sock.is_a?(TCPSocket))
-            IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
-            late_sock.acl = self.acl if late_sock.acl != self.acl # share socket's access set with Net::HTTP object
+          begin
+            try_arm_and_check_socket late_sock
+          rescue IOError
           end
           return late_sock
         end
@@ -121,8 +116,7 @@ module IPAccess::Patches::Net
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           begin
-            late_sock = @sock
-            real_acl.check_out_socket late_sock
+            try_arm_and_check_socket @sock
           rescue IPAccessDenied
             begin
               self.close
@@ -130,11 +124,7 @@ module IPAccess::Patches::Net
             end
             raise
           end
-          if (late_sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && late_sock.is_a?(SOCKSSocket)))
-            IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
-            late_sock.acl = self.acl if late_sock.acl != self.acl # share socket's access set with Net::FTP object
-          end
-          nil
+        nil
         end
         
         # SINGLETON HOOKS

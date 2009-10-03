@@ -136,17 +136,13 @@ module IPAccess::Patches::Net
           begin
             sock = @socket
             sock = sock.io if (!sock.nil? && sock.respond_to?(:io) && sock.io.respond_to?(:getpeername))
-            real_acl.check_out_socket sock
+            try_arm_and_check_socket sock
           rescue IPAccessDenied
             begin
               self.finish
             rescue IOError
             end
             raise
-          end
-          if (late_sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && late_sock.is_a?(SOCKSSocket)))
-            IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
-            late_sock.acl = self.acl if late_sock.acl != self.acl # share socket's access set with Net::HTTP object
           end
           nil
         end

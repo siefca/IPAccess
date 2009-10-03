@@ -387,6 +387,85 @@ module IPAccess::Patches
 
   end # module TCPServer
   
+  ###################################################################
+  # Helper methods for easy checking and arming sockets.
+
+  module ACL
+
+    # This method helps to obtain real socket object.
+    # It check whether object is SOCKSSocket or SSLSocket
+    # and calls the right method if needed.
+    # 
+    # It returns socket object or +nil+ if something went wrong.
+
+    def real_socket(obj)
+      obj = obj.to_io if (defined?(OpenSSL) && (obj.is_a?(OpenSSL::SSL::SSLSocket) || obj.is_a?(OpenSSL::SSL::SSLServer)))
+      case obj.class.name.to_sym
+      when :TCPSocket, :UDPSocket, :TCPServer, :SOCKSSocket, :Socket
+        return obj
+      else
+        return nil
+      end
+    end
+    private :real_socket
+
+    # This method tries to arm socket object.
+    
+    def try_arm_socket(obj, initial_acl=nil)
+      late_sock = real_socket(obj)
+      unless late_sock.nil?
+        initial_acl = real_acl if initial_acl.nil?
+        IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
+        late_sock.acl = initial_acl if late_sock.acl != initial_acl
+      end
+      return obj
+    end
+    private :try_arm_socket
+    
+    # This method tries to arm socket object and then
+    # tries to set up correct ACL to it. If the ACL
+    # had changed then it assumes underlying routines
+    # took care about rechecking socket's IP against
+    # correct access list (input or output). By taking
+    # care we mean automatic triggering of acl_recheck
+    # when object's acl= method had been called.
+    # If the wanted access set and the object's access
+    # set is no different then acl_recheck is called
+    # by force.
+    #
+    # This method returns the given object.
+    
+    def try_arm_and_check_socket(obj, initial_acl=nil)
+      late_sock = real_socket(obj)
+      unless late_sock.nil?
+        initial_acl = real_acl if initial_acl.nil?
+        IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
+        if late_sock.acl != initial_acl
+          late_sock.acl = initial_acl
+        else
+          late_sock.acl_recheck
+        end
+      end
+      return obj
+    end
+    private :try_arm_and_check_socket
+    
+    def try_check_out_socket_acl(obj, used_acl)
+      late_sock = real_socket(obj)
+      used_acl.check_out_socket(late_sock) unless late_sock.nil?
+      return obj
+    end
+    private :try_check_out_socket_acl
+
+    def try_check_in_socket_acl(obj, used_acl)
+      late_sock = real_socket(obj)
+      used_acl.check_in_socket(late_sock) unless late_sock.nil?
+      return obj
+    end
+    private :try_check_in_socket_acl
+
+  end # module ACL
+    
 end # module IPAccess::Patches
 
 # :startdoc:

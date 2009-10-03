@@ -55,14 +55,10 @@ module IPAccess::Patches::Net
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           begin
-            self.acl.check_out_socket @sock
+            try_arm_and_check_socket @sock
           rescue IPAccessDenied
             self.close
             raise
-          end
-          if (@sock.is_a?(TCPSocket) || (Object.const_defined?(:SOCKSSocket) && @sock.is_a?(SOCKSSocket)))
-            IPAccess.arm(@sock, acl) unless @sock.respond_to?(:acl)
-            @sock.acl = self.acl if @sock.acl != self.acl # share socket's access set with Net::Telnet object
           end
           nil
         end
