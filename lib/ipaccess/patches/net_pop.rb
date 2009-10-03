@@ -68,7 +68,7 @@ module IPAccess::Patches::Net
               __ipacall__start(block, address, *args)
             end
             
-            # overwrite POP3.start()
+            # overwrite POP3.delete_all()
             define_method :__ipacall__delete_all do |block, address, *args|
               start(address, *args) {|pop|
                 pop.delete_all(&block)
@@ -86,7 +86,7 @@ module IPAccess::Patches::Net
               new(address, port, isapop, late_acl).auth_only account, password
             end        
             
-            # overwrite POP3.start()
+            # overwrite POP3.foreach()
             define_method :__ipacall__foreach do |block, address, *args|
               start(address, *args) { |pop|
                 pop.each_mail(&block)
@@ -95,7 +95,7 @@ module IPAccess::Patches::Net
             
             # block passing wrapper for Ruby 1.8
             def foreach(address, *args, &block)
-              __ipacall__start(block, address, *args)
+              __ipacall__foreach(block, address, *args)
             end
                         
       	  end
@@ -113,7 +113,7 @@ module IPAccess::Patches::Net
           self.acl_recheck
           return obj
         end
-      
+        
         # start on steroids.
         define_method :do_start do |account, password|
           prev_addr = @address
