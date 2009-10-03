@@ -341,7 +341,7 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :initialize do |*args|
-          self.acl = :global
+          self.acl = valid_acl?(args.last) ? args.pop : :global
           return orig_initialize.bind(self).call(*args)
         end
 
