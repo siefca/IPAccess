@@ -32,12 +32,19 @@ require 'ipaccess/patches/netaddr'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access'
 
-class IPAccess #:nodoc:
+class IPAccess
+  # Paweł Wilk
   AUTHOR    = "Paweł Wilk"
+  # ipaccess
   NAME      = "ipaccess"
+  # 1.0.1
   VERSION   = "1.0.1"
+  # siefca at gnu dot org
   EMAIL     = "siefca@gnu.org"
+  # IP Access Control
   SUMMARY   = "IP Access Control"
+  # This library allows you to control IP access for sockets and other objects
   DESC      = "This library allows you to control IP access for sockets and other objects"
+  # http://ipaccess.rubyforge.org/
   HOMEPAGE  = "http://ipaccess.rubyforge.org/"
 end
