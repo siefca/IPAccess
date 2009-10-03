@@ -252,7 +252,7 @@ module IPAccess::Patches
     # is changed and there is a need to validate remote peer again, since it might be
     # blacklisted.
     # 
-    # Eatch class that patches Ruby's networking class should redefine this method
+    # Each class that patches Ruby's networking class should redefine this method
     # and call it in a proper place (e.g. from hook executed when singleton methods
     # are added to networking object).
     
