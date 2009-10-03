@@ -399,7 +399,8 @@ module IPAccess::Patches
     # It returns socket object or +nil+ if something went wrong.
 
     def real_socket(obj)
-      obj = obj.to_io if (defined?(OpenSSL) && (obj.is_a?(OpenSSL::SSL::SSLSocket) || obj.is_a?(OpenSSL::SSL::SSLServer)))
+      #obj = obj.to_io if (defined?(OpenSSL) && (obj.is_a?(OpenSSL::SSL::SSLSocket) || obj.is_a?(OpenSSL::SSL::SSLServer)))
+      obj = obj.io if (obj.respond_to?(:io) && obj.io.respond_to?(:getpeername))
       case obj.class.name.to_sym
       when :TCPSocket, :UDPSocket, :TCPServer, :SOCKSSocket, :Socket
         return obj
