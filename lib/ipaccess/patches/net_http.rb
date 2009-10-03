@@ -135,9 +135,7 @@ module IPAccess::Patches::Net
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           begin
-            sock = @socket
-            sock = sock.io if (!sock.nil? && sock.respond_to?(:io) && sock.io.respond_to?(:getpeername))
-            try_arm_and_check_socket sock
+            try_arm_and_check_socket @socket
           rescue IPAccessDenied
             begin
               self.finish
