@@ -76,6 +76,7 @@ module IPAccess::Patches::Net
         orig_initialize       = self.instance_method :initialize
         orig_open_socket      = self.instance_method :open_socket
         #orig_sendcmd          = self.instance_method :sendcmd
+        orig_set_socket       = self.instance_method :set_socket
         orig_makeport         = self.instance_method :makeport
         
         # initialize on steroids.
@@ -96,6 +97,13 @@ module IPAccess::Patches::Net
           try_arm_and_check_socket( orig_open_socket.bind(self).call(host, port) )
         end
         private :open_socket
+        
+        # set_socket on steroids.
+        define_method :set_socket do |sock, *args|
+          ret = orig_set_socket.bind(self).call(sock, args.first)
+          try_arm_and_check_socket(@sock)
+          return ret
+        end
         
         # sendcmd on steroids.
         #define_method :sendcmd do |*args|
