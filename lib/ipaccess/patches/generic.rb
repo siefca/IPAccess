@@ -36,11 +36,10 @@ class IPAccess
   Global = IPAccess.new 'global'
   
   # This method returns +true+ when
-  # the instance is not real IPAccess object
+  # the current instance is not real IPAccess object
   # but a reference to the IPAccess::Global,
-  # which should be reached by that name.
-  # It returns +false+ in case of regular
-  # IPAccess objects.
+  # which should be reached by that name. It returns
+  # +false+ in case of regular IPAccess objects.
   # 
   # This method is present only if
   # patching engine had been loaded.
@@ -68,19 +67,48 @@ class IPAccess
   # for them. Instances of such altered classes
   # will be equipped with member called +acl+
   # which is a kind of IPAccess and allows you
-  # to manipulate access rules.
+  # to manipulate access rules. It is also
+  # able to patch single instance of supported
+  # classes.
   #
+  # This method returns object that has
+  # been patched.
+  #
+  # ==== Supported classes
+  #  
+  # Currently supported classes are:
+  # 
+  #   – Socket, UDPSocket, SOCKSSocket, TCPSocket, TCPServer,
+  #   – Net::HTTP,
+  #   – Net::Telnet,
+  #   – Net::FTP,
+  #   – Net::POP3,
+  #   – Net::IMAP,
+  #   – Net::SMTP.
+  #
+  # ==== Patching classes
+  # 
   # Passed argument may be a class object,
   # a string representation of a class object
   # or a symbol representing a class object.
   #
-  # This method returns object that has
-  # been patched.
+  # ==== Patching single instances
   # 
-  # Currently supported classes are:
-  # +Socket+, +UDPSocket+, +SOCKSSocket+,
-  # +TCPSocket+, +TCPServer+ and +Net::HTTP+.
+  # Passed argument may be an instance of
+  # supported class. It's possible to
+  # pass second, optional argument, which
+  # should be an initial access set. If
+  # this argument is omited then IPAccess::Global
+  # is used. 
   # 
+  # ==== Patching Ruby's sockets
+  # 
+  # To quickly patch all Ruby's socket classes
+  # you may pass symbol +:sockets+ as an
+  # argument.
+  # 
+  # === Examples
+  #
   # ==== Example 1 – sockets
   # 
   #     require 'ipaccess/socket'                         # load sockets subsystem and IPAccess.arm method
@@ -97,7 +125,7 @@ class IPAccess
   #     IPAccess::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
   #     Net::HTTP.get_print('randomseed.pl', '/i.html')   # try to connect
   # 
-  # ==== Example 3 – single networking object
+  # ==== Example 3 – single network object
   # 
   #     require 'ipaccess/net/telnet'                     # load Net::Telnet version and IPAccess.arm method
   # 
@@ -146,24 +174,32 @@ class IPAccess
   
 end
 
+# :stopdoc:
+
 # This module patches network classes
 # to enforce IP access control for them. Each patched 
 # class has the acl member, which is an IPAccess object.
 
 module IPAccess::Patches
   
+# :startdoc:
+  
   # This class is a proxy that raises an exception when
   # any method other than defined in Object class is called.
-  # It behaves like NilClass.
+  # It behaves like NilClass. Do not use this class, use
+  # IPAccess::Global constant instead.
 
   class IPAccess::GlobalSet
+
+# :stopdoc:
     
     include Singleton
     
     # imitate nil
     def nil?; true end
     
-    # repport itself as IPAccess::Global
+    # This method returns +true+ if current object is IPAccess::Global.
+    # Otherwise it returns +false+.
     def global?; true end
     
     # return +true+ when compared to IPAccess::Global
@@ -189,9 +225,11 @@ module IPAccess::Patches
     end
     
   end
-  
+
+# :stopdoc:
+
   # The ACL module contains methods
-  # that are present in all networking
+  # that are present in all network
   # objects with IP access control enabled.
   
   module ACL
@@ -252,9 +290,9 @@ module IPAccess::Patches
     # is changed and there is a need to validate remote peer again, since it might be
     # blacklisted.
     # 
-    # Each class that patches Ruby's networking class should redefine this method
+    # Each class that patches Ruby's network class should redefine this method
     # and call it in a proper place (e.g. from hook executed when singleton methods
-    # are added to networking object).
+    # are added to network object).
     
     def acl_recheck
       ;
@@ -280,5 +318,7 @@ module IPAccess::Patches
   end
   
 end
+
+# :startdoc:
 
 

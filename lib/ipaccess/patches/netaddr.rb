@@ -22,6 +22,8 @@
 
 require 'netaddr'
 
+# :stopdoc:
+
 # This module contains a few new methods extending
 # original NetAddr[http://netaddr.rubyforge.org/classes/NetAddr.html] module.
 
@@ -129,4 +131,6 @@ module NetAddr
   end # class CIDRv4
   
 end # module NetAddr
+
+# :startdoc:
 

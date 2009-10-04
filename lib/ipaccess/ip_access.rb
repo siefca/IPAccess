@@ -120,8 +120,9 @@ require 'ipaccess/ip_access_errors'
 # globally enable IP access control for original
 # Ruby's socket classes or use special versions
 # of them shipped with this library. To patch original
-# sockets use IPAccess.arm class method. To
-# use extended classes use classes like IPAccess::TCPSocket.
+# sockets or single objects use IPAccess.arm class method. To 
+# use extended version of network classes use
+# <tt>IPAccess::</tt> prefix.
 
 class IPAccess
   
@@ -147,10 +148,9 @@ class IPAccess
   
   # This method creates new IPAccess object. It optionally takes
   # two IPAccessList objects (initial data for access lists)
-  # and a name of an access set used in error reporting.
-  # 
-  # If there is only one argument it is assumed that it also
-  # contains this set's descriptive name.
+  # and descriptive name of an access set used in error reporting.
+  # If there is only one argument it's assumed that it contains
+  # descriptive name of an access set.
   
   def initialize(input=nil, output=nil, name=nil)
     @name = nil
@@ -479,7 +479,7 @@ class IPAccess
   
   def show
     ".=========================================.\n"   +
-    ". ACL for incomming traffic:\n\n"                +
+    ". ACL for incoming traffic:\n\n"                 +
     @input.show                                       +
     "\n.=========================================.\n" +
     ". ACL for outgoing traffic:\n\n"                 +
