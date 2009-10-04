@@ -404,12 +404,12 @@ class IPAccess::Net::HTTP
   end
 
   # :call-seq:
-  #   start(address, port, p_addr, p_port, p_user, p_pass, acl) |<tt>http</tt>|<br />
-  #   start(address, port , p_addr, p_port, acl) |<tt>http</tt>|<br />
-  #   start(address, port, p_addr, acl) |<tt>http</tt>|<br />
-  #   start(address, port, acl) |<tt>http</tt>|<br />
-  #   start(address, acl) |<tt>http</tt>|<br />
-  #   start(address, port = nil, p_addr = nil, p_port = nil, p_user = nil, p_pass = nil) |<tt>http</tt>|
+  #   start(address, port, p_addr, p_port, p_user, p_pass, acl) <tt>{|http| …}</tt><br />
+  #   start(address, port , p_addr, p_port, acl) <tt>{|http| …}</tt><br />
+  #   start(address, port, p_addr, acl) <tt>{|http| …}</tt><br />
+  #   start(address, port, acl) <tt>{|http| …}</tt><br />
+  #   start(address, acl) <tt>{|http| …}</tt><br />
+  #   start(address, port = nil, p_addr = nil, p_port = nil, p_user = nil, p_pass = nil) <tt>{|http| …}</tt>
   #
   # Creates a new object and opens its TCP connection
   # and HTTP session. If the optional block is given,
@@ -428,10 +428,10 @@ class IPAccess::Net::HTTP
   end
 
   # :call-seq:
-  #   start(uri_or_host, path, port, acl) |<tt>http</tt>|<br />
-  #   start(uri_or_host, path, acl) |<tt>http</tt>|<br />
-  #   start(uri_or_host, acl) |<tt>http</tt>|<br />
-  #   start(uri_or_host, path = nil, port = nil) |<tt>http</tt>|
+  #   start(uri_or_host, path, port, acl) <tt>{|http| …}</tt>|<br />
+  #   start(uri_or_host, path, acl) <tt>{|http| …}</tt><br />
+  #   start(uri_or_host, acl) <tt>{|http| …}</tt><br />
+  #   start(uri_or_host, path = nil, port = nil) <tt>{|http| …}</tt>
   #   
   # Sends a GET request to the target and return the response as a Net::HTTPResponse object.
   # The target can either be specified as (uri), or as
@@ -446,8 +446,77 @@ class IPAccess::Net::HTTP
   
 end
 
+######################################################
+# Net::Telnet[http://www.ruby-doc.org/stdlib/libdoc/net/telnet/rdoc/classes/Net/Telnet.html]
+# class with IP access control. It uses output access lists
+# and acts the same way as Net::Telnet class but
+# provides special member called +acl+ for
+# controlling IP access. Access checks are lazy
+# which means they are performed when real connection
+# is going to happend. Instances of this class will also
+# internally use patched versions of Ruby's network
+# socket objects to avoid access leaks.
+# 
+# You can pass access set in various ways: while
+# creating Telnet object or while starting Telnet session.
+# You can also rely on global access set.
+#
+# === Usage
+# 
+# There are 3 ways to enable access control:
+#
+# * patching Net::Telnet[http://www.ruby-doc.org/stdlib/libdoc/net/telnet/rdoc/classes/Net/Telnet.html] class (see IPAccess.arm) – use it in code you cannot easily modify
+# * patching single instance (see IPAccess.arm) – use it occasionally
+# * using IPAccess::Net::Telnet class – use it in your own code
+# 
+# This documentation doesn't cover description of all
+# class and instance methods of the original
+# Net::Telnet[http://www.ruby-doc.org/stdlib/libdoc/net/telnet/rdoc/classes/Net/Telnet.html]
+# class, just the patched variants that make use of IP access control.
+# 
+# === Examples
+# 
+# ==== Global access set, using IPAccess::Net::Telnet
+# 
+#     require 'ipaccess/net/telnet'         # load Net::Telnet version and IPAccess.arm method
+#     
+#     opts = {}               
+#     opts["Host"]  = 'randomseed.pl'   
+#     opts["Port"]  = '80'
+#     
+#     IPAccess::Global.output.blacklist 'randomseed.pl' # blacklist host
+#     t = IPAccess::Net::Telnet.new(opts)               # try to connect to remote host                                       
+# 
+# ==== Shared access set, single object patched
+# 
+#     require 'ipaccess/net/telnet'         # load Net::Telnet version and IPAccess.arm method
+#                                        
+#     opts = {}                          
+#     opts["Host"]  = 'randomseed.pl'    
+#     opts["Port"]  = '80'               
+#                                        
+#     t = Net::Telnet.new(opts)             # try to connect to remote host
+#                                        
+#     acl = IPAccess.new                    # create custom access set
+#     acl.output.blacklist 'randomseed.pl'  # blacklist host
+#     IPAccess.arm t, acl                   # arm single Telnet object
+# 
+# ==== Shared access set, class patched  
+#                                        
+#     require 'ipaccess/net/telnet'         # load Net::Telnet version and IPAccess.arm method
+#     
+#     opts = {}
+#     opts["Host"]  = 'randomseed.pl'
+#     opts["Port"]  = '80'
+#     
+#     IPAccess.arm Net::Telnet                      # patch Net::Telnet class  
+#     opts['ACL'] = IPAccess.new                    # create custom access set and add it to options
+#     opts['ACL'].output.blacklist 'randomseed.pl'  # blacklist host
+#     
+#     t = Net::Telnet.new(opts)             # try to connect to remote host
 
 class IPAccess::Net::Telnet
+  
   #:include:ghost_doc_acl.rb
   #  
   # === Example
@@ -456,20 +525,52 @@ class IPAccess::Net::Telnet
   #     
   #     opts = {}
   #     opts["Host"] = 'randomseed.pl'
-  #     opts["ACL"] = IPAccess.new                # shared ACL
   #     telnet = IPAccess::Net::Telnet.new(opts)  # create connected Telnet object
   # 
   #     telnet.acl = :global                      # use global access set
   #     telnet.acl = :private                     # create and use individual access set
   #     telnet.acl = IPAccess.new                 # use external (shared) access set
 
-  def acl=(set); end
+  attr_writer :acl
   
   # This member allows you to manipulate local and shared access sets
   # associated with this socket. To control global access set use
   # IPAccess::Global
 
   attr_reader :acl
+  
+  # The socket the Telnet object is using, which is kind of TCPSocket and
+  # responds to all methods of IPAccess::TCPSocket.
+  # Note that this object becomes a delegate of the Telnet object,
+  # so normally you invoke its methods directly on the Telnet object.
+  
+  attr_reader :sock
+  
+  # :call-seq:
+  #   new(opts) <tt>{|mesg| …}</tt><br />
+  #   new(*opts*, acl)<tt>{|mesg| …}</tt> 
+  # 
+  # Creates a new object and attempts to connect
+  # to the host (unless the Proxy option is provided).
+  # If a block is provided, it is yielded as status messages
+  # on the attempt to connect to the server.
+  # It optionally sets an access set given as the
+  # last parameter or as +ACL+ member of +opts+.
+  # The access set given as an argument has precedence
+  # over access set given in options. If ACL parameter
+  # is not given it defaults to ACL to IPAccess::Global.
+  
+  def initialize
+    # Real code hidden.
+  end
+  
+  # This method allows you to re-check access on demad.
+  # It uses internal socket's address and access set assigned
+  # to an object.
+  
+  def acl_recheck
+    # Real code hidden.
+  end
   
 end
 
