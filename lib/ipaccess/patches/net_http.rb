@@ -122,6 +122,7 @@ module IPAccess::Patches::Net
           acl_recheck # check address form socket to be sure
           orig_on_connect.bind(self).call
         end
+        private :on_connect
         
         # conn_address on steroids.
         define_method :conn_address do
