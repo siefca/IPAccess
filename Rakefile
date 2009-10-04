@@ -4,7 +4,7 @@
 $:.unshift File.join(File.dirname(__FILE__), "lib")
 
 require 'rubygems'
-gem 'hoe', '>=2.0.0'
+gem 'hoe', '>=2.3.0'
 
 require "rake"
 require "rake/clean"
@@ -25,25 +25,43 @@ end
 
 ### Gem
 
-Hoe.new IPAccess::NAME do |hoe|
-  hoe.version = IPAccess::VERSION
-  hoe.summary = IPAccess::SUMMARY
-  hoe.description = IPAccess::DESC
-  hoe.email = IPAccess::EMAIL
-  hoe.url = IPAccess::HOMEPAGE
-  hoe.rubyforge_name = IPAccess::NAME
-  hoe.author = IPAccess::AUTHOR
-  hoe.remote_rdoc_dir = ''
-  hoe.extra_dev_deps = [["netaddr",">= 1.5.0"]]
-  hoe.rspec_options = ['--options', 'spec/spec.opts']
-  hoe.rsync_args << '--chmod=a+rX'
-  hoe.readme_file = 'docs/README'
-  hoe.history_file = 'docs/HISTORY'
-  hoe.extra_rdoc_files = ["docs/README",
-                          "docs/LGPL-LICENSE",
-                          "docs/LEGAL", "docs/HISTORY",
-                          "docs/COPYING"]
+Hoe.spec 'ipaccess' do
+  self.version         =  "1.0.1"
+  self.rubyforge_name  = 'ipaccess'
+  self.summary         = 'IP Access Control for Ruby'
+  self.description     = 'This library allows you to control IP access for sockets and other objects'
+  self.url             = 'http://ipaccess.rubyforge.org/'
+
+  developer           "Paweł Wilk", "pw@gnu.org"
+  
+  self.remote_rdoc_dir = ''
+  self.rspec_options   = ['--options', 'spec/spec.opts']
+  self.rsync_args      << '--chmod=a+rX'
+  self.readme_file     = 'docs/README'
+  self.history_file    = 'docs/HISTORY'
+
+  self.extra_rdoc_files = ["docs/README",
+                      "docs/LGPL-LICENSE",
+                      "docs/LEGAL", "docs/HISTORY",
+                      "docs/COPYING"]
+
+  extra_deps          << ["netaddr",">= 1.5.0"]
+  extra_dev_deps      << ['hoe', '>= 2.2']
+
+  self.spec_extras['rdoc_options'] = proc do |rdoc_options|
+      rdoc_options << "--title=IP Access Control for Ruby"
+  end
+
 end
+
+#Rake::RDocTask.new('fixdocs') do |rd|
+#  rd.main = HOE.readme_file
+#  rd.options << '-d' if (`which dot` =~ /\/dot/) unless
+#  rd.rdoc_dir = 'doc' 
+#  rd.rdoc_files += HOE.spec.require_paths
+#  rd.rdoc_files += HOE.spec.extra_rdoc_files
+#  rd.options << '--title' << "IP Access Control for Ruby"
+#end
 
 task 'Manifest.txt' do
   puts 'generating Manifest.txt from git'
