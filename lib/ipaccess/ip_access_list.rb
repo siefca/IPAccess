@@ -25,23 +25,23 @@ require 'resolv'
 require 'netaddr'
 require 'ipaccess/patches/netaddr'
 
-# This class maintains a simple access list.
+# This class maintains a simple access list containing two lists of rules.
 # 
-# ==== Access lists
+# === Access lists
 # 
 # IPAccessList objects contain two <b>lists of rules</b>:
 # <b>white list</b> and <b>black list</b>. You can add IP rules
 # (both IPv4 and IPv6) to these lists. *Rules* are IP
 # addresses with netmasks.
 # 
-# ==== Rules management
+# === Rules management
 # 
 # The class provides methods for easy administration
 # of lists and makes use of method IPAccessList.obj_to_cidr that
 # "understands" most common IP representations including
 # DNS names, sockets, file descriptors bound to sockets and more.
 # 
-# ==== Checking access
+# === Checking access
 # 
 # You may check access for provided IP addresses against
 # white and black lists using proper methods. An address will match
@@ -57,24 +57,26 @@ require 'ipaccess/patches/netaddr'
 # +:all+ rule to a black list which would match all addresses,
 # then just whitelist permitted.
 #
-# ==== IPv4 and IPv6
+# === IPv4 and IPv6
 # 
 # IPv6 addresses that are IPv4 compatible
 # or IPv4 masked are automatically
 # translated into IPv4 addresses while
 # adding or searching.
 #
-# ==== Examples
+# === Examples
 # 
-# Examples of usage:
+# ==== Simple usage
 #
-#     access = IPAccessList.new       # create new access list
-#     access.blacklist :ipv4_private  # blacklist private IPv4 addresses
-#     access.whitelist '172.16.0.7'   # whitelist 172.16.0.7
-#     access.granted? '172.16.0.7'    # check access
-#     access.granted? '172.16.0.1'    # check access
+#     access = IPAccessList.new           # create new access list
+#     access.blacklist :ipv4_private      # blacklist private IPv4 addresses
+#     access.whitelist '172.16.0.7'       # whitelist 172.16.0.7
+#     access.granted? '172.16.0.7'        # check access
+#     access.granted? '172.16.0.1'        # check access
+#     access.delete :black, '172.16.0.1'  # remove 172.16.0.1 from blacklist 
+#     access.granted? '172.16.0.1'        # check access
 #
-# Examples of deny-all & allow-selected strategy:
+# ==== Deny-all & allow-selected strategy:
 # 
 #     access = IPAccessList.new       # create new access list
 #     access.deny :all                # blacklist all
@@ -121,7 +123,8 @@ class IPAccessList < NetAddr::Tree
   # NetAddr::Tree objects, IPAccessList objects, symbols, objects that contain file descriptors bound to sockets
   # (including OpenSSL sockets) and arrays of these.
   #
-  # In case of resolving the IPv6 link-local addresses zone index is removed.
+  # In case of resolving the IPv6 link-local addresses zone index is removed. In case of DNS names there may
+  # occur Resolv::ResolvError exceptions.
   #
   # ==== Examples
   # 
@@ -577,13 +580,26 @@ class IPAccessList < NetAddr::Tree
   # which may cause security flaws.
   
   def whitelist(*args)
-    args.empty? ? to_a(:white) : add!(:white, *args)
+    args.empty? ? self.to_a(:white) : add!(:white, *args)
   end
   
   alias_method :add_white,  :whitelist
   alias_method :allow,      :whitelist
   alias_method :permit,     :whitelist
+
+  # This method removes IP address(-es) from whitelist
+  # by calling delete! on it. It returns the
+  # result of delete!
   
+  def unwhitelist(*args)
+    self.delete!(:white, *args)
+  end
+
+  alias_method :unwhite,    :unwhitelist
+  alias_method :del_white,  :unwhitelist
+  alias_method :unallow,    :unwhitelist
+  alias_method :unpermit,   :unwhitelist
+    
   # Adds IP addresses in given object(s) to black list if called
   # with at least one argument. Returns black list if called
   # without arguments (array of CIDR objects).
@@ -593,12 +609,25 @@ class IPAccessList < NetAddr::Tree
   # which may cause security flaws.
   
   def blacklist(*args)
-    args.empty? ? to_a(:black) : add!(:black, *args)
+    args.empty? ? self.to_a(:black) : add!(:black, *args)
   end
   
   alias_method :add_black,  :blacklist
   alias_method :deny,       :blacklist
   alias_method :block,      :blacklist
+  
+  # This method removes IP address(-es) from blacklist
+  # by calling delete! on it. It returns the
+  # result of delete!
+  
+  def unblacklist(*args)
+    self.delete!(:black, *args)
+  end
+  
+  alias_method :unblack,    :unblacklist
+  alias_method :undeny,     :unblacklist
+  alias_method :unblock,    :unblacklist
+  alias_method :del_black,  :unblacklist
   
   # This method returns an array of matching CIDR objects
   # for the given objects containing IP information.
@@ -1096,7 +1125,9 @@ class IPAccessList < NetAddr::Tree
     return obj
   end
   
-  # Returns new list with removed CIDR objects which are exactly the same as objects passed as an argument.
+  # Returns new list with removed CIDR objects which are exactly
+  # the same as objects passed as an argument. The original
+  # object is not changed.
   #
   # See obj_to_cidr description for more info about arguments
   # you may pass to it.
@@ -1107,7 +1138,8 @@ class IPAccessList < NetAddr::Tree
     return self_copy
   end
   
-  # Returns list of addresses and masks as a string with elements joined using space or given string.
+  # Returns list of addresses and masks as a string with
+  # elements joined using space or given string.
   
   def join(sep=' ')
     dump.map do |obj|
