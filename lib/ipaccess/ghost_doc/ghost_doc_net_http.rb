@@ -53,7 +53,7 @@
 # The +acl+ member and IPAccess::Global are IPAccess instances.
 # Direct methods are documented below – they are easy to use
 # but their appliance is limited to existing objects (since they
-# are instance methods). That sometimes may be not what you need,
+# are instance methods). That sometimes may not be what you need,
 # for example in case of quick setups when connection is made in
 # the very moment new object is created or when single object is patched
 # (armed) in connected state. Remeber to call acl_recheck
