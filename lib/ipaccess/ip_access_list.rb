@@ -372,7 +372,11 @@ class IPAccessList < NetAddr::Tree
       begin
         obj = NetAddr::CIDR.create(obj.split('%').first)
       rescue NetAddr::ValidationError
-        addresses = Resolv::getaddresses(obj)
+        begin
+          addresses = Resolv::getaddresses(obj)
+        rescue NoMethodError # unhandled error
+          raise Resolv::ResolvError, "not connected"
+        end
         addresses.map! do |addr|
           begin
             NetAddr::CIDR.create(addr.split('%').first)
