@@ -43,6 +43,7 @@ module IPAccess::Patches
   ###################################################################
   # Socket class with IP access control.
   # It uses input and output access lists.
+  # Default access list for management operations is output.
   
   module Socket
     
@@ -119,6 +120,12 @@ module IPAccess::Patches
           return ret
         end
         
+        # This method returns default access list indicator
+        # used by protected object; in this case it's +:output+.
+        define_method :default_list do
+          :output
+        end
+        
         # SINGLETON HOOKS
         def __ipa_singleton_hook(acl=nil)
           self.acl = acl
@@ -134,6 +141,7 @@ module IPAccess::Patches
   ###################################################################
   # UDPSocket class with IP access control.
   # It uses input and output access lists.
+  # Default access list for management operations is input.
 
   module UDPSocket
 
@@ -198,6 +206,12 @@ module IPAccess::Patches
           return ret
         end
         
+        # This method returns default access list indicator
+        # used by protected object; in this case it's +:input+.
+        define_method :default_list do
+          :intput
+        end
+                
         # SINGLETON HOOKS
         def __ipa_singleton_hook(acl=nil)
           self.acl = acl
@@ -249,6 +263,12 @@ module IPAccess::Patches
             raise
           end
           nil
+        end
+        
+        # This method returns default access list indicator
+        # used by protected object; in this case it's +:output+.
+        define_method :default_list do
+          :output
         end
         
         # SINGLETON HOOKS
@@ -305,6 +325,12 @@ module IPAccess::Patches
           nil
         end
         
+        # This method returns default access list indicator
+        # used by protected object; in this case it's +:output+.
+        define_method :default_list do
+          :output
+        end
+                
         # SINGLETON HOOKS
         def __ipa_singleton_hook(acl=nil)
           self.acl = acl
@@ -374,6 +400,12 @@ module IPAccess::Patches
           nil
         end
         
+        # This method returns default access list indicator
+        # used by protected object; in this case it's +:input+.
+        define_method :default_list do
+          :input
+        end
+                
         # SINGLETON HOOKS
         def __ipa_singleton_hook(acl=nil)
           self.acl = acl

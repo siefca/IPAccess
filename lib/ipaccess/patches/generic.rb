@@ -314,11 +314,378 @@ module IPAccess::Patches
     attr_reader :acl
     alias_method :access=, :acl=
     alias_method :access, :acl
+    
+    # This method returns default access list indicator
+    # used by protected object; usually +:input+ or
+    # +:output+.
+    
+    def default_list; :output end
+    
+    # :call-seq:
+    #   whitelist(list, *addresses)
+    #   whitelist(*addresses)
+    # 
+    # This method whitelists IP address(-es) in
+    # the input or output access list selected
+    # by the *list* argument (+:input+ or +:output+).
+    # If the access list selector is omited it
+    # operates on the default access list that certain
+    # kind of network object uses. The allowed format of address
+    # is the same as for IPAccessList.obj_to_cidr.
+    # This method will not add nor remove any
+    # blacklisted item.
+    # 
+    # It will return the result of calling
+    # IPAccessList#whitelist on the list.    
+    # 
+    # This method won't allow you to modify the list if
+    # the global access set is associated with an object.
+    # You may operate on IPAccess::Global or use
+    # whitelist! instead.
+    # 
+    #
+    #
+    # === Revalidation
+    #
+    # After modyfing access set current connection
+    # is validated again to avoid access leaks.
+    # 
+    # === DNS Warning
+    #
+    # You should avoid passing hostnames as arguments since
+    # DNS is not reliable and responses may change with time
+    # which may cause security flaws.
 
-  end
+    def whitelist(*args)
+      aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+      @acl.send(aclist).whitelist(*args)
+      self.acl_recheck
+      return r
+    end
+
+    alias_method :add_white,  :whitelist
+    alias_method :allow,      :whitelist
+    alias_method :permit,     :whitelist
+
+    # :call-seq:
+    #   whitelist!(list, *addresses)
+    #   whitelist!(*addresses)
+    # 
+    # This method whitelists IP address(-es) in
+    # the input or output access list selected
+    # by the *list* argument (+:input+ or +:output+).
+    # If the access list selector is omited it
+    # operates on the default access list that certain
+    # kind of network object uses. The allowed format of address
+    # is the same as for IPAccessList.obj_to_cidr.
+    # This method will not add nor remove any
+    # blacklisted item.
+    # 
+    # It will return the result of calling
+    # IPAccessList#whitelist on the list.    
+    # 
+    # This method will allow you to modify the list
+    # even if the global access set is used by object.
+    # 
+    #
+    #
+    # === Revalidation
+    #
+    # After modyfing access set current connection
+    # is validated again to avoid access leaks.
+    # 
+    # === DNS Warning
+    #
+    # You should avoid passing hostnames as arguments since
+    # DNS is not reliable and responses may change with time
+    # which may cause security flaws.
+
+    def whitelist!(*args)
+      aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+      real_acl.send(aclist).whitelist(*args)
+      self.acl_recheck
+      return r
+    end
+
+    alias_method :add_white!,  :whitelist!
+    alias_method :allow!,      :whitelist!
+    alias_method :permit!,     :whitelist!
+    
+    # :call-seq:
+    #   unwhitelist(list, *addresses)
+    #   unwhitelist(*addresses)
+    # 
+    # This method removes whitelisted IP address(-es)
+    # from the input or output access list selected
+    # by the *list* argument (+:input+ or +:output+).
+    # If the access list selector is omited it
+    # operates on the default access list that certain
+    # kind of network object uses. The allowed format of address
+    # is the same as for IPAccessList.obj_to_cidr.
+    # This method will not add nor remove any
+    # blacklisted item.
+    # 
+    # It will return the result of calling
+    # IPAccessList#unwhitelist on the list.    
+    # 
+    # This method won't allow you to modify the list if
+    # the global access set is associated with an object.
+    # You may operate on IPAccess::Global or use
+    # unwhitelist! instead.
+    # 
+    #
+    #
+    # === Revalidation
+    #
+    # After modyfing access set current connection
+    # is validated again to avoid access leaks.
+    # 
+    # === DNS Warning
+    #
+    # You should avoid passing hostnames as arguments since
+    # DNS is not reliable and responses may change with time
+    # which may cause security flaws.
+    
+    def unwhitelist(*args)
+      aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+      @acl.send(aclist).unwhitelist(*args)
+      self.acl_recheck
+      return r
+    end
+
+    alias_method :unwhite,    :unwhitelist
+    alias_method :del_white,  :unwhitelist
+    alias_method :unallow,    :unwhitelist
+    alias_method :unpermit,   :unwhitelist
+
+    # :call-seq:
+    #   unwhitelist!(list, *addresses)
+    #   unwhitelist!(*addresses)
+    # 
+    # This method removes whitelisted IP address(-es)
+    # from the input or output access list selected
+    # by the *list* argument (+:input+ or +:output+).
+    # If the access list selector is omited it
+    # operates on the default access list that certain
+    # kind of network object uses. The allowed format of address
+    # is the same as for IPAccessList.obj_to_cidr.
+    # This method will not add nor remove any
+    # blacklisted item.
+    # 
+    # It will return the result of calling
+    # IPAccessList#unwhitelist on the list.    
+    # 
+    # This method will allow you to modify the list
+    # even if the global access set is used by object.
+    # 
+    #
+    #
+    # === Revalidation
+    #
+    # After modyfing access set current connection
+    # is validated again to avoid access leaks.
+    # 
+    # === DNS Warning
+    #
+    # You should avoid passing hostnames as arguments since
+    # DNS is not reliable and responses may change with time
+    # which may cause security flaws.
+    
+    def unwhitelist!(*args)
+      aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+      real_acl.send(aclist).unwhitelist(*args)
+      self.acl_recheck
+      return r
+    end
+
+    alias_method :unwhite!,    :unwhitelist!
+    alias_method :del_white!,  :unwhitelist!
+    alias_method :unallow!,    :unwhitelist!
+    alias_method :unpermit!,   :unwhitelist!
+
+    # :call-seq:
+    #   blacklist(list, *addresses)
+    #   blacklist(*addresses)
+    # 
+    # This method blacklists IP address(-es) in
+    # the input or output access list selected
+    # by the *list* argument (+:input+ or +:output+).
+    # If the access list selector is omited it
+    # operates on the default access list that certain
+    # kind of network object uses. The allowed format of address
+    # is the same as for IPAccessList.obj_to_cidr.
+    # This method will not add nor remove any
+    # whitelisted item.
+    # 
+    # It will return the result of calling
+    # IPAccessList#blacklist on the list.    
+    # 
+    # This method won't allow you to modify the list if
+    # the global access set is associated with an object.
+    # You may operate on IPAccess::Global or use
+    # blacklist! instead.
+    # 
+    #
+    #
+    # === Revalidation
+    #
+    # After modyfing access set current connection
+    # is validated again to avoid access leaks.
+    # 
+    # === DNS Warning
+    #
+    # You should avoid passing hostnames as arguments since
+    # DNS is not reliable and responses may change with time
+    # which may cause security flaws.
+        
+    def blacklist(*args)
+      aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+      r = @acl.send(aclist).blacklist(*args)
+      self.acl_recheck
+      return r
+    end
+
+    alias_method :add_black,  :blacklist
+    alias_method :deny,       :blacklist
+    alias_method :block,      :blacklist
+
+    # :call-seq:
+    #   blacklist!(list, *addresses)
+    #   blacklist!(*addresses)
+    # 
+    # This method blacklists IP address(-es) in
+    # the input or output access list selected
+    # by the *list* argument (+:input+ or +:output+).
+    # If the access list selector is omited it
+    # operates on the default access list that certain
+    # kind of network object uses. The allowed format of address
+    # is the same as for IPAccessList.obj_to_cidr.
+    # This method will not add nor remove any
+    # whitelisted item.
+    # 
+    # It will return the result of calling
+    # IPAccessList#blacklist on the list.    
+    # 
+    # This method will allow you to modify the list
+    # even if the global access set is used by object.
+    # 
+    #
+    #
+    # === Revalidation
+    #
+    # After modyfing access set current connection
+    # is validated again to avoid access leaks.
+    # 
+    # === DNS Warning
+    #
+    # You should avoid passing hostnames as arguments since
+    # DNS is not reliable and responses may change with time
+    # which may cause security flaws.
+    
+    def blacklist!(*args)
+      aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+      r = real_acl.send(aclist).blacklist(*args)
+      self.acl_recheck
+      return r
+    end
+
+    alias_method :add_black!,  :blacklist!
+    alias_method :deny!,       :blacklist!
+    alias_method :block!,      :blacklist!
+
+    # :call-seq:
+    #   unblacklist(list, *addresses)
+    #   unblacklist(*addresses)
+    # 
+    # This method removes blacklisted IP address(-es)
+    # from the input or output access list selected
+    # by the *list* argument (+:input+ or +:output+).
+    # If the access list selector is omited it
+    # operates on the default access list that certain
+    # kind of network object uses. The allowed format of address
+    # is the same as for IPAccessList.obj_to_cidr.
+    # This method will not add nor remove any
+    # whitelisted item.
+    # 
+    # It will return the result of calling
+    # IPAccessList#unblacklist on the list.    
+    # 
+    # This method won't allow you to modify the list if
+    # the global access set is associated with an object.
+    # You may operate on IPAccess::Global or use
+    # unwhitelist! instead.
+    # 
+    #
+    #
+    # === Revalidation
+    #
+    # After modyfing access set current connection
+    # is validated again to avoid access leaks.
+    # 
+    # === DNS Warning
+    #
+    # You should avoid passing hostnames as arguments since
+    # DNS is not reliable and responses may change with time
+    # which may cause security flaws.
+
+    def unblacklist(*args)
+      aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+      @acl.send(aclist).unblacklist(*args)
+      self.acl_recheck
+      return r
+    end
+
+    alias_method :unblack,    :unblacklist
+    alias_method :undeny,     :unblacklist
+    alias_method :unblock,    :unblacklist
+    alias_method :del_black,  :unblacklist
+
+    # :call-seq:
+    #   unblacklist!(list, *addresses)
+    #   unblacklist!(*addresses)
+    # 
+    # This method removes blacklisted IP address(-es)
+    # from the input or output access list selected
+    # by the *list* argument (+:input+ or +:output+).
+    # If the access list selector is omited it
+    # operates on the default access list that certain
+    # kind of network object uses. The allowed format of address
+    # is the same as for IPAccessList.obj_to_cidr.
+    # This method will not add nor remove any
+    # whitelisted item.
+    # 
+    # It will return the result of calling
+    # IPAccessList#unblacklist on the list.    
+    # 
+    # This method will allow you to modify the list
+    # even if the global access set is used by object.
+    # 
+    # === Revalidation
+    #
+    # After modyfing access set current connection
+    # is validated again to avoid access leaks.
+    # 
+    # === DNS Warning
+    #
+    # You should avoid passing hostnames as arguments since
+    # DNS is not reliable and responses may change with time
+    # which may cause security flaws.
+
+    def unblacklist!(*args)
+      aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+      real_acl.send(aclist).unblacklist(*args)
+      self.acl_recheck
+      return r
+    end
+
+    alias_method :unblack!,   :unblacklist!
+    alias_method :undeny!,    :unblacklist!
+    alias_method :unblock!,   :unblacklist!
+    alias_method :del_black!, :unblacklist!
+
+  end # module ACL
   
 end
 
 # :startdoc:
-
 

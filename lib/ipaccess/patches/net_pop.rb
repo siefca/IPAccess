@@ -132,6 +132,12 @@ module IPAccess::Patches::Net
           orig_on_connect.bind(self).call
         end
         
+        # This method returns default access list indicator
+        # used by protected object; in this case it's +:output+.
+        define_method :default_list do
+          :output
+        end
+                
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           begin

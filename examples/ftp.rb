@@ -14,12 +14,12 @@ acl.output.blacklist 'randomseed.pl'
 # Using IPAccess::Net::FTP variant instead of Net::FTP
 
 acl = IPAccess.new
-ftp = IPAccess::Net::FTP.new('ftp.pld-linux.org', acl)
+ftp = IPAccess::Net::FTP.new('ftp.pld-linux.org')
 ftp.passive = true
 ftp.login
 files = ftp.chdir('/')
-acl.output.blacklist 'ftp.pld-linux.org'
-files = ftp.list('n*')
+ftp.blacklist 'ftp.pld-linux.org', :private
+files = ftp.list('n*') # this command opens socket so there is no need to call acl_recheck
 ftp.close
 
 # Using patched Net::FTP object

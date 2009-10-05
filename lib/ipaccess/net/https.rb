@@ -20,7 +20,7 @@
 # See the file COPYING for complete licensing information.
 #
 # 
-# See ipaccess/ghost_doc.rb for documentation of this classes.
+# See ipaccess/ghost_doc/ghost_doc.rb for documentation of this classes.
 # 
 #++
 

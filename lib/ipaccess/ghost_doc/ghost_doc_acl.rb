@@ -1,4 +1,4 @@
-# This method selects IPAccess object that will be used to
+# This member selects IPAccess object that will be used to
 # control IP access for a socket. You may assign global access set,
 # create local access set or use shared set.
 # 

@@ -49,7 +49,7 @@ access of the real TCP/IP traffic in an easy way.
 	# load patched sockets
 	require 'ipaccess/socket'
 
-	# IP given by untrusted user
+	# assume IP given by untrusted user
 	ip_from_user = '192.168.5.5'
 
 	# create new access set
@@ -58,7 +58,7 @@ access of the real TCP/IP traffic in an easy way.
 	# blacklist private and local subnets
 	acl.output.block :private, :local
 	
-	# try to create TCP socket with IP access control
+	# create TCP socket with IP access control
 	socket = IPAccess::TCPSocket(ip_from_user, 80, acl)
 
 == Requirements

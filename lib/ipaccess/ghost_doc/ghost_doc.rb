@@ -1,13 +1,13 @@
 # encoding: utf-8
-#
+# 
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009 Paweł Wilk
-# License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:docs/LGPL-LICENSE.html] or {Ruby License}[link:docs/COPYING.html].
+# License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:LGPL-LICENSE.html] or Ruby License.
 # 
-# Classes contained in this file are subclasses
-# of Ruby socket handling classes equipped
-# with IP access control.
-#
+# Classes contained are just for documentary purposes.
+# It is a scaffold for keeping virtual methods that
+# cannot be detected by RDoc.
+# 
 #--
 # 
 # Copyright (C) 2009 by Paweł Wilk. All Rights Reserved.
@@ -19,9 +19,5 @@
 # 
 # See the file COPYING for complete licensing information.
 #
-# 
-# See ipaccess/ghost_doc/ghost_doc.rb for documentation of this classes.
-# 
 #++
 
-require 'ipaccess/socket'

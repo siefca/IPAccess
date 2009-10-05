@@ -77,6 +77,12 @@ module IPAccess::Patches::Net
           return ret
         end
         
+        # This method returns default access list indicator
+        # used by protected object; in this case it's +:output+.
+        define_method :default_list do
+          :output
+        end
+                
         # block passing wrapper for Ruby 1.8
         def initialize(*args, &block)
           __ipacall__initialize(block, *args)
