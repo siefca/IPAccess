@@ -126,13 +126,13 @@ class IPAccess::Net::FTP
   #  
   # === Example
   # 
-  #     require 'ipaccess/net/ftp'                # load Net::FTP variant
+  #     require 'ipaccess/net/ftp'             # load Net::FTP variant
   #     
-  #     telnet = IPAccess::Net::FTP.new('host')   # create connected Telnet object
+  #     ftp = IPAccess::Net::FTP.new('host')   # create connected Telnet object
   # 
-  #     telnet.acl = :global                      # use global access set
-  #     telnet.acl = :private                     # create and use individual access set
-  #     telnet.acl = IPAccess.new                 # use external (shared) access set
+  #     ftp.acl = :global                      # use global access set
+  #     ftp.acl = :private                     # create and use individual access set
+  #     ftp.acl = IPAccess.new                 # use external (shared) access set
 
   attr_writer :acl
   

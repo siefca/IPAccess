@@ -408,17 +408,16 @@ end
 # 
 # === Example
 #     
-#     require 'ipaccess/socket'                     # load sockets subsystem
+#     require 'ipaccess/socket'                 # load sockets subsystem
 #     
-#     serv = IPAccess::TCPServer.new(31337)         # create listening TCP socket
-#     serv.acl = :private                           # create and use private access set
-#     serv.acl.input.block :local, :private         # block local and private addresses
-#     serv.acl.input.permit '127.0.0.5'             # make an exception
+#     serv = IPAccess::TCPServer.new(31337)     # create listening TCP socket
+#     serv.acl = :private                       # create and use private access set
+#     serv.blacklist :local, :private           # block local and private IP addresses
+#     serv.permit '127.0.0.5'                   # make an exception
 #     
-#     puts serv.acl.input.blacklist                 # show blacklisted IP addresses
-#     puts serv.acl.input.whitelist                 # show whitelisted IP addresses
+#     puts serv.acl.show                        # show listed IP addresses
 #     
-#     sock = serv.sysaccept                         # accept connection
+#     sock = serv.sysaccept                     # accept connection
 
 class IPAccess::TCPServer
   #:include:ghost_doc_p_whitelist_e.rb
