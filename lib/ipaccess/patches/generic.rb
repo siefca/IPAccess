@@ -358,7 +358,7 @@ module IPAccess::Patches
 
     def whitelist(*args)
       aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-      @acl.send(aclist).whitelist(*args)
+      r = @acl.send(aclist).whitelist(*args)
       self.acl_recheck
       return r
     end
@@ -402,7 +402,7 @@ module IPAccess::Patches
 
     def whitelist!(*args)
       aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-      real_acl.send(aclist).whitelist(*args)
+      r = real_acl.send(aclist).whitelist(*args)
       self.acl_recheck
       return r
     end
@@ -448,7 +448,7 @@ module IPAccess::Patches
     
     def unwhitelist(*args)
       aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-      @acl.send(aclist).unwhitelist(*args)
+      r = @acl.send(aclist).unwhitelist(*args)
       self.acl_recheck
       return r
     end
@@ -493,7 +493,7 @@ module IPAccess::Patches
     
     def unwhitelist!(*args)
       aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-      real_acl.send(aclist).unwhitelist(*args)
+      r = real_acl.send(aclist).unwhitelist(*args)
       self.acl_recheck
       return r
     end
@@ -630,7 +630,7 @@ module IPAccess::Patches
 
     def unblacklist(*args)
       aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-      @acl.send(aclist).unblacklist(*args)
+      r = @acl.send(aclist).unblacklist(*args)
       self.acl_recheck
       return r
     end
@@ -673,7 +673,7 @@ module IPAccess::Patches
 
     def unblacklist!(*args)
       aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-      real_acl.send(aclist).unblacklist(*args)
+      r = real_acl.send(aclist).unblacklist(*args)
       self.acl_recheck
       return r
     end
