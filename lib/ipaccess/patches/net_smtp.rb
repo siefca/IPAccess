@@ -93,6 +93,7 @@ module IPAccess::Patches::Net
           self.acl_recheck
           return ret
         end
+        private :do_start
         
         # This method returns default access list indicator
         # used by protected object; in this case it's +:output+.

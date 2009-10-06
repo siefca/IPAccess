@@ -159,7 +159,7 @@ class IPAccess::Net::FTP
   # are used to log in.
   #
   # It optionally sets an access set given as the
-  # last parameter. If ACL parameter
+  # last parameter. If +acl+ parameter
   # is not given it defaults to <tt>IPAccess::Global</tt>.
   
   def initialize
