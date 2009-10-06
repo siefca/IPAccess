@@ -478,12 +478,20 @@ class IPAccess
   # This method shows access set in human readable form.
   
   def show
-    ".=========================================.\n"   +
-    ". ACL for incoming traffic:\n\n"                 +
-    @input.show                                       +
-    "\n.=========================================.\n" +
-    ". ACL for outgoing traffic:\n\n"                 +
-    @output.show + "\n\n"
+    r = ""
+    unless @input.empty?
+      r = ".=========================================.\n"   +
+          ". Rules for incoming traffic:\n\n"               +
+          @input.show
+      r += "\n" if @output.empty?
+    end
+    unless @output.empty?
+      r += "\n" unless @input.empty?
+      r +=  ".=========================================.\n" +
+            ". Rules for outgoing traffic:\n\n"             +
+            @output.show + "\n"
+    end
+    return r
   end
   
 end
