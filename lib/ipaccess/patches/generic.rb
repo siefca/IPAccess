@@ -65,7 +65,7 @@ class IPAccess
   # This special method patches Ruby's standard
   # library classes and enables IP access control
   # for them. Instances of such altered classes
-  # will be equipped with member called +acl+
+  # will be equipped with member called +acl+,
   # which is a kind of IPAccess and allows you
   # to manipulate access rules. It is also
   # able to patch single instance of supported
@@ -353,7 +353,7 @@ module IPAccess::Patches
     # === DNS Warning
     #
     # You should avoid passing hostnames as arguments since
-    # DNS is not reliable and responses may change with time
+    # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
 
     def whitelist(*args)
@@ -397,7 +397,7 @@ module IPAccess::Patches
     # === DNS Warning
     #
     # You should avoid passing hostnames as arguments since
-    # DNS is not reliable and responses may change with time
+    # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
 
     def whitelist!(*args)
@@ -443,7 +443,7 @@ module IPAccess::Patches
     # === DNS Warning
     #
     # You should avoid passing hostnames as arguments since
-    # DNS is not reliable and responses may change with time
+    # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
     
     def unwhitelist(*args)
@@ -488,7 +488,7 @@ module IPAccess::Patches
     # === DNS Warning
     #
     # You should avoid passing hostnames as arguments since
-    # DNS is not reliable and responses may change with time
+    # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
     
     def unwhitelist!(*args)
@@ -535,7 +535,7 @@ module IPAccess::Patches
     # === DNS Warning
     #
     # You should avoid passing hostnames as arguments since
-    # DNS is not reliable and responses may change with time
+    # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
         
     def blacklist(*args)
@@ -579,7 +579,7 @@ module IPAccess::Patches
     # === DNS Warning
     #
     # You should avoid passing hostnames as arguments since
-    # DNS is not reliable and responses may change with time
+    # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
     
     def blacklist!(*args)
@@ -625,7 +625,7 @@ module IPAccess::Patches
     # === DNS Warning
     #
     # You should avoid passing hostnames as arguments since
-    # DNS is not reliable and responses may change with time
+    # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
 
     def unblacklist(*args)
@@ -668,7 +668,7 @@ module IPAccess::Patches
     # === DNS Warning
     #
     # You should avoid passing hostnames as arguments since
-    # DNS is not reliable and responses may change with time
+    # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
 
     def unblacklist!(*args)

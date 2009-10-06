@@ -22,31 +22,22 @@
 #++
  
 ######################################################
-# Socket class with IP access control.
-# It uses input and output access lists.
+# Socket[http://www.ruby-doc.org/core/classes/Socket.html]
+# class with IP access control.
+# It uses input and output access lists. Default
+# list for methods that deal with rules is +output+.
 #
-# This acts the same way as Socket class but
-# provides special member called +acl+ for
-# controlling IP access.
+# This class acts the same way as Socket[http://www.ruby-doc.org/core/classes/Socket.html] 
+# class but provides special member called +acl+ and a few new
+# instance methods for controlling IP access.
 #
-# There are also 3 ways to manage access rules:
+#:include:ghost_doc_patched_usage.rb
 # 
-# * using direct methods like blacklist and whitelist – preferred, ensures that access check is done after change
-# * using acl member – you may control only private and shared access sets that way and have to ensure that re-check is done after change
-# * using IPAccess::Global constant – use it when object is associated with global access set
-# 
-# The +acl+ member and IPAccess::Global are IPAccess instances.
-# Direct methods are documented below – they are easy to use
-# but their appliance is limited to existing objects (since they
-# are instance methods). That sometimes may not be what you need,
-# for example in case of quick setups when connection is made in
-# the very moment new object is created or when single object is patched
-# (armed) in connected state. Remeber to call acl_recheck
-# immediately after operation to avoid leaks
-# when you're using +acl+ member or IPAccess::Global
-# to manage access rules.
-# 
-# 
+# This documentation doesn't cover description of all
+# class and instance methods of the original
+# Socket[http://www.ruby-doc.org/core/classes/Socket.html]
+# class, just the patched variants that make use of IP access control.
+#
 # === Example
 #     
 #     require 'socket'                                        # load native sockets
@@ -138,12 +129,21 @@ class IPAccess::Socket
 end
 
 ######################################################
-# UDPSocket class with IP access control.
-# It uses input access lists.
+# UDPSocket[http://www.ruby-doc.org/core/classes/UDPSocket.html]
+# class with IP access control. It uses input and output
+# access lists. Default list for rules management
+# methods is +input+.
 #
-# This acts the same way as UDPSocket class but
-# provides special member called +acl+ for
-# controlling IP access.
+# This class acts the same way as UDPSocket[http://www.ruby-doc.org/core/classes/UDPSocket.html] 
+# class but provides special member called +acl+ and a few new
+# instance methods for controlling IP access.
+#
+#:include:ghost_doc_patched_usage.rb
+# 
+# This documentation doesn't cover description of all
+# class and instance methods of the original
+# UDPSocket[http://www.ruby-doc.org/core/classes/UDPSocket.html] 
+# class, just the patched variants that make use of IP access control.
 
 class IPAccess::UDPSocket
   #:include:ghost_doc_p_whitelist_e.rb
@@ -209,12 +209,19 @@ class IPAccess::UDPSocket
 end
 
 ######################################################
-# SOCKSSocket class with IP access control.
-# It uses input access lists.
+# SOCKSSocket[http://www.ruby-doc.org/core/classes/SOCKSSocket.html]
+# class with IP access control. It uses +output+ access lists.
 # 
-# This acts the same way as SOCKSSocket class but
-# provides special member called +acl+ for
-# controlling IP access.
+# This class acts the same way as SOCKSSocket[http://www.ruby-doc.org/core/classes/SOCKSSocket.html] 
+# class but provides special member called +acl+ and a few new
+# instance methods for controlling IP access.
+#
+#:include:ghost_doc_patched_usage.rb
+# 
+# This documentation doesn't cover description of all
+# class and instance methods of the original
+# SOCKSSocket[http://www.ruby-doc.org/core/classes/SOCKSSocket.html] 
+# class, just the patched variants that make use of IP access control.
 
 class IPAccess::SOCKSSocket
   #:include:ghost_doc_p_whitelist_e.rb
@@ -287,12 +294,21 @@ class IPAccess::SOCKSSocket
 end
 
 ######################################################
-# TCPSocket class with IP access control.
-# It uses output access lists.
+# TCPSocket[http://www.ruby-doc.org/core/classes/TCPSocket.html]
+# class with IP access control. It uses +output+
+# access lists.
+# 
+# This class acts the same way as
+# TCPSocket[http://www.ruby-doc.org/core/classes/TCPSocket.html]
+# class but provides special member called +acl+ and a few new
+# instance methods for controlling IP access.
 #
-# This acts the same way as TCPSocket class but
-# provides special member called +acl+ for
-# controlling IP access.
+#:include:ghost_doc_patched_usage.rb
+# 
+# This documentation doesn't cover description of all
+# class and instance methods of the original
+# TCPSocket[http://www.ruby-doc.org/core/classes/TCPSocket.html]
+# class, just the patched variants that make use of IP access control.
 # 
 # === Example
 # 
@@ -372,13 +388,23 @@ class IPAccess::TCPSocket
 
 end
 
+
 ######################################################
-# TCPServer class with IP access control.
-# It uses input access lists.
+# TCPServer[http://www.ruby-doc.org/core/classes/TCPServer.html]
+# class with IP access control. It uses +input+
+# access lists.
 # 
-# This acts the same way as TCPServer class but
-# provides special member called +acl+ for
-# controlling IP access.
+# This class acts the same way as
+# TCPServer[http://www.ruby-doc.org/core/classes/TCPServer.html]
+# class but provides special member called +acl+ and a few new
+# instance methods for controlling IP access.
+#
+#:include:ghost_doc_patched_usage.rb
+# 
+# This documentation doesn't cover description of all
+# class and instance methods of the original
+# TCPServer[http://www.ruby-doc.org/core/classes/TCPServer.html]
+# class, just the patched variants that make use of IP access control.
 # 
 # === Example
 #     

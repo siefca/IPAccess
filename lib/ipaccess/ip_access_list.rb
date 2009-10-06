@@ -54,7 +54,7 @@ require 'ipaccess/patches/netaddr'
 # If an IP address doesn't match any rule from any list then
 # methods evaluating access permit it. The default policy is
 # to accept. To change the default policy you may want to add
-# +:all+ rule to a black list which would match all addresses,
+# +:all+ rule to a black list, which would match all addresses,
 # then just whitelist permitted.
 #
 # === IPv4 and IPv6
@@ -100,7 +100,7 @@ class IPAccessList < NetAddr::Tree
   # assignment found there would be used instead of default. 
   #
   # You should avoid passing hostnames as arguments since
-  # DNS is not reliable and responses may change with time.
+  # DNS is not reliable and responses may change with time,.
   # That may cause security flaws.
   # 
   # ==== Examples
@@ -462,7 +462,7 @@ class IPAccessList < NetAddr::Tree
   # rule in the same access list then it is not added.
   # 
   # You should avoid passing hostnames as arguments since
-  # DNS is not reliable and responses may change with time
+  # DNS is not reliable and responses may change with time,
   # which may cause security flaws.
   #
   # Special case: some CIDR objects may carry information about
@@ -472,7 +472,7 @@ class IPAccessList < NetAddr::Tree
   # assignment to some list then this extra sugar will be used
   # in assignment instead of default +:black+. These special
   # CIDR object are usualy result of passing IPAccessList
-  # as an argument. To be sure which access
+  # as an argument. To be sure, whichaccess
   # list will be altered always give its name when passing
   # IPAccessList.
   #  
@@ -527,12 +527,12 @@ class IPAccessList < NetAddr::Tree
   # is the kind of special CIDR containing information about
   # assignment to some list then this extra sugar will be used
   # while removing. These special CIDR objects are usualy result
-  # of passing IPAccessList as an argument. To be sure which access
+  # of passing IPAccessList as an argument. To be sure, whichaccess
   # list will be altered always give its name when passing
   # IPAccessList.
   # 
   # You should avoid passing hostnames as arguments since
-  # DNS is not reliable and responses may change with time
+  # DNS is not reliable and responses may change with time,
   # which may cause security flaws.
   # 
   # See obj_to_cidr description for more info about arguments
@@ -576,7 +576,7 @@ class IPAccessList < NetAddr::Tree
   # without arguments (array of CIDR objects).
   #
   # You should avoid passing hostnames as arguments since
-  # DNS is not reliable and responses may change with time
+  # DNS is not reliable and responses may change with time,
   # which may cause security flaws.
   
   def whitelist(*args)
@@ -605,7 +605,7 @@ class IPAccessList < NetAddr::Tree
   # without arguments (array of CIDR objects).
   #
   # You should avoid passing hostnames as arguments since
-  # DNS is not reliable and responses may change with time
+  # DNS is not reliable and responses may change with time,
   # which may cause security flaws.
   
   def blacklist(*args)
@@ -747,7 +747,7 @@ class IPAccessList < NetAddr::Tree
   # check use granted_cidr and denied_cidr methods.
   # 
   # You should avoid passing hostnames as arguments since
-  # DNS is not reliable and responses may change with time
+  # DNS is not reliable and responses may change with time,
   # which may cause security flaws.
   
   def rule_exists(list, *args)
@@ -1010,7 +1010,7 @@ class IPAccessList < NetAddr::Tree
   # by CIDR objects.
   # 
   # You should avoid passing hostnames as arguments since
-  # DNS is not reliable and responses may change with time
+  # DNS is not reliable and responses may change with time,
   # which may cause security flaws.
   #
   # To not create copy of objects when reporting rules
@@ -1078,7 +1078,7 @@ class IPAccessList < NetAddr::Tree
   # by CIDR objects.
   #
   # You should avoid passing hostnames as arguments since
-  # DNS is not reliable and responses may change with time
+  # DNS is not reliable and responses may change with time,
   # which may cause security flaws.
     
   def granted(*args)
@@ -1100,7 +1100,7 @@ class IPAccessList < NetAddr::Tree
   # you may pass to it.
   # 
   # You should avoid passing hostnames as arguments since
-  # DNS is not reliable and responses may change with time
+  # DNS is not reliable and responses may change with time,
   # which may cause security flaws.
   
   def granted?(*args)

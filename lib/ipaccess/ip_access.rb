@@ -196,7 +196,7 @@ class IPAccess
   # operates in this mode there is no difference
   # between incoming and outgoing acceess list.
   # In bidirectional mode each access check
-  # is performed against one list which contains
+  # is performed against one list, which contains
   # both input and output rules. Still the only
   # way to add or delete rules is to straight
   # call +input+ or +output+. The difference is

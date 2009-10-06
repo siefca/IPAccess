@@ -25,42 +25,11 @@
 # Net::Telnet[http://www.ruby-doc.org/stdlib/libdoc/net/telnet/rdoc/classes/Net/Telnet.html]
 # class with IP access control. It uses output access lists
 # and acts the same way as Net::Telnet class but
-# provides special member called +acl+ for
-# controlling IP access. Access checks are lazy
-# which means they are performed when real connection
-# is going to happend. Instances of this class will also
-# internally use patched versions of Ruby's network
-# socket objects to avoid access leaks.
+# provides provides special member called +acl+ and a few new
+# instance methods for controlling IP access.
 # 
-# You can pass access set in various ways: while
-# creating Telnet object or while starting Telnet session.
-# You can also rely on global access set.
-#
-# === Usage
+#:include:ghost_doc_patched_usage.rb
 # 
-# There are 3 ways to enable access control:
-#
-# * patching Net::Telnet[http://www.ruby-doc.org/stdlib/libdoc/net/telnet/rdoc/classes/Net/Telnet.html] class (see IPAccess.arm) – use it in code you cannot easily modify
-# * patching single instance (see IPAccess.arm) – use it occasionally
-# * using IPAccess::Net::Telnet class – use it in your own code
-#
-# There are also 3 ways to manage access rules:
-# 
-# * using direct methods like blacklist and whitelist – preferred, ensures that access check is done after change
-# * using acl member – you may control only private and shared access sets that way and have to ensure that re-check is done after change
-# * using IPAccess::Global constant – use it when object is associated with global access set
-# 
-# The +acl+ member and IPAccess::Global are IPAccess instances.
-# Direct methods are documented below – they are easy to use
-# but their appliance is limited to existing objects (since they
-# are instance methods). That sometimes may not be what you need,
-# for example in case of quick setups when connection is made in
-# the very moment new object is created or when single object is patched
-# (armed) in connected state. Remeber to call acl_recheck
-# immediately after operation to avoid leaks
-# when you're using +acl+ member or IPAccess::Global
-# to manage access rules.
-#  
 # This documentation doesn't cover description of all
 # class and instance methods of the original
 # Net::Telnet[http://www.ruby-doc.org/stdlib/libdoc/net/telnet/rdoc/classes/Net/Telnet.html]
@@ -105,6 +74,20 @@
 #     acl.output.blacklist 'randomseed.pl'  # blacklist host in access set
 #     IPAccess.arm t, acl                   # arm single Telnet object with access set passed
 # 
+# ==== Shared access set, single object patched, direct blacklisting
+# 
+#     require 'ipaccess/net/telnet'         # load Net::Telnet version and IPAccess.arm method
+#                                        
+#     opts = {}                          
+#     opts["Host"]  = 'randomseed.pl'
+#     opts["Port"]  = '80'               
+#                                        
+#     t = Net::Telnet.new(opts)             # try to connect to remote host
+#                                        
+#     acl = IPAccess.new                    # create custom access set
+#     IPAccess.arm t, acl                   # arm single Telnet object with access set passed
+#     t.blacklist 'randomseed.pl'           # blacklist host 
+#
 # ==== Shared access set, class patched
 #                                        
 #     require 'ipaccess/net/telnet'         # load Net::Telnet version and IPAccess.arm method
@@ -217,7 +200,7 @@ class IPAccess::Net::Telnet
   # last parameter or as +ACL+ member of +opts+.
   # The access set given as an argument has precedence
   # over access set given in options. If ACL parameter
-  # is not given it defaults to ACL to IPAccess::Global.
+  # is not given it defaults to ACL to <tt>IPAccess::Global</tt>.
   
   def initialize
     # Real code hidden.

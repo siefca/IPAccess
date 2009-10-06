@@ -32,5 +32,5 @@
 # === DNS Warning
 #
 # You should avoid passing hostnames as arguments since
-# DNS is not reliable and responses may change with time
+# DNS is not reliable and responses may change with time,
 # which may cause security flaws.
