@@ -1208,10 +1208,10 @@ class IPAccessList < NetAddr::Tree
   # black list and white list.
   
   def show()
-    printed = "IPv4 Tree\n---------\n"
     list4 = dump_children(@v4_root)
     list6 = dump_children(@v6_root)
 
+    printed = "IPv4 Tree\n---------\n" if list4.length.nonzero?
     list4.each do |entry|
       cidr    = entry[:CIDR]
       depth   = entry[:Depth]
