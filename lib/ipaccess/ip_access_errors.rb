@@ -6,7 +6,7 @@
 # 
 # This file contains IPAccessDenied class
 # used to report access denials by
-# IPAccess objects.
+# IPAccess::Set objects.
 #
 #--
 # 

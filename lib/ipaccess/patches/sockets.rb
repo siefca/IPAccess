@@ -36,7 +36,7 @@ require 'ipaccess/patches/generic'
 #
 # This module patches socket handling classes
 # to use IP access control. Each patched socket
-# class has acl member, which is an IPAccess object.
+# class has acl member, which is an IPAccess::Set object.
 
 module IPAccess::Patches
     

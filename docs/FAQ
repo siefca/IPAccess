@@ -1,0 +1,8 @@
+= Frequently Asked Questions
+
+
+Q:: How to check if access set is global?
+A:: Use IPAccess::Set#global method on an object.
+
+
+

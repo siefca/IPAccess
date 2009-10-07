@@ -111,7 +111,7 @@ class IPAccess::Net::SMTP
   
   # This member keeps the information about currently
   # used access set. You may use it to do low-level
-  # operations on IPAccess object associated
+  # operations on IPAccess::Set object associated
   # with instance. You cannot however call any
   # of global access set operations – to do that
   # use IPAccess::Set.Global contant referencing to

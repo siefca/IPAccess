@@ -4,7 +4,7 @@
 # Copyright:: Copyright (c) 2009 Paweł Wilk
 # License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:docs/LGPL-LICENSE.html] or {Ruby License}[link:docs/COPYING.html].
 # 
-# This file contains IPAccess class, which uses
+# This file contains IPAccess::Set class, which uses
 # IPAccess::List objects to implement IP input/output
 # access control.
 # 
@@ -77,11 +77,11 @@ module IPAccess
   # 
   # ==== Usage examples
   # 
-  #   access = IPAccess::Set.new 'mylist'    # create access set
-  #   access.input.block :private       # input list: block private subnets
-  #   access.input.permit '192.168.1.1' # input list: but permit 192.168.1.1 
-  #   access.check_in '192.168.1.1'     # should pass
-  #   access.check_in '192.168.1.2'     # should raise an exception
+  #   access = IPAccess::Set.new 'myset'    # create access set
+  #   access.input.block :private           # input list: block private subnets
+  #   access.input.permit '192.168.1.1'     # input list: but permit 192.168.1.1 
+  #   access.check_in '192.168.1.1'         # should pass
+  #   access.check_in '192.168.1.2'         # should raise an exception
   # 
   # In the example above checking access is covered
   # by the check_in method. It is generic, easy to use
@@ -93,16 +93,16 @@ module IPAccess
   #   require 'uri'
   #   require 'net/http'
   # 
-  #   access = IPAccess::Set.new 'outgoing http'   # create access set
-  #   access.output.block :all                # output list: block all
-  #   
-  #   url = URI('http://randomseed.pl/')      # parse URL
-  #   res = Net::HTTP.new(url.host, url.port) # create HTTP resource
-  #   req = Net::HTTP::Get.new(url.path)      # create HTTP request
+  #   access = IPAccess::Set.new 'outgoing http'  # create access set
+  #   access.output.block :all                    # output list: block all
+  #                                               
+  #   url = URI('http://randomseed.pl/')          # parse URL
+  #   res = Net::HTTP.new(url.host, url.port)     # create HTTP resource
+  #   req = Net::HTTP::Get.new(url.path)          # create HTTP request
   # 
-  #   res.start do                            # start HTTP session
-  #     access.check_out(res)                 # check access for socket extracted from HTTP object
-  #     response = res.request(req)           # read response
+  #   res.start do                                # start HTTP session
+  #     access.check_out(res)                     # check access for socket extracted from HTTP object
+  #     response = res.request(req)               # read response
   #   end
   #
   # In the example above, which is probably more real
@@ -148,7 +148,7 @@ module IPAccess
     
     attr_accessor :name
     
-    # This method creates new IPAccess object. It optionally takes
+    # This method creates new IPAccess::Set object. It optionally takes
     # two IPAccess::List objects (initial data for access lists)
     # and descriptive name of an access set used in error reporting.
     # If there is only one argument it's assumed that it contains

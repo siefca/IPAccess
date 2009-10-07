@@ -66,10 +66,10 @@ module IPAccess
     Global.name = 'global'
     
     # This method returns +true+ when
-    # the current instance is not real IPAccess object
+    # the current instance is not real IPAccess::Set object
     # but a reference to the IPAccess::Set.Global,
     # which should be reached by that name. It returns
-    # +false+ in case of regular IPAccess objects.
+    # +false+ in case of regular IPAccess::Set objects.
     # 
     # This method is present only if
     # patching engine had been loaded.
@@ -82,7 +82,7 @@ module IPAccess
   # library classes and enables IP access control
   # for them. Instances of such altered classes
   # will be equipped with member called +acl+,
-  # which is a kind of IPAccess and allows you
+  # which is a kind of IPAccess::Set and allows you
   # to manipulate access rules. It is also
   # able to patch single instance of supported
   # classes.
@@ -192,7 +192,7 @@ module IPAccess
   
   # This module patches network classes
   # to enforce IP access control for them. Each patched 
-  # class has the acl member, which is an IPAccess object.
+  # class has the acl member, which is an IPAccess::Set object.
 
   module Patches
   
@@ -243,7 +243,7 @@ module IPAccess
     module ACL
 
       # This method enables usage of internal IP access list for object.
-      # If argument is IPAccess object then it is used.
+      # If argument is IPAccess::Set object then it is used.
       # 
       # ==== Example
       #
