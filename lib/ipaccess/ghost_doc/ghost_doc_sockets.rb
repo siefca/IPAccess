@@ -44,7 +44,7 @@
 #     require 'ipaccess/socket'                               # load sockets subsystem and IPAccess.arm method
 #     include Socket::Constants
 #     
-#     IPAccess::Global.input.blacklist :localhost             # add localhost to global access set
+#     IPAccess::Set.Global.input.blacklist :localhost             # add localhost to global access set
 #                                                             # as a black rule of input list
 #     socket = IPAccess::Socket.new(AF_INET, SOCK_STREAM, 0)  # create TCP socket
 #     sockaddr = Socket.sockaddr_in(31337, '127.0.0.1')       # create sockadr_in structure
@@ -112,7 +112,7 @@ class IPAccess::Socket
   #     socket = IPAccess::Socket.new(AF_INET, SOCK_STREAM, 0)
   #     socket.acl = :global        # use global access set
   #     socket.acl = :private       # create and use individual access set
-  #     socket.acl = IPAccess.new   # use external (shared) access set
+  #     socket.acl = IPAccess::Set.new   # use external (shared) access set
   
   attr_writer :acl
   
@@ -121,7 +121,7 @@ class IPAccess::Socket
   # operations on IPAccess object associated
   # with instance. You cannot however call any
   # of global access set operations – to do that
-  # use IPAccess::Global contant referencing to
+  # use IPAccess::Set.Global contant referencing to
   # global ACL.
   
   attr_reader :acl
@@ -192,7 +192,7 @@ class IPAccess::UDPSocket
   #     socket = IPAccess::UDPSocket.new
   #     socket.acl = :global        # use global access set
   #     socket.acl = :private       # create and use individual access set
-  #     socket.acl = IPAccess.new   # use external (shared) access set
+  #     socket.acl = IPAccess::Set.new   # use external (shared) access set
   
   attr_writer :acl
   
@@ -201,7 +201,7 @@ class IPAccess::UDPSocket
   # operations on IPAccess object associated
   # with instance. You cannot however call any
   # of global access set operations – to do that
-  # use IPAccess::Global contant referencing to
+  # use IPAccess::Set.Global contant referencing to
   # global ACL.
   
   attr_reader :acl
@@ -267,7 +267,7 @@ class IPAccess::SOCKSSocket
   #
   #     require 'ipaccess/socket'                                           # load sockets subsystem
   # 
-  #     acl_set = IPAccess.new                                              # create shared access set
+  #     acl_set = IPAccess::Set.new                                              # create shared access set
   #     acl_set.output.block 'randomseed.pl'                                # block connections to this host
   #     
   #     socket = IPAccess::SOCKSSocket.new('randomseed.pl', 80)             # use global access set
@@ -286,7 +286,7 @@ class IPAccess::SOCKSSocket
   # operations on IPAccess object associated
   # with instance. You cannot however call any
   # of global access set operations – to do that
-  # use IPAccess::Global contant referencing to
+  # use IPAccess::Set.Global contant referencing to
   # global ACL.
   
   attr_reader :acl
@@ -314,7 +314,7 @@ end
 # 
 #     require 'ipaccess/socket'                                         # load sockets subsystem
 #     
-#     acl_set = IPAccess.new                                            # create shared access set
+#     acl_set = IPAccess::Set.new                                            # create shared access set
 #     acl_set.output.block 'randomseed.pl'                              # block connections to this host
 #     
 #     socket = IPAccess::TCPSocket.new('randomseed.pl', 80)
@@ -363,7 +363,7 @@ class IPAccess::TCPSocket
   # 
   #     require 'ipaccess/socket'                                         # load sockets subsystem
   #     
-  #     acl_set = IPAccess.new                                            # create shared access set
+  #     acl_set = IPAccess::Set.new                                            # create shared access set
   #     acl_set.output.block 'randomseed.pl'                              # block connections to this host
   #     
   #     socket = IPAccess::TCPSocket.new('randomseed.pl', 80)             # use global access set
@@ -381,7 +381,7 @@ class IPAccess::TCPSocket
   # operations on IPAccess object associated
   # with instance. You cannot however call any
   # of global access set operations – to do that
-  # use IPAccess::Global contant referencing to
+  # use IPAccess::Set.Global contant referencing to
   # global ACL.
   
   attr_reader :acl
@@ -466,7 +466,7 @@ class IPAccess::TCPServer
   #     socket = IPAccess::TCPServer.new(31337)   # create TCP server
   #     socket.acl = :global                      # use global access set
   #     socket.acl = :private                     # create and use individual access set
-  #     socket.acl = IPAccess.new                 # use external (shared) access set
+  #     socket.acl = IPAccess::Set.new                 # use external (shared) access set
   
   attr_writer :acl
   
@@ -475,7 +475,7 @@ class IPAccess::TCPServer
   # operations on IPAccess object associated
   # with instance. You cannot however call any
   # of global access set operations – to do that
-  # use IPAccess::Global contant referencing to
+  # use IPAccess::Set.Global contant referencing to
   # global ACL.
   
   attr_reader :acl

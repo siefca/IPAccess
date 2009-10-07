@@ -41,7 +41,7 @@
 #     
 #     require 'ipaccess/net/smtp'
 # 
-#     IPAccess::Global.output.blacklist 'randomseed.pl'
+#     IPAccess::Set.Global.output.blacklist 'randomseed.pl'
 #     
 #     IPAccess::Net::SMTP.start('randomseed.pl', 25) do |smtp|
 #       ;
@@ -105,7 +105,7 @@ class IPAccess::Net::SMTP
   # 
   #     smtp.acl = :global                      # use global access set
   #     smtp.acl = :private                     # create and use individual access set
-  #     smtp.acl = IPAccess.new                 # use external (shared) access set
+  #     smtp.acl = IPAccess::Set.new                 # use external (shared) access set
 
   attr_writer :acl
   
@@ -114,7 +114,7 @@ class IPAccess::Net::SMTP
   # operations on IPAccess object associated
   # with instance. You cannot however call any
   # of global access set operations – to do that
-  # use IPAccess::Global contant referencing to
+  # use IPAccess::Set.Global contant referencing to
   # global ACL.
   
   attr_reader :acl
@@ -135,7 +135,7 @@ class IPAccess::Net::SMTP
   # 
   # This method optionally sets an access set given as the
   # last parameter. If +acl+ parameter
-  # is not given it defaults to <tt>IPAccess::Global</tt>.
+  # is not given it defaults to <tt>IPAccess::Set.Global</tt>.
   
   def initialize
     # Real code hidden.
@@ -158,7 +158,7 @@ class IPAccess::Net::SMTP
   # 
   # This method optionally sets an access set given as the
   # last parameter. If +acl+ parameter
-  # is not given it defaults to <tt>IPAccess::Global</tt>.
+  # is not given it defaults to <tt>IPAccess::Set.Global</tt>.
   
   def self.start
     # Real code hidden.

@@ -23,9 +23,9 @@
 # 
 # * using new methods like blacklist and whitelist – preferred, ensures that access check is done after change
 # * using +acl+ member – you may control only private and shared access sets that way and have to ensure that re-check is done after change
-# * using <tt>IPAccess::Global</tt> constant – use it when object is associated with global access set
+# * using <tt>IPAccess::Set.Global</tt> constant – use it when object is associated with global access set
 # 
-# The +acl+ member and <tt>IPAccess::Global</tt> are IPAccess objects.
+# The +acl+ member and <tt>IPAccess::Set.Global</tt> are IPAccess objects.
 # Direct methods are documented below – they are easy to use
 # but their appliance is limited to existing objects (since they
 # are instance methods). That sometimes may not be what you need,
@@ -33,5 +33,5 @@
 # the very moment new object is created or when single object is patched
 # (armed) in connected state. Remeber to call acl_recheck
 # immediately after rules management operation to avoid leaks
-# when using +acl+ member or <tt>IPAccess::Global</tt> to manage
+# when using +acl+ member or <tt>IPAccess::Set.Global</tt> to manage
 # access rules.

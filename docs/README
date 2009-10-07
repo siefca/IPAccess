@@ -16,7 +16,7 @@ or use altered sockets implementation with IP access
 control enabled that also comes with this library.
 
 There are two classes used to evaluate IP access:
-IPAccessList and IPAccess. First class maintains
+IPAccess::List and IPAccess. First class maintains
 a list of rules and methods for checking whether
 IP matches them. Second class is more general –
 it throws exceptions and distinguishes between
@@ -33,12 +33,12 @@ access of the real TCP/IP traffic in an easy way.
 
 * It's easy to use.
 * Manages browsable white and black lists of IP rules (see IPAccess).
-* Maintains input and output access sets based on lists (see IPAccessList).
+* Maintains input and output access sets based on lists (see IPAccess::List).
 * Helps to automate access checks and raises exceptions (see IPAccess#check_in).
 
 == Other Features
 
-* Understands many formats of IP addresses (see IPAccessList.obj_to_cidr).
+* Understands many formats of IP addresses (see IPAccess::List.obj_to_cidr).
 * Provides variants of socket handling classes with IP access control (see IPAccess::Socket).
 * Has methods for patching native socket handling classes (see IPAccess.arm).
 * Has methods for patching single network objects (see IPAccess.arm).
@@ -53,7 +53,7 @@ access of the real TCP/IP traffic in an easy way.
 	ip_from_user = '192.168.5.5'
 
 	# create new access set
-	acl = IPAccess.new
+	acl = IPAccess::Set.new
 	
 	# blacklist private and local subnets
 	acl.output.block :private, :local
@@ -91,7 +91,7 @@ If you need just an IP access lists that you will handle in your own way
 you may want to use two classes:
 
 * IPAccess to maintain access sets (containing input and output access lists),
-* IPAccessList to maintain single access list.
+* IPAccess::List to maintain single access list.
 
 === Using socket classes
 

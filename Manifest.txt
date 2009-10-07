@@ -21,6 +21,7 @@ lib/ipaccess/ghost_doc/ghost_doc.rb
 lib/ipaccess/ghost_doc/ghost_doc_acl.rb
 lib/ipaccess/ghost_doc/ghost_doc_net_ftp.rb
 lib/ipaccess/ghost_doc/ghost_doc_net_http.rb
+lib/ipaccess/ghost_doc/ghost_doc_net_smtp.rb
 lib/ipaccess/ghost_doc/ghost_doc_net_telnet.rb
 lib/ipaccess/ghost_doc/ghost_doc_p_blacklist.rb
 lib/ipaccess/ghost_doc/ghost_doc_p_blacklist_e.rb
@@ -30,6 +31,7 @@ lib/ipaccess/ghost_doc/ghost_doc_p_unwhitelist.rb
 lib/ipaccess/ghost_doc/ghost_doc_p_unwhitelist_e.rb
 lib/ipaccess/ghost_doc/ghost_doc_p_whitelist.rb
 lib/ipaccess/ghost_doc/ghost_doc_p_whitelist_e.rb
+lib/ipaccess/ghost_doc/ghost_doc_patched_usage.rb
 lib/ipaccess/ghost_doc/ghost_doc_sockets.rb
 lib/ipaccess/ip_access.rb
 lib/ipaccess/ip_access_errors.rb

@@ -45,7 +45,7 @@
 #     opts["Host"]  = 'randomseed.pl'   
 #     opts["Port"]  = '80'
 #     
-#     IPAccess::Global.output.blacklist 'randomseed.pl' # blacklist host
+#     IPAccess::Set.Global.output.blacklist 'randomseed.pl' # blacklist host
 #     t = IPAccess::Net::Telnet.new(opts)               # try to connect to remote host                                       
 # 
 # ==== Global access set, single object patched, direct blacklisting
@@ -70,7 +70,7 @@
 #                                        
 #     t = Net::Telnet.new(opts)             # try to connect to remote host
 #                                        
-#     acl = IPAccess.new                    # create custom access set
+#     acl = IPAccess::Set.new                    # create custom access set
 #     acl.output.blacklist 'randomseed.pl'  # blacklist host in access set
 #     IPAccess.arm t, acl                   # arm single Telnet object with access set passed
 # 
@@ -84,7 +84,7 @@
 #                                        
 #     t = Net::Telnet.new(opts)             # try to connect to remote host
 #                                        
-#     acl = IPAccess.new                    # create custom access set
+#     acl = IPAccess::Set.new                    # create custom access set
 #     IPAccess.arm t, acl                   # arm single Telnet object with access set passed
 #     t.blacklist 'randomseed.pl'           # blacklist host 
 #
@@ -97,7 +97,7 @@
 #     opts["Port"]  = '80'
 #     
 #     IPAccess.arm Net::Telnet                      # patch Net::Telnet class  
-#     opts['ACL'] = IPAccess.new                    # create custom access set and add it to options
+#     opts['ACL'] = IPAccess::Set.new                    # create custom access set and add it to options
 #     opts['ACL'].output.blacklist 'randomseed.pl'  # blacklist host
 #     
 #     t = Net::Telnet.new(opts)             # try to connect to remote host
@@ -166,7 +166,7 @@ class IPAccess::Net::Telnet
   # 
   #     telnet.acl = :global                      # use global access set
   #     telnet.acl = :private                     # create and use individual access set
-  #     telnet.acl = IPAccess.new                 # use external (shared) access set
+  #     telnet.acl = IPAccess::Set.new                 # use external (shared) access set
 
   attr_writer :acl
   
@@ -176,7 +176,7 @@ class IPAccess::Net::Telnet
   # operations on IPAccess object associated
   # with instance. You cannot however call any
   # of global access set operations – to do that
-  # use IPAccess::Global contant referencing to
+  # use IPAccess::Set.Global contant referencing to
   # global ACL.
 
   attr_reader :acl
@@ -200,7 +200,7 @@ class IPAccess::Net::Telnet
   # last parameter or as +ACL+ member of +opts+.
   # The access set given as an argument has precedence
   # over access set given in options. If ACL parameter
-  # is not given it defaults to ACL to <tt>IPAccess::Global</tt>.
+  # is not given it defaults to ACL to <tt>IPAccess::Set.Global</tt>.
   
   def initialize
     # Real code hidden.

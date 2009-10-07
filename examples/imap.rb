@@ -3,10 +3,10 @@ $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 require 'ipaccess/net/imap'
 
 # Add host's IP by to black list of global output access set
-IPAccess::Global.output.blacklist 'randomseed.pl'
+IPAccess::Set::Global.output.blacklist 'randomseed.pl'
 
 # Create custom access set with one blacklisted IP
-acl = IPAccess.new
+acl = IPAccess::Set.new
 acl.output.blacklist 'randomseed.pl'
 acl.output.blacklist 'imap.heise.de'
 

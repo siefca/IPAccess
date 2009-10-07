@@ -60,7 +60,7 @@
 #     
 #     require 'ipaccess/net/ftp'
 #     
-#     acl = IPAccess.new
+#     acl = IPAccess::Set.new
 #     acl.output.blacklist 'ftp.pld-linux.org'
 #     ftp = Net::FTP.new('ftp.pld-linux.org')
 #     ftp.passive = true
@@ -72,7 +72,7 @@
 #     
 #     # Using patched Net::FTP[http://www.ruby-doc.org/stdlib/libdoc/net/ftp/rdoc/classes/Net/FTP.html] class
 #     
-#     acl = IPAccess.new
+#     acl = IPAccess::Set.new
 #     IPAccess.arm Net::FTP
 #     ftp = Net::FTP.new('ftp.pld-linux.org')
 #     ftp.acl = acl
@@ -132,7 +132,7 @@ class IPAccess::Net::FTP
   # 
   #     ftp.acl = :global                      # use global access set
   #     ftp.acl = :private                     # create and use individual access set
-  #     ftp.acl = IPAccess.new                 # use external (shared) access set
+  #     ftp.acl = IPAccess::Set.new                 # use external (shared) access set
 
   attr_writer :acl
   
@@ -141,7 +141,7 @@ class IPAccess::Net::FTP
   # operations on IPAccess object associated
   # with instance. You cannot however call any
   # of global access set operations – to do that
-  # use IPAccess::Global contant referencing to
+  # use IPAccess::Set.Global contant referencing to
   # global ACL.
   
   attr_reader :acl
@@ -160,7 +160,7 @@ class IPAccess::Net::FTP
   #
   # It optionally sets an access set given as the
   # last parameter. If +acl+ parameter
-  # is not given it defaults to <tt>IPAccess::Global</tt>.
+  # is not given it defaults to <tt>IPAccess::Set.Global</tt>.
   
   def initialize
     # Real code hidden.
@@ -178,7 +178,7 @@ class IPAccess::Net::FTP
   #
   # It optionally sets an access set given as the
   # last parameter. If the parameter
-  # is not given it defaults to <tt>IPAccess::Global</tt>.
+  # is not given it defaults to <tt>IPAccess::Set.Global</tt>.
   
   def self.open
     # Real code hidden.

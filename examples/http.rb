@@ -6,10 +6,10 @@ require 'uri'
 url = URI.parse('http://randomseed.pl/index.html')
 
 # Add host's IP by to black list of global output access set
-IPAccess::Global.output.blacklist 'randomseed.pl'
+IPAccess::Set::Global.output.blacklist 'randomseed.pl'
 
 # Create custom access set with one blacklisted IP
-acl = IPAccess.new
+acl = IPAccess::Set.new
 acl.output.blacklist 'randomseed.pl'
 
 ###### Example cases
@@ -19,7 +19,7 @@ acl.output.blacklist 'randomseed.pl'
 req = Net::HTTP::Get.new("/")
 htt = Net::HTTP.new(url.host, url.port)
 
-IPAccess.arm htt, acl
+IPAccess.arm htt
 
 res = htt.start { |http|
   http.request(req)

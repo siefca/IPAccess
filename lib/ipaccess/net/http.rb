@@ -25,7 +25,7 @@
 #++
 
 require 'net/http'
-require 'ipaccess/ip_access'
+require 'ipaccess/ip_access_set'
 require 'ipaccess/patches/net_http'
 
 

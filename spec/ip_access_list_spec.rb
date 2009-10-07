@@ -12,28 +12,28 @@ begin
 rescue LoadError
 end
 
-describe IPAccessList do
+describe IPAccess::List do
  
     describe "initializer" do
            
       it "should take an empty array as parameter" do
-        lambda { IPAccessList.new [] }.should_not raise_error
+        lambda { IPAccess::List.new [] }.should_not raise_error
       end
       
       it "should take an array of strings describing IPs as parameter" do
-        lambda { IPAccessList.new ["192.168.0.0/16", "127.0.0.1"] }.should_not raise_error
+        lambda { IPAccess::List.new ["192.168.0.0/16", "127.0.0.1"] }.should_not raise_error
       end
       
       it "should take an array of names as parameter" do
-        lambda { IPAccessList.new ["localhost"] }.should_not raise_error
+        lambda { IPAccess::List.new ["localhost"] }.should_not raise_error
       end
 
       it "should take an array of symbols as parameter" do
-        lambda { IPAccessList.new [:local, :private] }.should_not raise_error
+        lambda { IPAccess::List.new [:local, :private] }.should_not raise_error
       end
 
       it "should take an array of URLs as parameter" do
-        lambda { IPAccessList.new ["http://localhost/","https://127.0.0.2/"] }.should_not raise_error
+        lambda { IPAccess::List.new ["http://localhost/","https://127.0.0.2/"] }.should_not raise_error
       end
       
       it "should take an array of sockets as parameter" do
@@ -41,43 +41,43 @@ describe IPAccessList do
         s2 = UDPSocket.new
         def s1.getpeername; "\x10\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" end
         def s2.getpeername; "\x10\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" end
-        lambda { IPAccessList.new [s1, s2] }.should_not raise_error
+        lambda { IPAccess::List.new [s1, s2] }.should_not raise_error
       end
 
       it "should take an array of IPAddr objects as parameter" do
-        lambda { IPAccessList.new [IPAddr.new("127.0.0.1"), IPAddr.new("192.168.1.1")] }.should_not raise_error
+        lambda { IPAccess::List.new [IPAddr.new("127.0.0.1"), IPAddr.new("192.168.1.1")] }.should_not raise_error
       end
 
       if Kernel.const_defined?(:IPAddrList)
         it "should take an IPAddrList object as parameter" do
-          lambda { IPAccessList.new IPAddrList.new(["127.0.0.1", "192.168.1.1"]) }.should_not raise_error
+          lambda { IPAccess::List.new IPAddrList.new(["127.0.0.1", "192.168.1.1"]) }.should_not raise_error
         end
       end
 
       it "should take an array of numbers as parameter" do
-        lambda { IPAccessList.new [2130706433,2130706434] }.should_not raise_error
+        lambda { IPAccess::List.new [2130706433,2130706434] }.should_not raise_error
       end
 
       it "should take an array of URI objects as parameter" do
-        lambda { IPAccessList.new [URI('http://localhost/'),URI('http://127.0.0.2:80/')] }.should_not raise_error
+        lambda { IPAccess::List.new [URI('http://localhost/'),URI('http://127.0.0.2:80/')] }.should_not raise_error
       end
 
       it "should take an array of CIDR objects as parameter" do
-        lambda { IPAccessList.new [NetAddr::CIDR.create('192.168.1.1'),NetAddr::CIDR.create('192.168.0.0/24')] }.should_not raise_error
+        lambda { IPAccess::List.new [NetAddr::CIDR.create('192.168.1.1'),NetAddr::CIDR.create('192.168.0.0/24')] }.should_not raise_error
       end
       
       it "should take an array of NetAddr::Tree objects as parameter" do
         tree = NetAddr::Tree.new
         tree.add!('192.168.0.0/24')
         tree.add!('172.16.0.0')
-        lambda { IPAccessList.new [tree] }.should_not raise_error
+        lambda { IPAccess::List.new [tree] }.should_not raise_error
       end
       
-      it "should take an array of IPAccessList objects as parameter" do
-        tree = IPAccessList.new
+      it "should take an array of IPAccess::List objects as parameter" do
+        tree = IPAccess::List.new
         tree.add!('192.168.0.0/24')
         tree.add!('172.16.0.0')
-        lambda { z = IPAccessList.new [tree] }.should_not raise_error
+        lambda { z = IPAccess::List.new [tree] }.should_not raise_error
       end
      
     end # initializer
@@ -85,7 +85,7 @@ describe IPAccessList do
     describe "rules" do
     
       before(:each) do
-        @access = IPAccessList.new
+        @access = IPAccess::List.new
         @access.blacklist :local, '192.168.0.1', :private
         @access.whitelist '172.16.10.0/24', '192.168.0.2'
       end
@@ -103,7 +103,7 @@ describe IPAccessList do
     describe "access" do
     
       before(:each) do
-        @access = IPAccessList.new
+        @access = IPAccess::List.new
       end
           
       it "should deny access when single IP is blacklisted" do

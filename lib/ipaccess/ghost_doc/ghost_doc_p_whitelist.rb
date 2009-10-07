@@ -8,7 +8,7 @@
 # If the access list selector is omited it
 # operates on the default access list that certain
 # kind of network object uses. The allowed format of address
-# is the same as for IPAccessList.obj_to_cidr.
+# is the same as for IPAccess::List.obj_to_cidr.
 # This method will not add nor remove any
 # blacklisted item.
 # 
@@ -16,13 +16,13 @@
 # 
 # This method won't allow you to modify the list if
 # the global access set is associated with an object.
-# You may operate on IPAccess::Global or use
+# You may operate on IPAccess::Set.Global or use
 # whitelist! instead.
 # 
 # === Return value
 # 
 # It will return the result of calling
-# IPAccessList#whitelist on the list.    
+# IPAccess::List#whitelist on the list.    
 # 
 # === Revalidation
 #

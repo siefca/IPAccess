@@ -30,21 +30,21 @@ class IPAccessDenied < Errno::EACCES
   # a NetAddr::CIDR object containing address
   # of denied connection. Second argument should
   # be a CIDR rule that matched. Last argument
-  # should be an IPAccess object.
+  # should be an IPAccess::Set object.
 
-  def initialize(addr, rule=nil, access_list=nil)
+  def initialize(addr, rule=nil, access_set=nil)
     @peer_ip = addr
     @rule = rule
-    @access_list = access_list
+    @access_set = access_set
   end
   
-  # Returns string representation of access list name rule.
+  # Returns string representation of access set name rule.
   
-  def list_desc
-    if (@access_list.is_a?(IPAccess) && !@access_list.name.to_s.empty?)
-      @access_list.name
-    elsif @access_list.is_a?(String)
-      @access_list
+  def set_desc
+    if (@access_set.is_a?(IPAccess::Set) && !@access_set.name.to_s.empty?)
+      @access_set.name
+    elsif @access_set.is_a?(String)
+      @access_set
     else
       ""
     end
@@ -98,7 +98,7 @@ class IPAccessDenied < Errno::EACCES
   
   def message
     return "connection with #{addr_desc} " +
-            "denied by #{list_desc}#{rule_desc}"
+            "denied by #{set_desc}#{rule_desc}"
   end
   
 end
@@ -111,7 +111,7 @@ class IPAccessDenied::Input < IPAccessDenied
   def message
     return "incoming connection from "  +
            "#{addr_desc} denied by "    +
-           "#{list_desc}#{rule_desc}"
+           "#{set_desc}#{rule_desc}"
   end
 
 end
@@ -124,7 +124,7 @@ class IPAccessDenied::Output < IPAccessDenied
   def message
     return "outgoing connection to "  +
            "#{addr_desc} denied by "  +
-           "#{list_desc}#{rule_desc}"
+           "#{set_desc}#{rule_desc}"
   end
   
 end

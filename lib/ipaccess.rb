@@ -7,7 +7,7 @@
 # Classes contained in this library allow you to create
 # and manage IP access lists in an easy way. You may use
 # IPAccess class to maintain inpu/output traffic control.
-# You also may use IPAccessList class directly to build
+# You also may use IPAccess::List class directly to build
 # your own access sets based on black lists and white lists.
 # 
 #--
@@ -30,5 +30,5 @@ require 'netaddr'
 
 require 'ipaccess/patches/netaddr'
 require 'ipaccess/ip_access_list'
-require 'ipaccess/ip_access'
+require 'ipaccess/ip_access_set'
 

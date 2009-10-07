@@ -2,7 +2,7 @@ $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
 require 'ipaccess/socket'
 
-acl = IPAccess.new
+acl = IPAccess::Set.new
 acl.input.blacklist :strange
 
 # 0

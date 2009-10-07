@@ -8,7 +8,7 @@
 # 
 # ==== Global access set
 # 
-# Global access set is an IPAccess object referenced by contant IPAccess::Global
+# Global access set is an IPAccess object referenced by contant IPAccess::Set.Global
 # It cannot be modified by calling +acl+ attribute. To add or remove rules
 # use mentioned constant. By default all sockets with enabled IP access control
 # are using this set.

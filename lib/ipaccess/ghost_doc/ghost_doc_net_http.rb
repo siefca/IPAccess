@@ -42,7 +42,7 @@
 #     require 'ipaccess/net/http'
 #     
 #     # blacklist randomseed.pl in global access set
-#     IPAccess::Global.output.blacklist 'randomseed.pl'
+#     IPAccess::Set.Global.output.blacklist 'randomseed.pl'
 #     
 #     # call get_print
 #     IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html'
@@ -52,7 +52,7 @@
 #     require 'ipaccess/net/http'
 #     
 #     # create access set
-#     acl = IPAccess.new
+#     acl = IPAccess::Set.new
 #     
 #     # blacklist randomseed.pl in shared access set
 #     acl.output.blacklist 'randomseed.pl'
@@ -66,7 +66,7 @@
 #     require 'uri'
 #     
 #     # create access set
-#     acl = IPAccess.new
+#     acl = IPAccess::Set.new
 #     
 #     # blacklist randomseed.pl in shared access set
 #     acl.output.blacklist 'randomseed.pl'
@@ -101,7 +101,7 @@
 #     require 'ipaccess/net/http'
 #     
 #     # create custom access set with one blacklisted IP
-#     acl = IPAccess.new
+#     acl = IPAccess::Set.new
 #     acl.output.blacklist 'randomseed.pl'
 #     
 #     # create HTTP request and Net::HTTP object
@@ -121,7 +121,7 @@
 #     require 'ipaccess/net/http'
 #     
 #     # blacklist randomseed.pl in shared access set
-#     acl = IPAccess.new
+#     acl = IPAccess::Set.new
 #     acl.output.blacklist 'randomseed.pl'
 #     
 #     # patch whole Net::HTTP class
@@ -180,7 +180,7 @@ class IPAccess::Net::HTTP
   # 
   #     http.acl = :global                      # use global access set
   #     http.acl = :private                     # create and use individual access set
-  #     http.acl = IPAccess.new                 # use external (shared) access set
+  #     http.acl = IPAccess::Set.new                 # use external (shared) access set
 
   attr_writer :acl
 
@@ -189,7 +189,7 @@ class IPAccess::Net::HTTP
   # operations on IPAccess object associated
   # with instance. You cannot however call any
   # of global access set operations – to do that
-  # use IPAccess::Global contant referencing to
+  # use IPAccess::Set.Global contant referencing to
   # global ACL.
   
   attr_reader :acl
@@ -211,7 +211,7 @@ class IPAccess::Net::HTTP
   # This method does not open the TCP connection.
   # It optionally sets an access set given as the
   # last parameter. If parameter is not given it
-  # sets ACL to IPAccess::Global.
+  # sets ACL to IPAccess::Set.Global.
   
   def initialize
     # Real code hidden.
@@ -235,7 +235,7 @@ class IPAccess::Net::HTTP
   # and the caller is responsible for closing it upon
   # completion. It optionally sets an access set given
   # as the last parameter. If parameter is not given
-  # it sets ACL to IPAccess::Global.
+  # it sets ACL to IPAccess::Set.Global.
   
   def self.start
     # Real code hidden.
@@ -252,7 +252,7 @@ class IPAccess::Net::HTTP
   # (host, path, port = 80).
   # It optionally sets an access set given as the
   # last parameter. If parameter is not given it
-  # sets ACL to IPAccess::Global.
+  # sets ACL to IPAccess::Set.Global.
   
   def self.get_response
     # Real code hidden.
