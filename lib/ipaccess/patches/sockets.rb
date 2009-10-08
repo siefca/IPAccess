@@ -65,10 +65,15 @@ module IPAccess::Patches
         orig_recvfrom_nonblock  = self.instance_method :recvfrom_nonblock
         orig_sysaccept          = self.instance_method :sysaccept
         
-        define_method :initialize do |*args|
+        define_method :__ipacall__initialize do |block, *args|
           self.acl = :global
-          orig_initialize.bind(self).call(*args)
+          orig_initialize.bind(self).call(*args, &block)
           return self
+        end
+        
+        # block passing wrapper for Ruby 1.8
+        def initialize(*args, &block)
+          __ipacall__initialize(block, *args)
         end
 
         # accept on steroids.
@@ -161,10 +166,15 @@ module IPAccess::Patches
         orig_recvfrom           = self.instance_method :recvfrom
         orig_recvfrom_nonblock  = self.instance_method :recvfrom_nonblock
         
-        define_method :initialize do |*args|
+        define_method :__ipacall__initialize do |block, *args|
           self.acl = :global
-          orig_initialize.bind(self).call(*args)
+          orig_initialize.bind(self).call(*args, &block)
           return self
+        end
+        
+        # block passing wrapper for Ruby 1.8
+        def initialize(*args, &block)
+          __ipacall__initialize(block, *args)
         end
         
         # connect on steroids.
@@ -243,12 +253,17 @@ module IPAccess::Patches
         orig_initialize       = self.instance_method :initialize
         
         # initialize on steroids.
-        define_method :initialize do |*args|
+        define_method :__pacall__initialize do |block, *args|
           self.acl = valid_acl?(args.last) ? args.pop : :global
           args[0] = self.class.getaddress(args[0])
           real_acl.check_out_ipstring args[0]
-          orig_initialize.bind(self).call(*args)
+          orig_initialize.bind(self).call(*args, block)
           return self
+        end
+        
+        # block passing wrapper for Ruby 1.8
+        def initialize(*args, &block)
+          __ipacall__initialize(block, *args)
         end
         
         # this hook will be called each time @acl is reassigned
@@ -303,12 +318,17 @@ module IPAccess::Patches
         orig_initialize       = self.instance_method :initialize
         
         # initialize on steroids.
-        define_method :initialize do |*args|
+        define_method :__ipacall__initialize do |block, *args|
           self.acl = valid_acl?(args.last) ? args.pop : :global
           args[0] = self.class.getaddress(args[0])
           real_acl.check_out_ipstring args[0]
-          orig_initialize.bind(self).call(*args)
+          orig_initialize.bind(self).call(*args, &block)
           return self
+        end
+        
+        # block passing wrapper for Ruby 1.8
+        def initialize(*args, &block)
+          __ipacall__initialize(block, *args)
         end
         
         # this hook will be called each time @acl is reassigned
@@ -366,9 +386,14 @@ module IPAccess::Patches
         orig_sysaccept        = self.instance_method :sysaccept
         
         # initialize on steroids.
-        define_method :initialize do |*args|
+        define_method :__ipacall__initialize do |block, *args|
           self.acl = valid_acl?(args.last) ? args.pop : :global
-          return orig_initialize.bind(self).call(*args)
+          return orig_initialize.bind(self).call(*args, &block)
+        end
+        
+        # block passing wrapper for Ruby 1.8
+        def initialize(*args, &block)
+          __ipacall__initialize(block, *args)
         end
 
         # accept on steroids.
