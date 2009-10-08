@@ -1,4 +1,3 @@
-
 == IPAccess
 
 === Blocks
@@ -11,13 +10,10 @@
 
 - add missing rspec examples
 
-== Sockets
-
-- overload Ruby 1.9 socket methods
-
 == Documentation
 
-- add more documentation describing access checking workflow (graphs are welcome)
+- sockets: document initialize
+- mention about on-demand loading of patching engine
 
 == Other
 
@@ -25,7 +21,8 @@
 
 == Future
 
-- utilize @debug_mode in certain networking objects to pring access denied message
+- overload Ruby 1.9 socket methods
+- utilize @debug_mode in certain network objects to pring access denied message
 - maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
 - to speed up ACL seeks maybe a small, fast buffer for up to 128 IP matches cleaned when something will change?
 

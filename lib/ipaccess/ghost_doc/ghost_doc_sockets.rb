@@ -44,7 +44,7 @@
 #     require 'ipaccess/socket'                               # load sockets subsystem and IPAccess.arm method
 #     include Socket::Constants
 #     
-#     IPAccess::Set.Global.input.blacklist :localhost             # add localhost to global access set
+#     IPAccess::Set::Global.input.blacklist :localhost             # add localhost to global access set
 #                                                             # as a black rule of input list
 #     socket = IPAccess::Socket.new(AF_INET, SOCK_STREAM, 0)  # create TCP socket
 #     sockaddr = Socket.sockaddr_in(31337, '127.0.0.1')       # create sockadr_in structure

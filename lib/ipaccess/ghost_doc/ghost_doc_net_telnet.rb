@@ -45,7 +45,7 @@
 #     opts["Host"]  = 'randomseed.pl'   
 #     opts["Port"]  = '80'
 #     
-#     IPAccess::Set.Global.output.blacklist 'randomseed.pl' # blacklist host
+#     IPAccess::Set::Global.output.blacklist 'randomseed.pl' # blacklist host
 #     t = IPAccess::Net::Telnet.new(opts)               # try to connect to remote host                                       
 # 
 # ==== Global access set, single object patched, direct blacklisting

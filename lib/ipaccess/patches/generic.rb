@@ -130,7 +130,7 @@ module IPAccess
   #     require 'ipaccess/socket'                         # load sockets subsystem and IPAccess.arm method
   # 
   #     IPAccess.arm TCPSocket                            # arm TCPSocket class  
-  #     IPAccess::Set.Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
+  #     IPAccess::Set::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
   #     TCPSocket.new('randomseed.pl', 80)                # try to connect
   # 
   # ==== Example 2 – HTTP
@@ -138,7 +138,7 @@ module IPAccess
   #     require 'ipaccess/net/http'                       # load net/http subsystem and IPAccess.arm method
   # 
   #     IPAccess.arm Net::HTTP                            # arm TCPSocket class  
-  #     IPAccess::Set.Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
+  #     IPAccess::Set::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
   #     Net::HTTP.get_print('randomseed.pl', '/i.html')   # try to connect
   # 
   # ==== Example 3 – single network object

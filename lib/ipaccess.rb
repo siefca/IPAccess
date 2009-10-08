@@ -33,12 +33,86 @@ require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_set'
 
 # This module contains classes that are
-# used to control IP access. To properly
-# understand what they are doing it's worth
-# to see diagram presenting most important
-# relations:
+# used to control IP access. There are
+# three major components you may need:
+# 
+# === IPAccess::List class
+# 
+# This class lets you create IP
+# access list with blacklisted
+# and whitelisted elements. It
+# also has methods for checking
+# whether given IP matches the
+# list.
+# 
+# === IPAccess::Set class
+# 
+# This class contains two
+# objects that are instances
+# of IPAccess::List class.
+# It allows you to create so
+# called access set. The access
+# set contains members named
+# +input+ and +output+. All methods
+# that validate IP access do it
+# against one of the lists. Input
+# access list is for incomming
+# and output for outgoing IP traffic.
+# In case of connection-oriented
+# sockets and other network objects
+# the convention is to use output access
+# list to validate connections that
+# we initiate. The incomming traffic
+# in that model means the connections
+# initiated by a remote peer.
+# 
+# === Patching engine
+# 
+# IPAccess was initialy considered as a
+# set of classes that you may use
+# in your own programs to control
+# IP access. That means your own classes
+# used for communication should use
+# access lists or sets before making any
+# real connections or sending any datagrams.
+# 
+# Fortunately there are many network classes,
+# including sockets, that Ruby ships with.
+# It would be waste of resources to not modify
+# them to support IP access control and automagically
+# throw exceptions when access should be denied.
+# 
+# And here the special module method called +IPAccess.arm+
+# comes in. It lets you patch most of Ruby's
+# networking classes and objects. Besides
+# equipping them in IPAccess::Set instance
+# it also adds some methods for doing quick
+# checks and changes in access lists.
+# 
+# The patching engine can arm network classes and
+# single network objects. It is not loaded by default
+# since you may not want extra code attached to a
+# program that uses access lists or sets with
+# own access checking code.
+# 
+# === Popular classes variants
+# 
+# Sometimes you want to write a code that
+# uses standard Ruby's network objects
+# but you find it dirty to alter classes or objects.
+# In that case you may want to use static variants
+# of Ruby's network classes that are not patches
+# but derived classes. 
+# 
+# === Structures
+# 
+# To properly understand what are the most important
+# structures mentioned above it's worth
+# to see the diagram:
 # 
 # link:images/ipaccess_view.png
+# 
+# == Usage
 # 
 # === Handling access sets and access lists
 # 
@@ -96,7 +170,7 @@ require 'ipaccess/ip_access_set'
 # 	
 # ..and so on.
 # 
-# === Note about internal structures
+# === Internal structures
 # 
 # IP addresses used by the classes are internaly and interfacialy
 # represented by NetAddr::CIDR[http://netaddr.rubyforge.org/classes/NetAddr/CIDR.html]

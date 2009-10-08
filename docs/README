@@ -19,14 +19,11 @@ routines checking IP addresses against access lists
 or use altered sockets implementation with IP access
 control enabled that also comes with this library.
 
-== Basic Features
+== Features
 
 * Maintaining IP access lists based on rules (see IPAccess::List).
 * Grouping input/output access lists into sets (see IPAccess::Set).
 * Automating access checks and raising exceptions (see IPAccess::Set#check_in).
-
-== Other Features
-
 * Many formats of IP addresses accepted (see IPAccess::List.obj_to_cidr).
 * Variants of socket handling classes with IP access control (see IPAccess::Socket and IPAccess::Net).
 * Methods for patching native socket handling classes (see IPAccess.arm).

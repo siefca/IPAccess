@@ -42,7 +42,7 @@
 #     require 'ipaccess/net/http'
 #     
 #     # blacklist randomseed.pl in global access set
-#     IPAccess::Set.Global.output.blacklist 'randomseed.pl'
+#     IPAccess::Set::Global.output.blacklist 'randomseed.pl'
 #     
 #     # call get_print
 #     IPAccess::Net::HTTP.get_print 'randomseed.pl', '/index.html'

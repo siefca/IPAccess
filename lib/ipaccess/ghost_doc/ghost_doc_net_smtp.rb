@@ -41,7 +41,7 @@
 #     
 #     require 'ipaccess/net/smtp'
 # 
-#     IPAccess::Set.Global.output.blacklist 'randomseed.pl'
+#     IPAccess::Set::Global.output.blacklist 'randomseed.pl'
 #     
 #     IPAccess::Net::SMTP.start('randomseed.pl', 25) do |smtp|
 #       ;
