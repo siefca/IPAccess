@@ -44,7 +44,7 @@
 #     require 'ipaccess/socket'                               # load sockets subsystem and IPAccess.arm method
 #     include Socket::Constants
 #     
-#     IPAccess::Set::Global.input.blacklist :localhost             # add localhost to global access set
+#     IPAccess::Set::Global.input.blacklist :localhost        # add localhost to global access set
 #                                                             # as a black rule of input list
 #     socket = IPAccess::Socket.new(AF_INET, SOCK_STREAM, 0)  # create TCP socket
 #     sockaddr = Socket.sockaddr_in(31337, '127.0.0.1')       # create sockadr_in structure
@@ -187,12 +187,12 @@ class IPAccess::UDPSocket
   #  
   # === Example
   #     
-  #     require 'ipaccess/socket'   # load sockets subsystem
+  #     require 'ipaccess/socket'       # load sockets subsystem
   #      
   #     socket = IPAccess::UDPSocket.new
-  #     socket.acl = :global        # use global access set
-  #     socket.acl = :private       # create and use individual access set
-  #     socket.acl = IPAccess::Set.new   # use external (shared) access set
+  #     socket.acl = :global            # use global access set
+  #     socket.acl = :private           # create and use individual access set
+  #     socket.acl = IPAccess::Set.new  # use external (shared) access set
   
   attr_writer :acl
   
@@ -267,7 +267,7 @@ class IPAccess::SOCKSSocket
   #
   #     require 'ipaccess/socket'                                           # load sockets subsystem
   # 
-  #     acl_set = IPAccess::Set.new                                              # create shared access set
+  #     acl_set = IPAccess::Set.new                                         # create shared access set
   #     acl_set.output.block 'randomseed.pl'                                # block connections to this host
   #     
   #     socket = IPAccess::SOCKSSocket.new('randomseed.pl', 80)             # use global access set
@@ -363,7 +363,7 @@ class IPAccess::TCPSocket
   # 
   #     require 'ipaccess/socket'                                         # load sockets subsystem
   #     
-  #     acl_set = IPAccess::Set.new                                            # create shared access set
+  #     acl_set = IPAccess::Set.new                                       # create shared access set
   #     acl_set.output.block 'randomseed.pl'                              # block connections to this host
   #     
   #     socket = IPAccess::TCPSocket.new('randomseed.pl', 80)             # use global access set
@@ -385,7 +385,24 @@ class IPAccess::TCPSocket
   # global ACL.
   
   attr_reader :acl
-
+  
+  # :call-seq:
+  #   new(addr, port) <tt>{|socket| …}</tt><br />
+  #   new(addr, port, acl) <tt>{|socket| …}</tt> 
+  # 
+  # Creates a new object and attempts to connect
+  # to the host and port. If a block is provided,
+  # it is yielded as socket object.
+  # It optionally sets an access set given as the
+  # last parameter or as +ACL+ member of +opts+.
+  # The access set given as an argument has precedence
+  # over access set given in options. If ACL parameter
+  # is not given it defaults to ACL to <tt>IPAccess::Set.Global</tt>.
+  
+  def initialize
+    # Real code hidden.
+  end
+  
 end
 
 
@@ -466,7 +483,7 @@ class IPAccess::TCPServer
   #     socket = IPAccess::TCPServer.new(31337)   # create TCP server
   #     socket.acl = :global                      # use global access set
   #     socket.acl = :private                     # create and use individual access set
-  #     socket.acl = IPAccess::Set.new                 # use external (shared) access set
+  #     socket.acl = IPAccess::Set.new            # use external (shared) access set
   
   attr_writer :acl
   

@@ -190,7 +190,7 @@ class IPAccess::Net::Telnet
   
   # :call-seq:
   #   new(opts) <tt>{|mesg| …}</tt><br />
-  #   new(opts, acl)<tt>{|mesg| …}</tt> 
+  #   new(opts, acl) <tt>{|mesg| …}</tt> 
   # 
   # Creates a new object and attempts to connect
   # to the host (unless the Proxy option is provided).
