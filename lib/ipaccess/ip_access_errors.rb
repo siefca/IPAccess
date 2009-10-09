@@ -24,27 +24,52 @@
 
 # This class handles IP access denied exceptions.
  
-class IPAccessDenied < Errno::EACCES
-
+class IPAccessDenied < SecurityError
+  
+  # Object passed during throwing an exception.
+  # Usually a network object that is used
+  # to communicate with prohibited peer.
+  
+  attr_reader :originator
+  
+  # Access list's rule that matched as
+  # an NetAddr::CIDR object.
+  
+  attr_reader :rule
+  
+  # Remote address that caused an
+  # exceotion to happend as an
+  # NetAddr::CIDR object
+  attr_reader :peer_ip
+  
+  # Access set that was used to check access.
+  
+  attr_reader :acl
+  
   # Creates new object. First argument should be
   # a NetAddr::CIDR object containing address
   # of denied connection. Second argument should
-  # be a CIDR rule that matched. Last argument
-  # should be an IPAccess::Set object.
-
-  def initialize(addr, rule=nil, access_set=nil)
+  # be a CIDR rule that matched. Third argument
+  # should be an IPAccess::Set object. Last
+  # argument should be an object that will be
+  # passed to exception as +object+ member –
+  # usualy it should be set to object that caused
+  # the exception to happend.
+  
+  def initialize(addr, rule=nil, acl=nil, obj=nil)
     @peer_ip = addr
     @rule = rule
-    @access_set = access_set
+    @acl = acl
+    @originator = obj
   end
   
   # Returns string representation of access set name rule.
   
   def set_desc
-    if (@access_set.is_a?(IPAccess::Set) && !@access_set.name.to_s.empty?)
-      @access_set.name
-    elsif @access_set.is_a?(String)
-      @access_set
+    if (@acl.is_a?(IPAccess::Set) && !@acl.name.to_s.empty?)
+      @acl.name.to_s + " "
+    elsif @acl.is_a?(String)
+      @acl + " "
     else
       ""
     end
@@ -60,11 +85,11 @@ class IPAccessDenied < Errno::EACCES
       else
         rule = @rule.to_s
       end
-      return " rule: #{rule}"
+      return "rule: #{rule}"
     elsif @rule.is_a?(String)
-      return " rule: #{@rule}"
+      return "rule: #{@rule}"
     else
-      return " rule"
+      return "rule"
     end
   end
   
@@ -99,6 +124,10 @@ class IPAccessDenied < Errno::EACCES
   def message
     return "connection with #{addr_desc} " +
             "denied by #{set_desc}#{rule_desc}"
+  end
+  
+  def to_s
+    addr_desc
   end
   
 end
