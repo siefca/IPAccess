@@ -95,23 +95,57 @@ require 'ipaccess/ip_access_set'
 # program that uses access lists or sets with
 # own access checking code.
 # 
-# === Popular classes variants
+# === Variants of popular classes
 # 
 # Sometimes you want to write a code that
 # uses standard Ruby's network objects
 # but you find it dirty to alter classes or objects.
 # In that case you may want to use static variants
 # of Ruby's network classes that are not patches
-# but derived classes. 
+# but derived classes.
 # 
-# === Structures
+# === Exceptions
+# 
+# When you are dealing with patched (armed) versions
+# of classes and objects or when you are using
+# special variants of popular network classes, you have
+# to rely on exceptions as the only way for
+# access checking methods to tell your program
+# that an event (like access denied) happened.
+# 
+# Note that when exception is thrown
+# the communication session is closed in case
+# of connection-oriented network objects.
+# You may change it by switching +close_on_deny+
+# attribute to +false+.
+# 
+# === Sockets in armed network objects
+# 
+# Specialized Ruby's network classes,
+# such as Net::HTTP or Net::Telnet
+# and their variants created by this library,
+# make use of socket objects. For example
+# Net::HTTP class uses TCPSocket instance to
+# create TCP connection. When versions
+# of these <tt>Net::</tt> objects with
+# enabled access control are used then
+# the internal routines of IPAccess
+# will also try to patch underlying sockets and assign
+# to them the same access set that is used by main
+# object. It is done to avoid access leaks.
+# However, such armed internal sockets will have
+# +close_on_deny+ flag switched off since
+# closing session should be settled
+# by main object.
+# 
+# === Ordination of elements
 # 
 # To properly understand what are the most important
 # structures mentioned above it's worth
-# to see the diagram:
+# to look at the diagram:
 # 
 # link:images/ipaccess_view.png
-# 
+#  
 # == Usage
 # 
 # === Handling access sets and access lists
@@ -170,7 +204,7 @@ require 'ipaccess/ip_access_set'
 # 	
 # ..and so on.
 # 
-# === Internal structures
+# === Structures
 # 
 # IP addresses used by the classes are internaly and interfacialy
 # represented by NetAddr::CIDR[http://netaddr.rubyforge.org/classes/NetAddr/CIDR.html]
@@ -180,7 +214,13 @@ require 'ipaccess/ip_access_set'
 # (NetAddr::Tree[http://netaddr.rubyforge.org/classes/NetAddr/Tree.html])
 # with special tags assigning rules to virtual lists.
 # 
+# === Relations
 # 
+# Here is a diagram which shows relations
+# between the IPAccess::TCPSocket class
+# and other classes from this module:
+# 
+# link:images/ipaccess_relations.png
 
 module IPAccess
 end

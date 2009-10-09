@@ -32,6 +32,4 @@
 # for example in case of quick setups when connection is made in
 # the very moment new object is created or when single object is patched
 # (armed) in connected state. Remeber to call acl_recheck
-# immediately after rules management operation to avoid leaks
-# when using +acl+ member or <tt>IPAccess::Set.Global</tt> to manage
-# access rules.
+# immediately after rules management operation to avoid leaks.
