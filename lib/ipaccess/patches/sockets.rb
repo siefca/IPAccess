@@ -66,7 +66,8 @@ module IPAccess::Patches
         orig_sysaccept          = self.instance_method :sysaccept
         
         define_method :__ipacall__initialize do |block, *args|
-          self.acl = :global
+          @close_on_deny = args.delete(:opened_on_deny).nil? ? true : false
+          self.acl = valid_acl?(args.last) ? args.pop : :global  
           orig_initialize.bind(self).call(*args, &block)
           return self
         end
@@ -79,28 +80,33 @@ module IPAccess::Patches
         # accept on steroids.
         define_method :accept do |*args|
           ret = orig_accept.bind(self).call(*args)
-          real_acl.check_in_socket(ret.first)
+          real_acl.check_in_socket(ret.first) { try_close_subsocket(ret.first) }
           return ret
         end
 
         # accept_nonblock on steroids.
         define_method :accept_nonblock do |*args|
           ret = orig_accept_nonblock.bind(self).call(*args)
-          real_acl.check_in_socket(ret.first)
+          real_acl.check_in_socket(ret.first)  { try_close_subsocket(ret.first) }
           return ret
         end
 
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
           ret = orig_accept.bind(self).call(*args)
-          real_acl.check_in_sockaddr(ret.last)
+          real_acl.check_in_sockaddr(ret.last) { try_close_subsocket(Socket.for_fd(ret.first)) }
           return ret
         end
 
         # connect on steroids.
         define_method :connect do |*args|
-          real_acl.check_out_sockaddr(args.first)
-          return orig_connect.bind(self).call(*args)
+          if @close_on_deny
+            real_acl.check_out_sockaddr(args.first)
+            return orig_connect.bind(self).call(*args)
+          else
+            ret = orig_connect.bind(self).call(*args)
+            real_acl.check_out_socket(ret)
+          end
         end
 
         # recvfrom on steroids.
@@ -109,7 +115,7 @@ module IPAccess::Patches
           peer_ip = ret[1][3]
           family = ret[1][0]
           if (family == "AF_INET" || family == "AF_INET6")
-            real_acl.check_in_ipstring(peer_ip)
+            real_acl.check_in_ipstring(peer_ip) { try_close_connection }
           end
           return ret
         end
@@ -120,7 +126,7 @@ module IPAccess::Patches
           peer_ip = ret[1][3]
           family = ret[1][0]
           if (family == "AF_INET" || family == "AF_INET6")
-            real_acl.check_in_ipstring(peer_ip)
+            real_acl.check_in_ipstring(peer_ip) { try_close_connection }
           end
           return ret
         end
@@ -130,13 +136,7 @@ module IPAccess::Patches
         define_method :default_list do
           :output
         end
-        
-        # SINGLETON HOOKS
-        def __ipa_singleton_hook(acl=nil)
-          self.acl = acl
-        end # singleton hooks
-        private :__ipa_singleton_hook
-        
+                
       end # base.class_eval
       
     end # self.included
@@ -167,7 +167,8 @@ module IPAccess::Patches
         orig_recvfrom_nonblock  = self.instance_method :recvfrom_nonblock
         
         define_method :__ipacall__initialize do |block, *args|
-          self.acl = :global
+          self.acl = valid_acl?(args.last) ? args.pop : :global
+          @close_on_deny = false
           orig_initialize.bind(self).call(*args, &block)
           return self
         end
@@ -221,12 +222,11 @@ module IPAccess::Patches
         define_method :default_list do
           :intput
         end
-                
-        # SINGLETON HOOKS
-        def __ipa_singleton_hook(acl=nil)
-          self.acl = acl
-        end # singleton hooks
-        private :__ipa_singleton_hook
+        
+        # this kind of socket is not connection-oriented.
+        define_method :connection_close do
+          return nil
+        end
         
       end # base.class_eval
 
@@ -254,10 +254,16 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :__pacall__initialize do |block, *args|
+          @close_on_deny = args.delete(:opened_on_deny).nil? ? true : false
           self.acl = valid_acl?(args.last) ? args.pop : :global
           args[0] = self.class.getaddress(args[0])
-          real_acl.check_out_ipstring args[0]
-          orig_initialize.bind(self).call(*args, block)
+          if @close_on_deny
+            real_acl.check_out_ipstring args[0]
+            orig_initialize.bind(self).call(*args, block)
+          else
+            orig_initialize.bind(self).call(*args, block)
+            real_acl.check_out_socket(self)
+          end
           return self
         end
         
@@ -268,16 +274,8 @@ module IPAccess::Patches
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          begin
-            real_acl.check_out_socket self
-          rescue IPAccessDenied
-            begin
-              self.close
-            rescue IOError
-            end
-            raise
-          end
-          nil
+          real_acl.check_out_socket(self) { try_close_connection }
+          return nil
         end
         
         # This method returns default access list indicator
@@ -285,14 +283,7 @@ module IPAccess::Patches
         define_method :default_list do
           :output
         end
-        
-        # SINGLETON HOOKS
-        def __ipa_singleton_hook(acl=nil)
-          self.acl = acl
-          self.acl_recheck
-        end # singleton hooks
-        private :__ipa_singleton_hook
-        
+                
       end # base.class_eval
 
     end # self.included
@@ -319,10 +310,16 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :__ipacall__initialize do |block, *args|
+          @close_on_deny = args.delete(:opened_on_deny).nil? ? true : false
           self.acl = valid_acl?(args.last) ? args.pop : :global
           args[0] = self.class.getaddress(args[0])
-          real_acl.check_out_ipstring args[0]
-          orig_initialize.bind(self).call(*args, &block)
+          if @close_on_deny
+            real_acl.check_out_ipstring(args[0], self)
+            orig_initialize.bind(self).call(*args, &block)
+          else
+            orig_initialize.bind(self).call(*args, &block)
+            real_acl.check_out_socket(self)
+          end
           return self
         end
         
@@ -333,15 +330,7 @@ module IPAccess::Patches
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          begin
-            real_acl.check_out_socket self
-          rescue IPAccessDenied
-            begin
-              self.close
-            rescue IOError
-            end
-            raise
-          end
+          real_acl.check_out_socket(self) { try_close_connection }
           nil
         end
         
@@ -350,13 +339,6 @@ module IPAccess::Patches
         define_method :default_list do
           :output
         end
-                
-        # SINGLETON HOOKS
-        def __ipa_singleton_hook(acl=nil)
-          self.acl = acl
-          self.acl_recheck
-        end # singleton hooks
-        private :__ipa_singleton_hook
         
       end # base.class_eval
 
@@ -387,6 +369,7 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :__ipacall__initialize do |block, *args|
+          @close_on_deny = args.delete(:opened_on_deny).nil? ? true : false
           self.acl = valid_acl?(args.last) ? args.pop : :global
           return orig_initialize.bind(self).call(*args, &block)
         end
@@ -395,34 +378,32 @@ module IPAccess::Patches
         def initialize(*args, &block)
           __ipacall__initialize(block, *args)
         end
-
+                
         # accept on steroids.
         define_method :accept do |*args|
-          real_acl.check_in_socket orig_accept.bind(self).call(*args)
+          r = orig_accept.bind(self).call(*args)
+          real_acl.check_in_socket(r) { try_close_subsocket(r) }
+          return r
         end
 
         # accept_nonblock on steroids.
         define_method :accept_nonblock do |*args|
-          real_acl.check_in_socket orig_accept_nonblock.bind(self).call(*args)
+          r = orig_accept_nonblock.bind(self).call(*args)
+          real_acl.check_in_socket(r) { try_close_subsocket(r) }
+          return r
         end
-
+        
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
-          real_acl.check_in_fd orig_sysaccept.bind(self).call(*args)
+          r = orig_sysaccept.bind(self).call(*args)
+          real_acl.check_in_fd(r) { try_close_subsocket(Socket.for_fd(r)) }
+          return r
         end
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          begin
-            real_acl.check_in_socket self
-          rescue IPAccessDenied
-            begin
-              self.close
-            rescue IOError
-            end
-            raise
-          end
-          nil
+          real_acl.check_in_socket(self) { try_close_connection }
+          return nil
         end
         
         # This method returns default access list indicator
@@ -430,13 +411,6 @@ module IPAccess::Patches
         define_method :default_list do
           :input
         end
-                
-        # SINGLETON HOOKS
-        def __ipa_singleton_hook(acl=nil)
-          self.acl = acl
-          self.acl_recheck
-        end # singleton hooks
-        private :__ipa_singleton_hook
         
       end # base.class_eval
 
@@ -466,14 +440,18 @@ module IPAccess::Patches
       end
     end
     private :real_socket
-
+    
     # This method tries to arm socket object.
+    # If a wanted access set and an object's access
+    # set is no different then acl_recheck is called
+    # by force. It sets armed socket's +close_on_deny+
+    # flag to +false+.
     
     def try_arm_socket(obj, initial_acl=nil)
       late_sock = real_socket(obj)
       unless late_sock.nil?
         initial_acl = real_acl if initial_acl.nil?
-        IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
+        IPAccess.arm(late_sock, acl, :opened_on_deny) unless late_sock.respond_to?(:acl)
         late_sock.acl = initial_acl if late_sock.acl != initial_acl
       end
       return obj
@@ -487,9 +465,10 @@ module IPAccess::Patches
     # correct access list (input or output). By taking
     # care we mean automatic triggering of acl_recheck
     # when object's acl= method had been called.
-    # If the wanted access set and the object's access
+    # If a wanted access set and an object's access
     # set is no different then acl_recheck is called
-    # by force.
+    # by force. It sets armed socket's +close_on_deny+
+    # flag to +false+.
     #
     # This method returns the given object.
     
@@ -497,7 +476,7 @@ module IPAccess::Patches
       late_sock = real_socket(obj)
       unless late_sock.nil?
         initial_acl = real_acl if initial_acl.nil?
-        IPAccess.arm(late_sock, acl) unless late_sock.respond_to?(:acl)
+        IPAccess.arm(late_sock, acl, :opened_on_deny) unless late_sock.respond_to?(:acl)
         if late_sock.acl != initial_acl
           late_sock.acl = initial_acl
         else
@@ -510,14 +489,14 @@ module IPAccess::Patches
     
     def try_check_out_socket_acl(obj, used_acl)
       late_sock = real_socket(obj)
-      used_acl.check_out_socket(late_sock) unless late_sock.nil?
+      used_acl.check_out_socket(late_sock) { try_close_connection } unless late_sock.nil?
       return obj
     end
     private :try_check_out_socket_acl
 
     def try_check_in_socket_acl(obj, used_acl)
       late_sock = real_socket(obj)
-      used_acl.check_in_socket(late_sock) unless late_sock.nil?
+      used_acl.check_in_socket(late_sock) { try_close_connection } unless late_sock.nil?
       return obj
     end
     private :try_check_in_socket_acl

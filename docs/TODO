@@ -1,10 +1,10 @@
 == IPAccess
 
-=== Blocks
+- add support for reason when adding to list. Use NetAddr::CIDR fields.
 
-- possibility to add block to access lists, the block will be evaluated when match
-- possibility to add block to sockets and familiar, the block will be evaluated when access is denied but before connection is dropped (if it is)
-- pass sockets, etc. when block called
+- scream! method should not pass anything to obj if the obj is nil - don't mess with zohan
+
+- TEST getaddress agains known error with getaddresses (that has workaround)
 
 === Specification
 
@@ -12,8 +12,9 @@
 
 == Documentation
 
-- sockets: document initialize
-- mention about on-demand loading of patching engine
+- sockets: document initializers
+- blocks for check_ methods
+- describe access checking workflow using diagram
 
 == Other
 

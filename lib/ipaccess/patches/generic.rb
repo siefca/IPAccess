@@ -52,7 +52,11 @@ module IPAccess
         return true if obj.object_id == IPAccess::Set::GlobalSet.instance.object_id
         super(obj)
       end
-                
+      
+      def to_s
+        "#<IPAccess::Set:Global>"
+      end
+               
       # :startdoc:
     
     end
@@ -78,6 +82,11 @@ module IPAccess
         
   end # class Set
   
+  # :call-seq:
+  #   arm(klass, acl=nil)<br />
+  #   arm(klass, :opened_on_deny)<br />
+  #   arm(klass, acl, :opened_on_deny)
+  # 
   # This special method patches Ruby's standard
   # library classes and enables IP access control
   # for them. Instances of such altered classes
@@ -155,7 +164,9 @@ module IPAccess
   #     acl.output.blacklist 'randomseed.pl'              # blacklist host
   #     IPAccess.arm t, acl                               # arm Telnet object and pass optional ACL
   
-  def self.arm(klass, acl=nil)
+  def self.arm(*args)
+    cod = args.delete(:opened_on_deny).nil? ? true : false
+    klass, acl = *args
     singleton_obj = nil
     if klass.is_a?(Class)                                 # regular class
       klass_name = klass.name 
@@ -184,7 +195,7 @@ module IPAccess
       raise ArgumentError, "cannot enable IP access control for class #{klass_name}"
     end
     klass.__send__(:include, patch_klass)
-    singleton_obj.__send__(:__ipa_singleton_hook, acl) unless singleton_obj.nil?
+    singleton_obj.__send__(:__ipa_singleton_hook, acl, cod) unless singleton_obj.nil?
     return klass
   end
   
@@ -275,36 +286,37 @@ module IPAccess
         self.acl_recheck if self.respond_to?(:acl_recheck)
       end
     
-        # This method returns +true+ if the given object can be used to initialize ACL.
-        # Otherwise it returns +false+.
-        
-        def IPAccess.valid_acl?(obj)
-          if obj.is_a?(Symbol)
-            return true if (obj == :global || obj == :private)
-          elsif obj.is_a?(IPAccess::Set)
-            return true
-          end
-          return false
+      # This method returns +true+ if the given object can be used to initialize ACL.
+      # Otherwise it returns +false+.
+      
+      def IPAccess.valid_acl?(obj)
+        if obj.is_a?(Symbol)
+          return true if (obj == :global || obj == :private)
+        elsif obj.is_a?(IPAccess::Set)
+          return true
         end
+        return false
+      end
+      
+      # This method returns +true+ if the given object can be used to initialize ACL.
+      # Otherwise it returns +false+.
+          
+      def valid_acl?(obj)
+        IPAccess.valid_acl?(obj)
+      end
+      
+      # This method should be called each time the access set related to an object
+      # is changed and there is a need to validate remote peer again, since it might be
+      # blacklisted.
+      # 
+      # Each class that patches Ruby's network class should redefine this method
+      # and call it in a proper place (e.g. from hook executed when singleton methods
+      # are added to network object).
+      
+      def acl_recheck
+        ;
+      end
         
-        # This method returns +true+ if the given object can be used to initialize ACL.
-        # Otherwise it returns +false+.
-            
-        def valid_acl?(obj)
-          IPAccess.valid_acl?(obj)
-        end
-        
-        # This method should be called each time the access set related to an object
-        # is changed and there is a need to validate remote peer again, since it might be
-        # blacklisted.
-        # 
-        # Each class that patches Ruby's network class should redefine this method
-        # and call it in a proper place (e.g. from hook executed when singleton methods
-        # are added to network object).
-        
-        def acl_recheck
-          ;
-        end
     
       # This method return current access set for an object.
       # 
@@ -690,7 +702,58 @@ module IPAccess
       alias_method :undeny!,    :unblacklist!
       alias_method :unblock!,   :unblacklist!
       alias_method :del_black!, :unblacklist!
-
+      
+      # Setting it to +false+ disables closing connection
+      # when raising access denied exception
+      
+      attr_accessor :close_on_deny
+      
+      # Setting it to +true+ disables closing connection
+      # when raising access denied exception
+      
+      def open_on_deny=(x)
+        self.close_on_deny = !x
+      end
+      
+      def open_on_deny
+        not self.close_on_deny
+      end
+      
+      # This method is universal wrapper for
+      # closing connection. Classes should
+      # override it.
+      
+      def close_connection
+        self.close unless self.closed?
+      end
+            
+      # This method will try to close
+      # session/connection for network object
+      # if +close_on_deny+ member is set to +true+
+      
+      def try_close_connection
+        close_connection if @close_on_deny
+        return nil
+      end
+      private :try_close_connection
+      
+      # helper for dropping unwanted connections
+      def try_close_subsocket(sock)
+        sock.close if (@close_on_deny && !sock.closed?)
+        return nil
+      end
+      private :try_close_subsocket
+      
+      
+      # This method will be called if
+      # instance is patched.
+      
+      def __ipa_singleton_hook(acl=nil, close_on_deny=true)
+        @close_on_deny = close_on_deny
+        self.acl = acl
+      end
+      private :__ipa_singleton_hook
+            
     end # module ACL
   
   end # module Patches
