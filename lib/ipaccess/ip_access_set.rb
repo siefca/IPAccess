@@ -154,7 +154,7 @@ module IPAccess
     # If there is only one argument it's assumed that it contains
     # descriptive name of an access set.
     
-    def initialize(input=nil, output=nil, name=nil)
+    def initialize(input=nil, output=nil, name=nil) 
       @name = nil
       @name, input = input, nil if (output.nil? && name.nil?)
       @input  = IPAccess::List.new(input)
@@ -166,10 +166,10 @@ module IPAccess
     # First argument should be a hash containing CIDR objects: a testet address
     # (+:IP+) and a matching rule (+:Rule+). Second argument should be exception class.
     
-    def scream!(pair, use_exception=IPAccessDenied::Input)
-      raise use_exception.new(pair[:IP], pair[:Rule], self)
+    def scream!(pair, use_exception=IPAccessDenied::Input, obj=nil)
+      raise use_exception.new(pair[:IP], pair[:Rule], self, obj)
     end
-      
+    
     # This method returns +true+ if all access lists are empty.
     # Otherwise returns +false+.
     
@@ -241,12 +241,14 @@ module IPAccess
     # See IPAccess::List.obj_to_cidr description for more info
     # about arguments you may pass to it.
     
-    def check(list, exc, *args)
+    def check(list, exc, obj, *args) # :yields: address, rule, acl, args, obj
       return args if list.empty?
+      obj = args if obj.nil?
       pairs = list.denied(*args)
       unless pairs.empty?
-        yield(pairs.first, args) if block_given?
-        scream!(pairs.first, exc)
+        dont_scream = false
+        dont_scream = yield(pairs.first[:IP], pair.first[:Rule], list, args, obj) if block_given?
+        scream!(pairs.first, exc, obj) unless dont_scream
       end
       return args
     end
@@ -254,10 +256,11 @@ module IPAccess
     
     # This method checks access for a socket.
     
-    def check_socket(list, exc, socket)
+    def check_socket(list, exc, socket, obj=nil) # :yields: address, rule, acl, socket, obj
       if (list.empty? || !socket.respond_to?(:getpeername))
         return socket
       end
+      obj = socket if obj.nil?
       begin
         peeraddr = Socket.unpack_sockaddr_in(socket.getpeername).last
       rescue IOError, Errno::ENOTCONN, Errno::ENOTSOCK, ArgumentError # socket is not INET, not a socket nor connected
@@ -266,8 +269,9 @@ module IPAccess
       peer_ip = NetAddr::CIDR.create(peeraddr.split('%').first)
       pair    = list.denied_cidr(peer_ip, true)
       unless pair.empty?
-        yield(pair, socket) if block_given?
-        scream!(pair, exc)
+        dont_scream = false
+        dont_scream = yield(pair[:IP], pair[:Rule], list, socket, obj) if block_given?
+        scream!(pair, exc, obj) unless dont_scream
       end
       return socket
     end
@@ -275,8 +279,9 @@ module IPAccess
     
     # This method checks access for a sockaddr.
     
-    def check_sockaddr(list, exc, sockaddr)
+    def check_sockaddr(list, exc, sockaddr, obj=nil) # :yields: address, rule, acl, sockaddr, obj
       return sockaddr if list.empty?
+      obj = sockaddr if obj.nil?
       begin
         peeraddr = Socket.unpack_sockaddr_in(sockaddr).last
       rescue ArgumentError # sockaddr is not INET
@@ -285,20 +290,23 @@ module IPAccess
       peer_ip = NetAddr::CIDR.create(peeraddr.split('%').first)
       pair    = list.denied_cidr(peer_ip, true)
       unless pair.empty?
-        yield(pair, sockaddr) if block_given?
-        scream!(pair, exc)
+        dont_scream = false
+        dont_scream = yield(pair[:IP], pair[:Rule], list, sockaddr, obj) if block_given?
+        scream!(pair, exc, obj) unless dont_scream
       end
       return sockaddr
     end
     private :check_sockaddr
-  
+    
     # This method checks access for a CIDR object.
     
-    def check_cidr(list, exc, cidr)
+    def check_cidr(list, exc, cidr, obj=nil) # :yields: address, rule, acl, cidr, obj
+      obj = cidr if obj.nil?
       pair = list.denied_cidr(cidr, true)
       unless pair.empty?
-        yield(pair, cidr) if block_given?
-        scream!(pair, exc)
+        dont_scream = false
+        dont_scream = yield(pair[:IP], pair[:Rule], list, cidr, obj) if block_given?
+        scream!(pair, exc, obj) unless dont_scream
       end
       return cidr
     end
@@ -307,13 +315,15 @@ module IPAccess
     # This method checks access for a string containing
     # IP address.
     
-    def check_ipstring(list, exc, ipstring)
+    def check_ipstring(list, exc, ipstring, obj=nil) # :yields: address, rule, acl, ipstring, obj
       return ipstring if list.empty?
+      obj = ipstring if obj.nil?
       addr = NetAddr::CIDR.create(ipstring.split('%').first)
       pair = list.denied_cidr(addr, true)
       unless pair.empty?
-        yield(pair, ipstring) if block_given?
-        scream!(pair, exc)
+        dont_scream = false
+        dont_scream = yield(pair[:IP], pair[:Rule], list, ipstring, obj) if block_given?
+        scream!(pair, exc, obj) unless dont_scream
       end
       return ipstring
     end
@@ -321,8 +331,9 @@ module IPAccess
     
     # This method checks IP access but bases on file descriptor.
     
-    def check_fd(list, exc, fd)
-      check_socket(list, exc, Socket.for_fd(fd))
+    def check_fd(list, exc, fd, obj=nil, &block) # :yields: pair, access_list, object, socket
+      obj = fd if obj.nil?
+      check_socket(list, exc, Socket.for_fd(fd), obj, &block)
       return fd
     end
     private :check_fd
@@ -341,8 +352,8 @@ module IPAccess
     # methods if your object contains information about
     # single IP and has a known type.
     
-    def check_in(*args)
-      check(@input, IPAccessDenied::Input, *args)
+    def check_in(*args, &block) # :yields: pair, access_list, nil, args
+      check(@input, IPAccessDenied::Input, nil, *args, &block)
     end
     
     # This method checks access for the given objects
@@ -359,20 +370,21 @@ module IPAccess
     # methods if your object contains information about
     # single IP and has a known type.
     
-    def check_out(*args)
-      check(@output, IPAccessDenied::Output, *args)
+    def check_out(*args, &block) # :yields: pair, access_list, nil, socket
+      check(@output, IPAccessDenied::Output, nil, *args, &block)
     end
     
     # This method checks access for the given CIDR object
     # containing IP information against input access list.
     # If access is denied it raises an exception reporting
-    # a pair of values (rejected IP and a matching rule).
-    # If access is granted it returns the given argument.
+    # a pair of values (rejected IP and a matching rule)
+    # and an optional passed object. If access is granted
+    # it returns the given argument.
     # 
     # Expected argument should be kind of NetAddr::CIDR.
   
-    def check_in_cidr(cidr)
-      check_cidr(@input, IPAccessDenied::Input, cidr)
+    def check_in_cidr(cidr, obj=nil, &block) # :yields: pair, access_list, object, cidr
+      check_cidr(@input, IPAccessDenied::Input, cidr, obj, &block)
     end
   
     # This method checks access for the given CIDR object
@@ -383,8 +395,8 @@ module IPAccess
     # 
     # Expected argument should be kind of NetAddr::CIDR.
     
-    def check_out_cidr(cidr)
-      check_cidr(@output, IPAccessDenied::Output, cidr)
+    def check_out_cidr(cidr, obj=nil, &block) # :yields: pair, access_list, object, cidr
+      check_cidr(@output, IPAccessDenied::Output, cidr, obj, &block)
     end
     
     # This method checks access for the given string
@@ -393,8 +405,8 @@ module IPAccess
     # a pair of values (rejected IP and a matching rule).
     # If access is granted it returns the given argument.
     
-    def check_in_ipstring(ipstring)
-      check_ipstring(@input, IPAccessDenied::Input, ipstring)
+    def check_in_ipstring(ipstring, obj=nil, &block) # :yields: pair, access_list, object, ipstring
+      check_ipstring(@input, IPAccessDenied::Input, ipstring, obj, &block)
     end
   
     # This method checks access for the given string
@@ -403,8 +415,8 @@ module IPAccess
     # a pair of values (rejected IP and a matching rule).
     # If access is granted it returns the given argument.
     
-    def check_out_ipstring(ipstring)
-      check_ipstring(@output, IPAccessDenied::Output, ipstring)
+    def check_out_ipstring(ipstring, obj=nil, &block) # :yields: pair, access_list, object, ipstring
+      check_ipstring(@output, IPAccessDenied::Output, ipstring, obj, &block)
     end
     
     # This method checks access for the given socket object
@@ -415,8 +427,8 @@ module IPAccess
     # 
     # Expected argument should be kind of IPSocket.
     
-    def check_in_socket(socket)
-      check_socket(@input, IPAccessDenied::Input, socket)
+    def check_in_socket(socket, obj=nil, &block) # :yields: pair, access_list, object, socket
+      check_socket(@input, IPAccessDenied::Input, socket, obj, &block)
     end
   
     # This method checks access for the given socket object
@@ -427,8 +439,8 @@ module IPAccess
     # 
     # Expected argument should be kind of IPSocket.
     
-    def check_out_socket(socket)
-      check_socket(@output, IPAccessDenied::Output, socket)
+    def check_out_socket(socket, obj=nil, &block) # :yields: pair, access_list, object, socket
+      check_socket(@output, IPAccessDenied::Output, socket, obj, &block)
     end
     
     # This method checks access for the given sockaddr structure
@@ -437,8 +449,8 @@ module IPAccess
     # a pair of values (rejected IP and a matching rule).
     # If access is granted it returns the given argument.
     
-    def check_in_sockaddr(sockaddr)
-      check_sockaddr(@input, IPAccessDenied::Input, sockaddr)
+    def check_in_sockaddr(sockaddr, obj=nil, &block) # :yields: pair, access_list, object, sockaddr
+      check_sockaddr(@input, IPAccessDenied::Input, sockaddr, obj, &block)
     end
   
     # This method checks access for the given sockaddr structure
@@ -447,8 +459,8 @@ module IPAccess
     # rejected IP and a matching rule. If access is granted
     # it returns the given argument.
     
-    def check_out_sockaddr(sockaddr)
-      check_sockaddr(@output, IPAccessDenied::Output, sockaddr)
+    def check_out_sockaddr(sockaddr, obj=nil, &block) # :yields: pair, access_list, object, sockaddr
+      check_sockaddr(@output, IPAccessDenied::Output, sockaddr, obj, &block)
     end
     
     # This method checks access for the given file descriptor
@@ -460,8 +472,8 @@ module IPAccess
     # Expected argument should be a number representing a valid
     # file descriptor bound to an IP socket.
         
-    def check_in_fd(fd)
-      check_fd(@input, IPAccessDenied::Input, fd)
+    def check_in_fd(fd, obj=nil, &block) # :yields: pair, access_list, object, fd
+      check_fd(@input, IPAccessDenied::Input, fd, obj, &block)
     end
   
     # This method checks access for the given file descriptor
@@ -473,8 +485,8 @@ module IPAccess
     # Expected argument should be a number representing a valid
     # file descriptor bound to an IP socket.
     
-    def check_out_fd(fd)
-      check_fd(@output, IPAccessDenied::Output, fd)
+    def check_out_fd(fd, obj=nil, &block) # :yields: pair, access_list, object, fd
+      check_fd(@output, IPAccessDenied::Output, fd, obj, &block)
     end
     
     # This method shows access set in human readable form.
@@ -500,9 +512,3 @@ module IPAccess
 
 end # module IPAccess
 
-
-
-
-
-
-  
