@@ -92,7 +92,7 @@ module IPAccess
   class List < NetAddr::Tree
     
     # Creates new IPAccess::List object. You may pass objects
-    # containing IP information to it. These objects will
+    # (containing IP information) to it. These objects will
     # create black list rules. See obj_to_cidr description
     # for more info on how to pass arguments.
     #
@@ -120,7 +120,7 @@ module IPAccess
     
     # This method converts names to NetAddr::CIDR objects. It returns an array of CIDR objects.
     # 
-    # Allowed input: strings (DNS names or IP addresses optionally with masks), numbers (IP addresses representation),
+    # Allowed input are strings (DNS names or IP addresses optionally with masks), numbers (IP addresses representation),
     # IPSocket objects, URI objects, IPAddr objects, Net::HTTP objects, IPAddrList objects, NetAddr::CIDR objects,
     # NetAddr::Tree objects, IPAccess::List objects, symbols, objects that contain file descriptors bound to sockets
     # (including OpenSSL sockets) and arrays of these.
@@ -128,21 +128,27 @@ module IPAccess
     # In case of resolving the IPv6 link-local addresses zone index is removed. In case of DNS names there may
     # occur Resolv::ResolvError exceptions.
     #
+    # When an argument called +:include_origins+ is present then the method will attach
+    # original converted objects to results in the +:Origin+ field of CIDR objects.
+    # This rule applies only to simple objects or objects inside of arrays or sets.
+    # Original object can never be an array, a set or a tree.
+    # 
     # ==== Examples
     # 
-    #     obj_to_cidr("127.0.0.1")                      # uses IP address
+    #     obj_to_cidr("127.0.0.1")                      # uses the IP address
     #     obj_to_cidr(2130706433)                       # uses numeric representation of 127.0.0.1
     #     obj_to_cidr(:private, "localhost")            # uses special symbol and DNS hostname
     #     obj_to_cidr(:private, :localhost)             # uses special symbols
     #     obj_to_cidr [:private, :auto]                 # other way to write the above
     #     obj_to_cidr "10.0.0.0/8"                      # uses masked IP address
     #     obj_to_cidr "10.0.0.0/255.0.0.0"              # uses masked IP address
-    #     obj_to_cidr IPSocket.new("www.pl", 80)        # uses socket
+    #     obj_to_cidr IPSocket.new("www.pl", 80)        # uses the socket
     #     obj_to_cidr IPAddr("10.0.0.1")                # uses IPAddr object
     #     obj_to_cidr NetAddr::CIDR.create("10.0.0.1")  # uses NetAddr object
     #     obj_to_cidr URI('http://www.pl/')             # uses URI
-    #     obj_to_cidr 'http://www.pl/'                  # uses extracted host string
-    #     obj_to_cidr 'somehost.xx'                     # uses host string (fetches ALL addresses from DNS)
+    #     obj_to_cidr 'http://www.pl/'                  # uses the extracted host string
+    #     obj_to_cidr 'somehost.xx'                     # uses the host string (fetches ALL addresses from DNS)
+    #     obj_to_cidr 'somehost.xx/16'                  # uses the host string and a netmask
     #
     # ==== Special symbols
     #
@@ -230,18 +236,27 @@ module IPAccess
     
     def self.obj_to_cidr(*obj)
       obj = obj.flatten
-    
+      include_origins = obj.delete(:include_origins).nil? ? false : true
+      
       if obj.size == 1
         obj = obj.first
       else
         ary = []
-        obj.each { |o| ary += obj_to_cidr(o) }
+        obj.each do |o|
+          ary += include_origins ? obj_to_cidr(o, :include_origins) : obj_to_cidr(o)
+        end
         ary.flatten!
         return ary
       end
-    
+      
+      ori_obj = obj
+      
       # NetAddr::CIDR - immediate generation
-      return [obj.dup] if obj.is_a?(NetAddr::CIDR)
+      if obj.is_a?(NetAddr::CIDR)
+        r = obj.dup
+        r.tag[:Originator] = ori_obj if include_origins
+        return [r] 
+      end
       
       # IPAccess::List - immediate generation
       return obj.to_a if obj.is_a?(self.class)
@@ -250,8 +265,12 @@ module IPAccess
       return obj.dump.map { |addr| addr[:CIDR] } if obj.is_a?(NetAddr::Tree)
     
       # number - immediate generation
-      return [NetAddr::CIDR.create(obj)] if obj.is_a?(Numeric)
-    
+      if obj.is_a?(Numeric)
+        r =  NetAddr::CIDR.create(obj)
+        r.tag[:Originator] = ori_obj if include_origins
+        return [r]
+      end
+          
       # object containing socket member (e.g. Net::HTTP) - fetch socket
       if obj.respond_to?(:socket)
         obj = obj.socket
@@ -274,10 +293,13 @@ module IPAccess
       # Socket - immediate generation
       if obj.respond_to?(:getpeername)
         peeraddr = Socket.unpack_sockaddr_in(obj.getpeername).last.split('%').first
-        return [NetAddr::CIDR.create(peeraddr)]
+        r = NetAddr::CIDR.create(peeraddr)
+        r.tag[:Originator] = ori_obj if include_origins
+        return [r]
       end
       
       # symbol - immediate generation
+      r_args = nil
       if obj.is_a?(Symbol)
       case obj
         when :ipv4_all, :ipv4_any, :ipv4_anyone, :ipv4_world, :ipv4_internet, :ipv4_net, :ipv4_everything, :ipv4_everyone, :ipv4_everybody, :ipv4_anybody
@@ -319,35 +341,48 @@ module IPAccess
                   "223.255.255.0/24",
                   "240.0.0.0/4" ]
         when :all, :any, :anyone, :world, :internet, :net, :everything, :everyone, :everybody, :anybody
-          return obj_to_cidr(:ipv4_all,
-                             :ipv6_all)   
+          r_args = [ :ipv4_all,
+                     :ipv6_all ] 
         when :broadcast, :brd
-          return obj_to_cidr(:ipv4_broadcast,
-                             :ipv6_broadcast)
+          r_args = [ :ipv4_broadcast,
+                     :ipv6_broadcast ]
         when :local, :localhost, :localdomain, :loopback, :lo
-          return obj_to_cidr(:ipv4_local,
-                             :ipv6_local)
+          r_args = [ :ipv4_local,
+                     :ipv6_local ]
         when :auto, :automatic, :linklocal
-          return obj_to_cidr(:ipv4_auto,
-                             :ipv6_auto)            
+          r_args = [ :ipv4_auto,
+                     :ipv6_auto ]            
         when :private, :intra, :intranet, :internal
-          return obj_to_cidr(:ipv4_private,
-                             :ipv6_private)
+          r_args = [ :ipv4_private,
+                     :ipv6_private ]
         when :multicast, :multi, :multiemission
-          return obj_to_cidr(:ipv4_multicast,
-                             :ipv6_multicast)
+          r_args = [ :ipv4_multicast,
+                     :ipv6_multicast ]
         when :reserved, :example
-          return obj_to_cidr(:ipv4_example)
+          r_args = [ :ipv4_example ]
         when :strange, :unusual, :nonpublic, :unpublic
-          return obj_to_cidr(:local,
-                             :auto,
-                             :private,
-                             :reserved,
-                             :multicast)
+          r_args = [ :local,
+                     :auto,
+                     :private,
+                     :reserved,
+                     :multicast ]
         else
           raise ArgumentError, "provided symbol is unknown: #{obj.to_s}"
         end
-        return obj.map { |addr| NetAddr::CIDR.create(addr) } if obj.is_a?(Array)
+        
+        unless r_args.nil?
+          r_args.push :include_origins if include_origins
+          return obj_to_cidr(*r_args)
+        end
+        
+        # strange types here
+        if obj.is_a?(Array)
+          return obj.map do |addr|
+            r = NetAddr::CIDR.create(addr)
+            r.tag[:Originator] = addr if include_origins
+            r
+          end
+        end
       end
       
       # URI or something that responds to host method - fetch string
@@ -358,11 +393,12 @@ module IPAccess
       when :IPAddr                                          # IPAddr - fetch IP/mask string
         obj = obj.native.inspect.split[1].chomp('>')[5..-1]
       when :IPAddrList                                      # IPAddrList - pass array to parse
-        return obj_to_cidr(obj.to_a)
+        return include_origins ? obj_to_cidr(obj.to_a, :include_origins) : obj_to_cidr(obj.to_a)
       end
       
       # string or similar - immediate generation
       if obj.respond_to?(:to_s)
+        hostmask = ""
         obj = obj.to_s
         # URI
         if obj =~ /^[^:]+:\/\/(.*)/
@@ -373,9 +409,13 @@ module IPAccess
           else
             obj = obj.split(':').first
           end
+        # host(s) and a mask
+        elsif obj =~ /^([^\/]+)(\/((\d{1,2}$)|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b$)))/
+          obj = $1
+          hostmask = $2
         end
         begin
-          obj = NetAddr::CIDR.create(obj.split('%').first)
+          r = NetAddr::CIDR.create(obj.split('%').first + hostmask)
         rescue NetAddr::ValidationError
           begin
             addresses = Resolv::getaddresses(obj)
@@ -384,7 +424,9 @@ module IPAccess
           end
           addresses.map! do |addr|
             begin
-              NetAddr::CIDR.create(addr.split('%').first)
+              r = NetAddr::CIDR.create(addr.split('%').first + hostmask)
+              r.tag[:Originator] = ori_obj
+              r
             rescue ArgumentError
               nil
             end
@@ -393,10 +435,14 @@ module IPAccess
           addresses.compact!
           return addresses
         end
+        r.tag[:Originator] = ori_obj
+        return r
       end
       
       # should never happend
-      return obj.is_a?(NetAddr::CIDR) ? [obj.dup] : [NetAddr::CIDR.create(obj.to_s)]
+      r = obj.is_a?(NetAddr::CIDR) ? obj.dup : NetAddr::CIDR.create(obj.to_s)
+      r.tag[:Originator] = ori_obj
+      return r
     end
     
     # This method calls IPAccess::List.obj_to_cidr
@@ -1024,7 +1070,7 @@ module IPAccess
     def denied(*args)
       found = []
       return found if empty?
-      nodup = args.last.is_a?(TrueClass) ? args.pop : false 
+      nodup = args.last.is_a?(TrueClass) ? args.pop : false
       addrs = obj_to_cidr(*args)
       addrs.each do |addr|
         pair = denied_cidr(addr, nodup)
@@ -1079,6 +1125,13 @@ module IPAccess
     # and/or address(-es) that are not necessarily represented
     # by CIDR objects.
     #
+    # If the symbol +:include_origin+ is present as one of
+    # the given arguments then underlying, resolving method
+    # will attach each original, passed in object to corresponding
+    # NetAddr::CIDR used while checking. These objects may be
+    # accessed using <tt>tag[:Originator]</tt> called on each resulting
+    # object.
+    #
     # You should avoid passing hostnames as arguments since
     # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
@@ -1100,6 +1153,13 @@ module IPAccess
     # 
     # See obj_to_cidr description for more info about arguments
     # you may pass to it.
+    # 
+    # If the symbol +:include_origin+ is present as one of
+    # the given arguments then underlying, resolving method
+    # will attach each original, passed in object to corresponding
+    # NetAddr::CIDR used while checking. These objects may be
+    # accessed using <tt>tag[:Originator]</tt> called on each resulting
+    # object.
     # 
     # You should avoid passing hostnames as arguments since
     # DNS is not reliable and responses may change with time,

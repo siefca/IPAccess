@@ -26,9 +26,21 @@
  
 class IPAccessDenied < SecurityError
   
-  # Object passed during throwing an exception.
+  # Object passed during raising an exception.
   # Usually a network object that is used
   # to communicate with prohibited peer.
+  #
+  # === Patched network objects
+  # 
+  # Patched network classes and object
+  # along with network classes' variants
+  # with access controll enabled make
+  # use of this field.
+  # 
+  # In case of server objects it contains
+  # newly created socket that was checked.
+  # This attribute may be +nil+, which means
+  # that the exception happened during initialization.
   
   attr_reader :originator
   
@@ -57,9 +69,9 @@ class IPAccessDenied < SecurityError
   # the exception to happend.
   
   def initialize(addr, rule=nil, acl=nil, obj=nil)
-    @peer_ip = addr
-    @rule = rule
-    @acl = acl
+    @peer_ip    = addr
+    @rule       = rule
+    @acl        = acl
     @originator = obj
   end
   
