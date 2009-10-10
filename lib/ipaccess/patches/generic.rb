@@ -32,8 +32,8 @@ module IPAccess
     # This is global access set, used by
     # default by all socket handling
     # classes with enabled IP access control.
-    # It is present as single instance called IPAccess::Set.Global
-    # only when patching engine is loaded.
+    # It has just one instance called IPAccess::Set.Global.
+    # It is present only when patching engine is loaded.
 
     class GlobalClass < Set
       
@@ -70,7 +70,7 @@ module IPAccess
     Global.name = 'global'
     
     # This method returns +true+ when
-    # the current instance is not real IPAccess::Set object
+    # the current instance is not regular IPAccess::Set object
     # but a reference to the IPAccess::Set.Global,
     # which should be reached by that name. It returns
     # +false+ in case of regular IPAccess::Set objects.
@@ -723,7 +723,7 @@ module IPAccess
       # closing connection. Classes should
       # override it.
       
-      def close_connection
+      def terminate
         self.close unless self.closed?
       end
             
@@ -731,18 +731,18 @@ module IPAccess
       # session/connection for network object
       # if +close_on_deny+ member is set to +true+
       
-      def try_close_connection
-        close_connection if @close_on_deny
+      def try_terminate
+        terminate if @close_on_deny
         return nil
       end
-      private :try_close_connection
+      private :try_terminate
       
       # helper for dropping unwanted connections
-      def try_close_subsocket(sock)
+      def try_terminate_subsocket(sock)
         sock.close if (@close_on_deny && !sock.closed?)
         return nil
       end
-      private :try_close_subsocket
+      private :try_terminate_subsocket
       
       
       # This method will be called if
