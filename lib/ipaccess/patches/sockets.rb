@@ -80,21 +80,21 @@ module IPAccess::Patches
         # accept on steroids.
         define_method :accept do |*args|
           ret = orig_accept.bind(self).call(*args)
-          real_acl.check_in_socket(ret.first) { try_close_subsocket(ret.first) }
+          real_acl.check_in_socket(ret.first, ret.first) { try_terminate_subsocket(ret.first) }
           return ret
         end
 
         # accept_nonblock on steroids.
         define_method :accept_nonblock do |*args|
           ret = orig_accept_nonblock.bind(self).call(*args)
-          real_acl.check_in_socket(ret.first)  { try_close_subsocket(ret.first) }
+          real_acl.check_in_socket(ret.first, ret.first)  { try_terminate_subsocket(ret.first) }
           return ret
         end
 
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
           ret = orig_accept.bind(self).call(*args)
-          real_acl.check_in_sockaddr(ret.last) { try_close_subsocket(Socket.for_fd(ret.first)) }
+          real_acl.check_in_sockaddr(ret.last, ret.last) { try_terminate_subsocket(Socket.for_fd(ret.first)) }
           return ret
         end
 
@@ -105,8 +105,9 @@ module IPAccess::Patches
             return orig_connect.bind(self).call(*args)
           else
             ret = orig_connect.bind(self).call(*args)
-            real_acl.check_out_socket(ret)
+            real_acl.check_out_socket(ret, self)
           end
+          return ret
         end
 
         # recvfrom on steroids.
@@ -115,7 +116,7 @@ module IPAccess::Patches
           peer_ip = ret[1][3]
           family = ret[1][0]
           if (family == "AF_INET" || family == "AF_INET6")
-            real_acl.check_in_ipstring(peer_ip) { try_close_connection }
+            real_acl.check_in_ipstring(peer_ip, self) { try_terminate }
           end
           return ret
         end
@@ -126,7 +127,7 @@ module IPAccess::Patches
           peer_ip = ret[1][3]
           family = ret[1][0]
           if (family == "AF_INET" || family == "AF_INET6")
-            real_acl.check_in_ipstring(peer_ip) { try_close_connection }
+            real_acl.check_in_ipstring(peer_ip, self) { try_terminate }
           end
           return ret
         end
@@ -181,7 +182,7 @@ module IPAccess::Patches
         # connect on steroids.
         define_method :connect do |*args|
           peer_ip = self.class.getaddress(args.shift)
-          real_acl.check_out_sockaddr(peer_ip)
+          real_acl.check_out_sockaddr(peer_ip, self)
           return orig_connect.bind(self).call(peer_ip, *args)
         end
 
@@ -190,7 +191,7 @@ module IPAccess::Patches
           hostname = args[2]
           return orig_send.bind(self).call(*args) if hostname.nil?
           peer_ip = self.class.getaddress(hostname)
-          real_acl.check_out_sockaddr(peer_ip)
+          real_acl.check_out_sockaddr(peer_ip, self)
           args[2] = peer_ip
           return orig_send.bind(self).call(*args)
         end
@@ -201,7 +202,7 @@ module IPAccess::Patches
           peer_ip = ret[1][3]
           family = ret[1][0]
           if (family == "AF_INET" || family == "AF_INET6")
-            real_acl.check_in_ipstring(peer_ip)
+            real_acl.check_in_ipstring(peer_ip, self)
           end
           return ret
         end
@@ -212,7 +213,7 @@ module IPAccess::Patches
           peer_ip = ret[1][3]
           family = ret[1][0]
           if (family == "AF_INET" || family == "AF_INET6")
-            real_acl.check_in_ipstring(peer_ip)
+            real_acl.check_in_ipstring(peer_ip, self)
           end
           return ret
         end
@@ -274,7 +275,7 @@ module IPAccess::Patches
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          real_acl.check_out_socket(self) { try_close_connection }
+          real_acl.check_out_socket(self, self) { try_terminate }
           return nil
         end
         
@@ -330,7 +331,7 @@ module IPAccess::Patches
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          real_acl.check_out_socket(self) { try_close_connection }
+          real_acl.check_out_socket(self, self) { try_terminate }
           nil
         end
         
@@ -382,27 +383,27 @@ module IPAccess::Patches
         # accept on steroids.
         define_method :accept do |*args|
           r = orig_accept.bind(self).call(*args)
-          real_acl.check_in_socket(r) { try_close_subsocket(r) }
+          real_acl.check_in_socket(r, r) { try_terminate_subsocket(r) }
           return r
         end
 
         # accept_nonblock on steroids.
         define_method :accept_nonblock do |*args|
           r = orig_accept_nonblock.bind(self).call(*args)
-          real_acl.check_in_socket(r) { try_close_subsocket(r) }
+          real_acl.check_in_socket(r, r) { try_terminate_subsocket(r) }
           return r
         end
         
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
           r = orig_sysaccept.bind(self).call(*args)
-          real_acl.check_in_fd(r) { try_close_subsocket(Socket.for_fd(r)) }
+          real_acl.check_in_fd(r, r) { try_terminate_subsocket(Socket.for_fd(r)) }
           return r
         end
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          real_acl.check_in_socket(self) { try_close_connection }
+          real_acl.check_out_socket(self, self) { try_terminate }
           return nil
         end
         
@@ -489,14 +490,14 @@ module IPAccess::Patches
     
     def try_check_out_socket_acl(obj, used_acl)
       late_sock = real_socket(obj)
-      used_acl.check_out_socket(late_sock) { try_close_connection } unless late_sock.nil?
+      used_acl.check_out_socket(late_sock, late_sock) { try_terminate } unless late_sock.nil?
       return obj
     end
     private :try_check_out_socket_acl
 
     def try_check_in_socket_acl(obj, used_acl)
       late_sock = real_socket(obj)
-      used_acl.check_in_socket(late_sock) { try_close_connection } unless late_sock.nil?
+      used_acl.check_in_socket(late_sock, late_sock) { try_terminate } unless late_sock.nil?
       return obj
     end
     private :try_check_in_socket_acl
