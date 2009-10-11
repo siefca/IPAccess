@@ -415,7 +415,8 @@ module IPAccess
           hostmask = $2
         end
         begin
-          r = NetAddr::CIDR.create(obj.split('%').first + hostmask)
+          ipa = obj.split('%').first.to_s
+          r = NetAddr::CIDR.create(ipa + hostmask)
         rescue NetAddr::ValidationError
           begin
             addresses = Resolv::getaddresses(obj)

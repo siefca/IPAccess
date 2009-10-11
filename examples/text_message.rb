@@ -2,6 +2,16 @@ $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
 require 'ipaccess/socket'
 
+s = TCPSocket.new('randomseed.pl', 80)
+cidr  = IPAccess::List.obj_to_cidr(s).first
+cidr.tag[:Originator] = s
+orig  = IPAccess::Set::Global.send(:setup_originator, cidr, self)
+puts "CIDR is #{cidr}"
+puts "originator is: #{orig}"
+puts "cidr's originator tag is: #{cidr.tag[:Originator]}"
+
+exit 0
+
 IPAccess::Set::Global.output.blacklist 'randomseed.pl/16'
 
 begin

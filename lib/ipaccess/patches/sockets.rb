@@ -315,7 +315,7 @@ module IPAccess::Patches
           self.acl = valid_acl?(args.last) ? args.pop : :global
           args[0] = self.class.getaddress(args[0])
           if @close_on_deny
-            real_acl.check_out_ipstring(args[0], self)
+            real_acl.check_out_ipstring(args[0], :none)
             orig_initialize.bind(self).call(*args, &block)
           else
             orig_initialize.bind(self).call(*args, &block)
@@ -332,7 +332,7 @@ module IPAccess::Patches
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           real_acl.check_out_socket(self, self) { try_terminate }
-          nil
+          return nil
         end
         
         # This method returns default access list indicator
