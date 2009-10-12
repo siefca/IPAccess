@@ -7,9 +7,12 @@ docs/LEGAL
 docs/LGPL-LICENSE
 docs/README
 docs/TODO
+docs/images/ipaccess_ac_for_args.png
+docs/images/ipaccess_ac_for_socket.png
 docs/images/ipaccess_logo.png
 docs/images/ipaccess_relations.png
 docs/images/ipaccess_setup_origin.png
+docs/images/ipaccess_setup_origin_tab.png
 docs/images/ipaccess_view.png
 examples/ftp.rb
 examples/http.rb
