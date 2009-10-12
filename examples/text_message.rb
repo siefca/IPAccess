@@ -2,13 +2,26 @@ $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
 require 'ipaccess/socket'
 
+# work on to_cidrs and ensure that NetAddr::CIDR is never
+# used as originator
+
 s = TCPSocket.new('randomseed.pl', 80)
-cidr  = IPAccess::List.obj_to_cidr(s).first
-cidr.tag[:Originator] = s
-orig  = IPAccess::Set::Global.send(:setup_originator, cidr, self)
-puts "CIDR is #{cidr}"
-puts "originator is: #{orig}"
-puts "cidr's originator tag is: #{cidr.tag[:Originator]}"
+cidr  = IPAccess::List.to_cidrs(s).first
+cidr  = IPAccess::List.to_cidrs(cidr, :include_origins).first
+cidr = cidr.first
+puts "cidr's originator tag is: #{cidr.tag[:Originator]}\n\n"
+
+secik = IPAccess::Set.new
+secik.input.blacklist 'randomseed.pl/16'
+
+begin
+  secik.check_in_cidr(cidr)
+  #secik.check_in_socket(s)
+rescue Exception => e
+  puts "CIDR is #{cidr}"
+  puts "originator is: #{e.originator}"
+  puts "cidr's originator tag is: #{cidr.tag[:Originator]}"
+end
 
 exit 0
 

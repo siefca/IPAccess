@@ -6,7 +6,7 @@
 
 * 2 bugfixes
 
-  * IPAccess.obj_to_cidr now properly converts IPAddrList objects to an array of NetAddr::CIDR objects
+  * IPAccess.to_cidrs now properly converts IPAddrList objects to an array of NetAddr::CIDR objects
   * IPAccess.check_fd returns file descriptor when IP is permitted instead of temporary socket object
 
 === 0.0.1 / 2009-06-06

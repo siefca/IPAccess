@@ -8,7 +8,7 @@
 # If the access list selector is omited it
 # operates on the default access list that certain
 # kind of network object uses. The allowed format of address
-# is the same as for IPAccess::List.obj_to_cidr.
+# is the same as for IPAccess::List.to_cidrs.
 # This method will not add nor remove any
 # whitelisted item.
 # 

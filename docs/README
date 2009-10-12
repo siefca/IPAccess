@@ -24,7 +24,7 @@ control enabled that also comes with this library.
 * Maintaining IP access lists based on rules (see IPAccess::List).
 * Grouping input/output access lists into sets (see IPAccess::Set).
 * Automating access checks and raising exceptions (see IPAccess::Set#check_in).
-* Many formats of IP addresses accepted (see IPAccess::List.obj_to_cidr).
+* Many formats of IP addresses accepted (see IPAccess::List.to_cidrs).
 * Variants of socket handling classes with IP access control (see IPAccess::Socket and IPAccess::Net).
 * Methods for patching native socket handling classes (see IPAccess.arm).
 * Methods for patching single network objects (see IPAccess.arm).
