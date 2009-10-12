@@ -102,7 +102,9 @@ module IPAccess
   # out the original object. By object containing IP address
   # we mean NetAddr::CIDR kind of object that is used by underlying
   # routines to check access and reported during exception raising
-  # as +peer_ip+ attribute.
+  # as +peer_ip+ attribute. Checking methods will use private method
+  # setup_originator to decide which object should be choosen
+  # as the originator.
   #
   # ==== Usage examples
   # 
@@ -273,41 +275,44 @@ module IPAccess
     # This method helps with setting up
     # a proper originator for an object
     # that is checked against access set.
-    # It tries to figure out
-    # the originating object for the
-    # given +cidr+ argument.
-    # If the originator (+orig+) is given (is
-    # not +nil+) and +cidr+ doesn't contain
-    # +:Originator+ tag attached, then the
-    # value of +orig+ is used. The +:Originator+
-    # tag is also set within +cidr+ in such
-    # case. If the +orig+ is not set
-    # then this method tries to fetch
-    # originator from +cidr+'s tag.
-    # If the additionsl +net_obj+ argument
-    # is set then it will be used as
-    # the original object in case of failure
-    # during mentioned fetching. If the +orig+
+    # Originator is the original object
+    # that uses a checked IP address.
+    # This definition is very general and that's
+    # why there is a need for a method
+    # like this, that will try to set it
+    # up properly.
+    # The +cidr+ argument (containing the IP
+    # address) should be a kind of
+    # NetAddr::CIDR. It may also contain a special
+    # tag inside called +:Originator+. Any
+    # existing information about the originator contained
+    # in this object's tag will never be overwritten.
+    # However, it may not be used if second argument,
+    # +orig+ is given.
+    # This +orig+ argument should be an object
+    # to which the IP address from +cidr+ relates to.
+    # If it's not given then the value found in
+    # the +cidr+'s originator tag is assigned to it.
+    # The last argument, +net_obj+ is intended
+    # to be "a rescue object" that will be treated
+    # as originator if everything else fails. If the +orig+
     # is set to +:none+ then the original object will
     # always be returned as +nil+ without affecting
     # tag inside +cidr+.
     # 
-    # +cidr+ argument should be a kind of
-    # NetAddr::CIDR. Any information
-    # about originator contained
-    # in this object's tag will never be overwritten.
-    # However, it may not be used. Second argument, +orig+
-    # should be an object from which the IP
-    # address contained in +cidr+ comes from.
-    # If it's not given then the value found in
-    # the +cidr+'s originator tag is assigned to it.
-    # The last argument, +net_obj+ is intended
-    # to be "a rescue object" the will be treated
-    # as originator if everything fails.
+    # === Workflow
     # 
-    # For better understanding how it works you may
+    # For better understanding
+    # how it works you may
     # look at the workflow diagram:
+    # 
     # link:images/ipaccess_setup_origin.png
+    #
+    # To predict the logic in an easy way
+    # you may also find the input/output states
+    # table useful:
+    # 
+    # link:images/ipaccess_setup_origin_tab.png
     #
     # After calling this method you may find
     # a reference to two original objects.
@@ -319,7 +324,7 @@ module IPAccess
     # to an underlying object that had been
     # used to fetch IP from (e.g. TCPSocket).
     # 
-    # This method returns an originator.
+    # This method returns the originator or +nil+.
     
     def setup_originator(cidr, orig=nil, net_obj=nil)
       if orig.nil?
@@ -345,9 +350,15 @@ module IPAccess
     # CIDR objects. If access is denied it raises an exception
     # reporting first rejected IP. If access is granted it
     # returns an array containing the given argument(s).
-    # 
     # See IPAccess::List.obj_to_cidr description for more info
     # about arguments you may pass to it.
+    # 
+    # === Workflow
+    # 
+    # In order to understand this method's logic
+    # properly you may look at the diagram:
+    # 
+    # link:images/ipaccess_ac_for_args.png
     
     def check(list, exc, orig, *args) # :yields: address, rule, acl, args, orig
       return args if list.empty?
@@ -365,6 +376,11 @@ module IPAccess
     protected :check
     
     # This method checks access for a socket.
+    #  
+    # In order to understand this method's logic
+    # properly you may look at the diagram:
+    # 
+    # link:images/ipaccess_ac_for_socket.png
     
     def check_socket(list, exc, socket, orig=nil) # :yields: address, rule, acl, socket, orig
       if (list.empty? || !socket.respond_to?(:getpeername))
@@ -465,8 +481,8 @@ module IPAccess
     # object that will be passed to the exception raising
     # routine and then placed in an exception as the
     # +IPAccessDenied.originator+ attribute.
-    # See IPAccess::List.obj_to_cidr description for more info
-    # about arguments you may pass to this method.
+    # If access is granted it
+    # returns an array containing the given argument(s).
     # 
     # === Tracking original network objects
     # 
@@ -476,17 +492,16 @@ module IPAccess
     # passed as +originator+ attribute of the
     # exception's object. That allows you to know
     # the original object that had been checked
-    # when catching the exception.
-    # 
-    # Be aware that NetAddr::CIDR objects that contain IP
-    # addresses may also have originator set inside (check
-    # <tt>tag[:Originator]</tt>) and that information will be
-    # picked up in case of that kind of objects.
+    # when catching the exception. Be aware that
+    # NetAddr::CIDR kind of objects that contain IP
+    # addresses may also have the originator set inside (check
+    # <tt>tag[:Originator]</tt>) and it will be
+    # copied in case of that kind of objects.
     # If you want to set your own object as originator
     # but still would like address resolving routines
     # to mark any matching address with original object
     # that the IP had been fetched from, you may add
-    # special symbol +:include_origins+ to the argument
+    # special symbol +:include_origins+ to the arguments'
     # list.
     # 
     # === Passing a block
@@ -512,68 +527,20 @@ module IPAccess
     # also try more efficient access checking
     # methods if your object contains information about
     # single IP and is a known kind.
+    # 
+    # See the protected check method description for more
+    # info about internals. See IPAccess::List.obj_to_cidr
+    # description for more info about arguments you may
+    # pass to this method.
     
     def check_in(obj, *args, &block) # :yields: address, rule, access_list, args, object
       args.push :include_origins if obj.nil?
       check(@input, IPAccessDenied::Input, obj, *args, &block)
     end
     
-    # This method checks access for the given objects
-    # (containing IP information) against output access list.
-    # If the access for any address is denied then
-    # the IPAccessDenied::Output exception is raised for that
-    # one IP. If access is granted this method returns an array
-    # containing the given arguments. First argument is an optional
-    # object that will be passed to the exception raising
-    # routine and then placed in an exception as the
-    # +IPAccessDenied.originator+ attribute.
-    # See IPAccess::List.obj_to_cidr description for more info
-    # about arguments you may pass to this method.
-    # 
-    # === Tracking original network objects
-    # 
-    # If the first argument is +nil+ then
-    # during raising the exception the original object
-    # that IP address had been obtained from is
-    # passed as +originator+ attribute of the
-    # exception's object. That allows you to know
-    # the original object that had been checked
-    # when catching the exception.
-    # 
-    # Be aware that NetAddr::CIDR objects that contain IP
-    # addresses may also have originator set inside (check
-    # <tt>tag[:Originator]</tt>) and that information will be
-    # picked up in case of that kind of objects.
-    # If you want to set your own object as originator
-    # but still would like address resolving routines
-    # to mark any matching address with original object
-    # that the IP had been fetched from, you may add
-    # special symbol +:include_origins+ to the argument
-    # list.
-    # 
-    # === Passing a block
-    # 
-    # Optional block may be passed to this method. It will
-    # be called once, when the access for a remote IP
-    # address turns out to be denied. If it will
-    # evaluate to +true+ then no exception will be raised,
-    # even if the IP is not allowed to connect.
-    # Remember to return +false+ or +nil+ in the block
-    # to avoid random admissions.
-    # The block may take the following arguments:
-    # 
-    # * _address_ of the denied IP (kind of NetAddr::CIDR)
-    # * _rule_ that matched (kind of NetAddr::CIDR)
-    # * _access_list_ pointing to the used access list (kind of IPAccess::List)
-    # * _args_ containing an array of arguments (IP addresses)
-    # * _object_ indended to be placed as the +originator+ attribute in exception
-    # 
-    # === Faster alternatives
-    # 
-    # This method is relatively easy to use but you may
-    # also try more efficient access checking
-    # methods if your object contains information about
-    # single IP and is a known kind.
+    # This method acts the same way as check_in
+    # but uses output access list and raises
+    # the exception object called IPAccessDenied::Output.
     
     def check_out(obj, *args, &block) # :yields: address, rule, access_list, args, object
       args.push :include_origins if obj.nil?
@@ -639,7 +606,9 @@ module IPAccess
     # a pair of values (rejected IP and a matching rule).
     # If access is granted it returns the given argument.
     # 
-    # Expected argument should be kind of IPSocket.
+    # Expected argument should be kind of IPSocket. See
+    # description of the protected method check_socket
+    # for more info about internals.
     
     def check_in_socket(socket, obj=nil, &block) # :yields: address, rule, access_list, socket, object
       check_socket(@input, IPAccessDenied::Input, socket, obj, &block)

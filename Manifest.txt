@@ -9,6 +9,7 @@ docs/README
 docs/TODO
 docs/images/ipaccess_logo.png
 docs/images/ipaccess_relations.png
+docs/images/ipaccess_setup_origin.png
 docs/images/ipaccess_view.png
 examples/ftp.rb
 examples/http.rb
