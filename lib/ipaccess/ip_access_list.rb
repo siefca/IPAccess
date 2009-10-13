@@ -129,9 +129,10 @@ module IPAccess
     # occur Resolv::ResolvError exceptions.
     #
     # When an argument called +:include_origins+ is present then the method will attach
-    # original converted objects to results in the +:Origin+ field of CIDR objects.
-    # This rule applies only to simple objects or objects inside of arrays or sets.
-    # Original object can never be an array, a set or a tree.
+    # original converted objects to results as the +:Origin+ tag of CIDR objects (<tt>tag[:Origin]</tt>).
+    # This rule applies only to single objects or objects inside of arrays or sets.
+    # Objects that are kind of NetAddr::CIDR, IPAccess::Set, NetAddr::Tree and arrays will
+    # never be set as originators.
     # 
     # ==== Examples
     # 

@@ -531,6 +531,7 @@ module IPAccess
     # to avoid random admissions. The block may take
     # the following arguments:
     # 
+    # <br />
     # * _address_ of a denied IP (a kind of NetAddr::CIDR)
     # * _rule_ that matched (a kind of NetAddr::CIDR)
     # * _access_list_ pointing to a used access list (kind of IPAccess::List)
@@ -597,6 +598,7 @@ module IPAccess
     # to avoid random admissions. The block may take
     # the following arguments:
     # 
+    # <br />
     # * _address_ of a denied IP (a kind of NetAddr::CIDR)
     # * _rule_ that matched (a kind of NetAddr::CIDR)
     # * _access_list_ pointing to a used access list (kind of IPAccess::List)
