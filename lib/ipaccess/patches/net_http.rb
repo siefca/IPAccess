@@ -115,9 +115,9 @@ module IPAccess::Patches::Net
         
         # initialize on steroids.
         define_method  :__ipacall__initialize do |block, *args|
-          self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           @close_on_deny = true
           args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           orig_initialize.bind(self).call(*args, &block)
         end
         

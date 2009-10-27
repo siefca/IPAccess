@@ -9,8 +9,6 @@ IPAccess::Set::Global.output.blacklist 'randomseed.pl'
 acl = IPAccess::Set.new
 acl.output.blacklist 'randomseed.pl'
 
-
-
 ###### Example cases
 
 # Using IPAccess::Net::FTP variant instead of Net::FTP
