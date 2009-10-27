@@ -58,17 +58,22 @@ module IPAccess::Patches::Net
             
             # overload HTTP.new() since it's not usual.
         	  define_method :new do |address, *args|
-        	    late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+        	    late_close_on_deny = true
+        	    args.delete_if { |x| late_close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
+              late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
               obj = __ipac__orig_new(address, *args)
               obj.acl = late_acl unless obj.acl == late_acl
+              obj.close_on_deny = late_close_on_deny
               return obj
             end
             
             # overwrite HTTP.start()
             define_method :__ipacall__start do |block, address, *args|
               acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+              late_on_deny = nil
+        	    args.delete_if { |x| late_on_deny = x if (x.is_a?(Symbol) && x == :opened_on_deny) }
               port, p_addr, p_port, p_user, p_pass = *args
-              new(address, port, p_addr, p_port, p_user, p_pass, acl).start(&block)
+              new(address, port, p_addr, p_port, p_user, p_pass, acl, late_on_deny).start(&block)
             end
             
             # block passing wrapper for Ruby 1.8
@@ -79,15 +84,17 @@ module IPAccess::Patches::Net
             # overwrite HTTP.get_response()
         	  define_method :__ipacall__get_response do |block, uri_or_host, *args|
         	    late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+        	    late_on_deny = nil
+        	    args.delete_if { |x| late_on_deny = x if (x.is_a?(Symbol) && x == :opened_on_deny) }
         	    path, port = *args
         	    if path
                 host = uri_or_host
-                new(host, (port || Net::HTTP.default_port), late_acl).start { |http|
+                new(host, (port || Net::HTTP.default_port), late_acl, late_on_deny).start { |http|
                   return http.request_get(path, &block)
                 }
               else
                 uri = uri_or_host
-                new(uri.host, uri.port, late_acl).start { |http|
+                new(uri.host, uri.port, late_acl, late_on_deny).start { |http|
                   return http.request_get(uri.request_uri, &block)
                 }
               end
@@ -109,6 +116,8 @@ module IPAccess::Patches::Net
         # initialize on steroids.
         define_method  :__ipacall__initialize do |block, *args|
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+          @close_on_deny = true
+          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
           orig_initialize.bind(self).call(*args, &block)
         end
         
@@ -141,25 +150,15 @@ module IPAccess::Patches::Net
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          begin
-            try_arm_and_check_socket @socket
-          rescue IPAccessDenied
-            begin
-              self.finish
-            rescue IOError
-            end
-            raise
-          end
+          try_arm_and_check_socket @socket
           nil
         end
         
-        # SINGLETON HOOKS
-        def __ipa_singleton_hook(acl=nil)
-          self.acl = acl
-          self.acl_recheck
-        end # singleton hooks
-        private :__ipa_singleton_hook
-        
+        # this hook terminates connection
+        define_method :terminate do
+          self.finish if self.started?
+        end
+      
       end # base.class_eval
 
     end # self.included

@@ -42,7 +42,7 @@ class IPAccessDenied < SecurityError
   # This attribute may be +nil+, which means
   # that the exception happened during initialization.
   
-  attr_reader :originator
+  attr_accessor :originator
   
   # Access list's rule that matched as
   # an NetAddr::CIDR object.

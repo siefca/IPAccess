@@ -57,8 +57,10 @@ module IPAccess::Patches::Net
             # overwrite SMTP.start()
             define_method :__ipacall__start do |block, address, *args|
               late_acl = IPAccess.valid_acl?(args.last) ? args.smtp : :global
+              late_on_deny = nil
+              args.delete_if { |x| late_on_deny = x if (x.is_a?(Symbol) && x == :opened_on_deny) }
               port, helo, user, secret, authtype = *args
-              obj = new(address, port, late_acl)
+              obj = new(address, port, late_acl, late_on_deny)
               obj.start(helo, user, secret, authtype, &block)
             end
             
@@ -76,6 +78,8 @@ module IPAccess::Patches::Net
         
         # initialize on steroids.
         define_method  :initialize do |addr, *args|
+          @close_on_deny = true
+          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           obj = orig_initialize.bind(self).call(addr, *args)
           self.acl_recheck
@@ -103,25 +107,15 @@ module IPAccess::Patches::Net
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          begin
-            try_arm_and_check_socket @socket
-          rescue IPAccessDenied
-            begin
-              self.finish if started?
-            rescue IOError
-            end
-            raise
-          end
+          try_arm_and_check_socket @socket
           nil
         end
         
-        # SINGLETON HOOKS
-        def __ipa_singleton_hook(acl=nil)
-          self.acl = acl
-          self.acl_recheck
-        end # singleton hooks
-        private :__ipa_singleton_hook
-        
+        # this hook terminates connection
+        define_method :terminate do
+          self.finish if started?
+        end
+                
       end # base.class_eval
 
     end # self.included

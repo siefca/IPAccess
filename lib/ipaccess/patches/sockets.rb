@@ -407,6 +407,7 @@ module IPAccess::Patches
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
+          origin = self if origin.nil?
           real_acl.check_out_socket(self, self) { try_terminate }
           return nil
         end
@@ -435,7 +436,6 @@ module IPAccess::Patches
     # It returns socket object or +nil+ if something went wrong.
 
     def real_socket(obj)
-      #obj = obj.to_io if (defined?(OpenSSL) && (obj.is_a?(OpenSSL::SSL::SSLSocket) || obj.is_a?(OpenSSL::SSL::SSLServer)))
       obj = obj.io if (obj.respond_to?(:io) && obj.io.respond_to?(:getpeername))
       case obj.class.name.to_sym
       when :TCPSocket, :UDPSocket, :TCPServer, :SOCKSSocket, :Socket
@@ -464,28 +464,36 @@ module IPAccess::Patches
     private :try_arm_socket
     
     # This method tries to arm socket object and then
-    # tries to set up correct ACL to it. If the ACL
-    # had changed then it assumes underlying routines
+    # tries to set up correct ACL for it. If the ACL
+    # had changed then it assumes that underlying routines
     # took care about rechecking socket's IP against
     # correct access list (input or output). By taking
     # care we mean automatic triggering of acl_recheck
     # when object's acl= method had been called.
-    # If a wanted access set and an object's access
-    # set is no different then acl_recheck is called
-    # by force. It sets armed socket's +close_on_deny+
-    # flag to +false+.
+    # The acl_recheck will be called without any conditions.
+    # This method sets armed socket's +close_on_deny+
+    # flag to +false+. When exception will happen during check
+    # it will fill up +originator+ attribute of IPAccessDenied
+    # kind of object. The originator will be set to
+    # +self+.
     #
     # This method returns the given object.
     
     def try_arm_and_check_socket(obj, initial_acl=nil)
       late_sock = real_socket(obj)
       unless late_sock.nil?
-        initial_acl = real_acl if initial_acl.nil?
-        IPAccess.arm(late_sock, acl, :opened_on_deny) unless late_sock.respond_to?(:acl)
-        if late_sock.acl != initial_acl
-          late_sock.acl = initial_acl
-        else
-          late_sock.acl_recheck
+        begin
+          initial_acl = real_acl if initial_acl.nil?
+          IPAccess.arm(late_sock, acl, :opened_on_deny) unless late_sock.respond_to?(:acl)
+          if late_sock.acl != initial_acl
+            late_sock.acl = initial_acl
+          else
+            late_sock.acl_recheck
+          end
+        rescue IPAccessDenied => e
+          e.originator = self
+          try_terminate
+          raise
         end
       end
       return obj
@@ -494,14 +502,14 @@ module IPAccess::Patches
     
     def try_check_out_socket_acl(obj, used_acl)
       late_sock = real_socket(obj)
-      used_acl.check_out_socket(late_sock, late_sock) { try_terminate } unless late_sock.nil?
+      used_acl.check_out_socket(late_sock, self) { try_terminate } unless late_sock.nil?
       return obj
     end
     private :try_check_out_socket_acl
 
     def try_check_in_socket_acl(obj, used_acl)
       late_sock = real_socket(obj)
-      used_acl.check_in_socket(late_sock, late_sock) { try_terminate } unless late_sock.nil?
+      used_acl.check_in_socket(late_sock, self) { try_terminate } unless late_sock.nil?
       return obj
     end
     private :try_check_in_socket_acl

@@ -58,9 +58,12 @@ module IPAccess::Patches::Net
             
             # overload FTP.open()
             define_method :__ipacall__open do |block, host, *args|
+              late_close_on_deny = true
+        	    args.delete_if { |x| late_close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
               late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
               obj = orig_open(*args, &block)
               obj.acl = late_acl unless obj.acl = late_acl
+              obj.close_on_deny = late_close_on_deny
               return obj
             end
             
@@ -82,6 +85,8 @@ module IPAccess::Patches::Net
         # initialize on steroids.
         define_method  :__ipacall__initialize do |block, *args|
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+          @close_on_deny = true
+          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
           orig_initialize.bind(self).call(*args, &block)
         end
         
@@ -129,25 +134,15 @@ module IPAccess::Patches::Net
         
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          begin
-            try_arm_and_check_socket @sock
-          rescue IPAccessDenied
-            begin
-              self.close
-            rescue IOError
-            end
-            raise
-          end
-        nil
+          try_arm_and_check_socket @sock
+          nil
         end
         
-        # SINGLETON HOOKS
-        def __ipa_singleton_hook(acl=nil)
-          self.acl = acl
-          self.acl_recheck
-        end # singleton hooks
-        private :__ipa_singleton_hook
-        
+        # this hook terminates connection
+        define_method :terminate do
+          self.close unless self.closed?    
+        end
+      
       end # base.class_eval
 
     end # self.included

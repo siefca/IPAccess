@@ -506,13 +506,14 @@ module IPAccess
     # Exception raises when some IP is denied.
     # That IP comes from one, particular object
     # passed as one of the arguments. This object
-    # is passed as +originator+ attribute of the exception.
+    # is passed as +originator+ attribute of the
+    # exception.
     # That allows you to find the original object
-    # that had been checked and not just its
-    # representation in a form of NetAddr::CIDR kind
-    # of object.
+    # that had been checked, not just its internal
+    # representation (+peer_ip+ attribute) that
+    # is a kind of NetAddr::CIDR.
     # Be aware that NetAddr::CIDR objects passed
-    # as arguments for checking may also have
+    # as arguments may also have
     # originators set inside (check <tt>tag[:Originator]</tt>).
     # In that case the originator is simply copied and not set to
     # any CIDR. Also remember that NetAddr::CIDR objects
@@ -537,6 +538,7 @@ module IPAccess
     # * _access_list_ pointing to a used access list (kind of IPAccess::List)
     # * _args_ containing an array of arguments (IP addresses)
     # * _orig_ indended to be placed as the +originator+ attribute in an exception
+    # <br />
     # 
     # === Faster alternatives
     # 
@@ -604,6 +606,7 @@ module IPAccess
     # * _access_list_ pointing to a used access list (kind of IPAccess::List)
     # * _args_ containing an array of arguments (IP addresses)
     # * _orig_ indended to be placed as the +originator+ attribute in an exception
+    # <br />
     # 
     # See the protected check_cidr method description for more
     # info about internals. See IPAccess::List.to_cidrs
@@ -654,8 +657,8 @@ module IPAccess
     end
     
     # This method works the same way as check_in_ipstring
-    # tests sockaddr structure.
-        
+    # but tests sockaddr structure.
+    
     def check_in_sockaddr(sockaddr, orig=nil, &block) # :yields: address, rule, access_list, sockaddr, orig
       check_sockaddr(@input, IPAccessDenied::Input, sockaddr, orig, &block)
     end
@@ -669,7 +672,7 @@ module IPAccess
     end
     
     # This method works the same way as check_in_ipstring
-    # tests file descriptor.
+    # but tests file descriptor.
         
     def check_in_fd(fd, orig=nil, &block) # :yields: address, rule, access_list, fd, orig
       check_fd(@input, IPAccessDenied::Input, fd, orig, &block)

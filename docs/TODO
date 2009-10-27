@@ -2,7 +2,7 @@
 
 - add support for reason when adding to list. Use NetAddr::CIDR fields.
 - TEST getaddress against known error with getaddresses (that has workaround)
-- fix patches for high-level network objects according to new semantics
+- TEST FTP.open with a block!!!!!!!!!!!!!
 
 === Specification
 

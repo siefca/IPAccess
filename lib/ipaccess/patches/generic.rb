@@ -316,8 +316,7 @@ module IPAccess
       def acl_recheck
         ;
       end
-        
-    
+      
       # This method return current access set for an object.
       # 
       # Ifaccess set (@acl) is somehow set to +nil+
@@ -338,7 +337,7 @@ module IPAccess
       # This method returns default access list indicator
       # used by protected object; usually +:input+ or
       # +:output+.
-    
+      
       def default_list; :output end
       
       # :call-seq:
@@ -750,10 +749,11 @@ module IPAccess
       
       def __ipa_singleton_hook(acl=nil, close_on_deny=true)
         @close_on_deny = close_on_deny
+        acl = @options["ACL"] if (acl.nil? && instance_variable_defined?(:@options) && @options.respond_to?(:has_key?))
         self.acl = acl
       end
       private :__ipa_singleton_hook
-            
+      
     end # module ACL
   
   end # module Patches

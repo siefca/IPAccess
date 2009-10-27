@@ -57,9 +57,11 @@ module IPAccess::Patches::Net
             # overwrite POP3.start()
             define_method :__ipacall__start do |block, address, *args|
               late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
+              late_on_deny = nil
+              args.delete_if { |x| late_on_deny = x if (x.is_a?(Symbol) && x == :opened_on_deny) }
               port, account, password, isapop = *args
               isapop = false if isapop.nil?
-              obj = new(address, port, isapop, late_acl)
+              obj = new(address, port, isapop, late_acl, late_on_deny)
               obj.start(account, password, &block)
             end
             
@@ -70,7 +72,7 @@ module IPAccess::Patches::Net
             
             # overwrite POP3.delete_all()
             define_method :__ipacall__delete_all do |block, address, *args|
-              start(address, *args) {|pop|
+              start(address, *args) { |pop|
                 pop.delete_all(&block)
               }
             end
@@ -97,7 +99,7 @@ module IPAccess::Patches::Net
             def foreach(address, *args, &block)
               __ipacall__foreach(block, address, *args)
             end
-                        
+            
       	  end
       	
     	  end # class methods
@@ -108,6 +110,8 @@ module IPAccess::Patches::Net
         
         # initialize on steroids.
         define_method  :initialize do |addr, *args|
+          @close_on_deny = true
+          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           obj = orig_initialize.bind(self).call(addr, *args)
           self.acl_recheck
@@ -140,25 +144,16 @@ module IPAccess::Patches::Net
                 
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
-          begin
-            try_arm_and_check_socket @socket
-          rescue IPAccessDenied
-            begin
-              self.finish if started?
-            rescue IOError
-            end
-            raise
-          end
+          try_arm_and_check_socket @socket
           nil
         end
         
-        # SINGLETON HOOKS
-        def __ipa_singleton_hook(acl=nil)
-          self.acl = acl
-          self.acl_recheck
-        end # singleton hooks
-        private :__ipa_singleton_hook
-        
+        # this hook terminates connection
+        define_method :terminate do
+          self.finish if started?
+          nil
+        end
+                
       end # base.class_eval
 
     end # self.included

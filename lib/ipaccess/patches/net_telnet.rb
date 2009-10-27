@@ -52,19 +52,10 @@ module IPAccess::Patches::Net
         
         orig_initialize     = self.instance_method :initialize
         
-        # this hook will be called each time @acl is reassigned
-        define_method :acl_recheck do
-          begin
-            try_arm_and_check_socket @sock
-          rescue IPAccessDenied
-            self.close
-            raise
-          end
-          nil
-        end
-        
         # initialize on steroids.
         define_method  :__ipacall__initialize do |block, *args|
+          @close_on_deny = true
+          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
           options = args.first
           options["ACL"] = args.pop if (IPAccess.valid_acl?(args.last) && options.is_a?(Hash))
           options["Host"] = "localhost" unless options.has_key?("Host")
@@ -82,19 +73,23 @@ module IPAccess::Patches::Net
         define_method :default_list do
           :output
         end
+        
+        # this hook terminates connection
+        define_method :terminate do
+          self.close unless self.closed?
+        end
+        
+        # this hook will be called each time @acl is reassigned
+        define_method :acl_recheck do
+          try_arm_and_check_socket @sock
+          nil
+        end
                 
         # block passing wrapper for Ruby 1.8
         def initialize(*args, &block)
           __ipacall__initialize(block, *args)
         end
-        
-        # SINGLETON HOOKS
-        def __ipa_singleton_hook(acl=nil)
-          self.acl = acl.nil? ? @options["ACL"] : acl
-          self.acl_recheck
-        end # singleton hooks
-        private :__ipa_singleton_hook
-        
+                
       end # base.class_eval
 
     end # self.included

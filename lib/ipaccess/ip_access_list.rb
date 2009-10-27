@@ -32,9 +32,10 @@ module IPAccess
   # === Access lists
   # 
   # IPAccess::List objects contain two <b>lists of rules</b>:
-  # <b>white list</b> and <b>black list</b>. You can add IP rules
+  # a <b>white list</b> and a <b>black list</b>. You can add IP rules
   # (both IPv4 and IPv6) to these lists. *Rules* are IP
-  # addresses with netmasks.
+  # addresses with netmasks, internally keept as NetAddr::CIDR
+  # objects.
   # 
   # === Rules management
   # 
