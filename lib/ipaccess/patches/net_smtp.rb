@@ -90,7 +90,7 @@ module IPAccess::Patches::Net
         define_method :do_start do |helo_domain, user, secret, authtype|
           prev_addr = @address
           ipaddr = TCPSocket.getaddress(@address)
-          real_acl.check_out_ipstring ipaddr
+          real_acl.check_out_ipstring(ipaddr, self)
           @address = ipaddr
           ret = orig_do_start.bind(self).call(helo_domain, user, secret, authtype)
           @address = prev_addr

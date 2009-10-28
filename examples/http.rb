@@ -17,13 +17,29 @@ acl.output.blacklist 'randomseed.pl'
 # Case 0: custom access set and patched single instance
 
 req = Net::HTTP::Get.new("/")
-htt = Net::HTTP.new(url.host, url.port)
 
-IPAccess.arm htt
+begin
 
-res = htt.start { |http|
-  http.request(req)
-}
+  htt = Net::HTTP.new(url.host, url.port)
+  IPAccess.arm htt
+
+  res = htt.start { |http|
+    http.request(req)
+  }
+
+rescue IPAccessDenied => e
+
+  puts "Message:\t#{e.message}"
+  puts
+  puts "ACL:\t\t#{e.acl}"
+  puts "Exception:\t#{e.inspect}"
+  puts "Remote IP:\t#{e.peer_ip}"
+  puts "Rule:\t\t#{e.rule}"
+  puts "Originator:\t#{e.originator}"
+  puts "CIDR's Origin:\t#{e.peer_ip.tag[:Originator]}\n\n"
+  
+end
+
 
 # Case 1: simple setup with custom ACL
 res = IPAccess::Net::HTTP.start(url.host, url.port, acl) { |http|

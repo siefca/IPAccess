@@ -126,6 +126,19 @@ class IPAccess::Socket
   
   attr_reader :acl
   
+  # This method allows you to re-check access on demad.
+  # It uses internal socket's address and access set assigned
+  # to an object. It will close your communication session
+  # before throwing an exception in case of denied access
+  # – you can prevent it by setting the flag +close_on_deny+
+  # to +false+. The flag can be set while initializing object
+  # (through argument +:opened_on_deny+) or by setting the
+  # attribute.
+  
+  def acl_recheck
+    # Real code hidden.
+  end
+  
 end
 
 ######################################################
@@ -205,6 +218,19 @@ class IPAccess::UDPSocket
   # global ACL.
   
   attr_reader :acl
+
+  # This method allows you to re-check access on demad.
+  # It uses internal socket's address and access set assigned
+  # to an object. It will close your communication session
+  # before throwing an exception in case of denied access
+  # – you can prevent it by setting the flag +close_on_deny+
+  # to +false+. The flag can be set while initializing object
+  # (through argument +:opened_on_deny+) or by setting the
+  # attribute.
+  
+  def acl_recheck
+    # Real code hidden.
+  end
 
 end
 
@@ -291,6 +317,19 @@ class IPAccess::SOCKSSocket
   
   attr_reader :acl
 
+  # This method allows you to re-check access on demad.
+  # It uses internal socket's address and access set assigned
+  # to an object. It will close your communication session
+  # before throwing an exception in case of denied access
+  # – you can prevent it by setting the flag +close_on_deny+
+  # to +false+. The flag can be set while initializing object
+  # (through argument +:opened_on_deny+) or by setting the
+  # attribute.
+  
+  def acl_recheck
+    # Real code hidden.
+  end
+  
 end
 
 ######################################################
@@ -403,6 +442,19 @@ class IPAccess::TCPSocket
     # Real code hidden.
   end
   
+  # This method allows you to re-check access on demad.
+  # It uses internal socket's address and access set assigned
+  # to an object. It will close your communication session
+  # before throwing an exception in case of denied access
+  # – you can prevent it by setting the flag +close_on_deny+
+  # to +false+. The flag can be set while initializing object
+  # (through argument +:opened_on_deny+) or by setting the
+  # attribute.
+  
+  def acl_recheck
+    # Real code hidden.
+  end
+  
 end
 
 
@@ -497,4 +549,17 @@ class IPAccess::TCPServer
   
   attr_reader :acl
 
+  # This method allows you to re-check access on demad.
+  # It uses internal socket's address and access set assigned
+  # to an object. It will close your communication session
+  # before throwing an exception in case of denied access
+  # – you can prevent it by setting the flag +close_on_deny+
+  # to +false+. The flag can be set while initializing object
+  # (through argument +:opened_on_deny+) or by setting the
+  # attribute.
+  
+  def acl_recheck
+    # Real code hidden.
+  end
+  
 end

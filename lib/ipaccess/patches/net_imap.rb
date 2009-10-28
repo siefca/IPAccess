@@ -60,7 +60,7 @@ module IPAccess::Patches::Net
           args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           ipaddr = TCPSocket.getaddress(host)
-          real_acl.check_out_ipstring ipaddr
+          real_acl.check_out_ipstring(ipaddr, :none)
           obj = orig_initialize.bind(self).call(ipaddr, *args, &block)
           @host = host
           self.acl_recheck

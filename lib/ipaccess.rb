@@ -119,6 +119,22 @@ require 'ipaccess/ip_access_set'
 # You may change it by switching +close_on_deny+
 # attribute to +false+.
 # 
+# See IPAccess::Set#check_in to know more
+# about tracking original network object
+# that caused exception to happend. Note
+# that in case of armed versions of network
+# classes (or access-contolled variants)
+# an information about original network
+# object stored within an exception will be set to
+# +nil+ if access had been denied before
+# object was initialized. This shouldn't
+# happend often, since access checks are lazy
+# (they are performed only when connection
+# is going to be made).
+# 
+# See IPAccessDenied for more information
+# about what you can do with exceptions.
+# 
 # === Sockets in armed network objects
 # 
 # Specialized Ruby's network classes,
@@ -211,7 +227,7 @@ require 'ipaccess/ip_access_set'
 # objects (NetAddr::CIDRv4[http://netaddr.rubyforge.org/classes/NetAddr/CIDRv4.html] and
 # NetAddr::CIDRv6[http://netaddr.rubyforge.org/classes/NetAddr/CIDRv6.html]). Due to
 # performance reasons any access list internally is represented as a tree
-# (NetAddr::Tree[http://netaddr.rubyforge.org/classes/NetAddr/Tree.html])
+# (slightly modified NetAddr::Tree[http://netaddr.rubyforge.org/classes/NetAddr/Tree.html])
 # with special tags assigning rules to virtual lists.
 # 
 # === Relations
