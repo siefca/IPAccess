@@ -58,21 +58,22 @@ module IPAccess::Patches::Net
             
             # overload HTTP.new() since it's not usual.
         	  define_method :new do |address, *args|
-        	    late_close_on_deny = true
-        	    args.delete_if { |x| late_close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
+        	    late_opened_on_deny = false
+        	    args.delete_if { |x| late_opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+        	    args.pop if args.last.nil?
               late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
-              #FIXME!!!!!!!!!! puts "tu #{args}"
               obj = __ipac__orig_new(address, *args)
               obj.acl = late_acl unless obj.acl == late_acl
-              obj.close_on_deny = late_close_on_deny
+              obj.opened_on_deny = late_opened_on_deny
               return obj
             end
             
             # overwrite HTTP.start()
             define_method :__ipacall__start do |block, address, *args|
-              acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
               late_on_deny = nil
         	    args.delete_if { |x| late_on_deny = x if (x.is_a?(Symbol) && x == :opened_on_deny) }
+              args.pop if args.last.nil?
+              acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
               port, p_addr, p_port, p_user, p_pass = *args
               new(address, port, p_addr, p_port, p_user, p_pass, acl, late_on_deny).start(&block)
             end
@@ -84,9 +85,10 @@ module IPAccess::Patches::Net
 
             # overwrite HTTP.get_response()
         	  define_method :__ipacall__get_response do |block, uri_or_host, *args|
-        	    late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
         	    late_on_deny = nil
         	    args.delete_if { |x| late_on_deny = x if (x.is_a?(Symbol) && x == :opened_on_deny) }
+        	    args.pop if args.last.nil?
+        	    late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
         	    path, port = *args
         	    if path
                 host = uri_or_host
@@ -116,8 +118,9 @@ module IPAccess::Patches::Net
         
         # initialize on steroids.
         define_method  :__ipacall__initialize do |block, *args|
-          @close_on_deny = true
-          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = false
+          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          args.pop if args.last.nil?
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           orig_initialize.bind(self).call(*args, &block)
         end

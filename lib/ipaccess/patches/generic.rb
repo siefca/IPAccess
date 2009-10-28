@@ -705,17 +705,17 @@ module IPAccess
       # Setting it to +false+ disables closing connection
       # when raising access denied exception
       
-      attr_accessor :close_on_deny
+      attr_accessor :opened_on_deny
       
       # Setting it to +true+ disables closing connection
       # when raising access denied exception
       
-      def open_on_deny=(x)
-        self.close_on_deny = !x
+      def close_on_deny=(x)
+        self.open_on_deny = !x
       end
       
-      def open_on_deny
-        not self.close_on_deny
+      def close_on_deny
+        not self.open_on_deny
       end
       
       # This method is universal wrapper for
@@ -728,27 +728,26 @@ module IPAccess
             
       # This method will try to close
       # session/connection for network object
-      # if +close_on_deny+ member is set to +true+
+      # if +open_on_deny+ member is set to +false+
       
       def try_terminate
-        terminate if @close_on_deny
+        terminate unless @opened_on_deny
         return nil
       end
       private :try_terminate
       
       # helper for dropping unwanted connections
       def try_terminate_subsocket(sock)
-        sock.close if (@close_on_deny && !sock.closed?)
+        sock.close unless (@opened_on_deny || sock.closed?)
         return nil
       end
       private :try_terminate_subsocket
       
-      
       # This method will be called if
       # instance is patched.
       
-      def __ipa_singleton_hook(acl=nil, close_on_deny=true)
-        @close_on_deny = close_on_deny
+      def __ipa_singleton_hook(acl=nil, open_on_deny=false)
+        @opened_on_deny = open_on_deny
         acl = @options["ACL"] if (acl.nil? && instance_variable_defined?(:@options) && @options.respond_to?(:has_key?))
         self.acl = acl
       end

@@ -54,8 +54,9 @@ module IPAccess::Patches::Net
         
         # initialize on steroids.
         define_method  :__ipacall__initialize do |block, *args|
-          @close_on_deny = true
-          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = false
+          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          args.pop if args.last.nil?
           options = args.first
           options["ACL"] = args.pop if (IPAccess.valid_acl?(args.last) && options.is_a?(Hash))
           options["Host"] = "localhost" unless options.has_key?("Host")

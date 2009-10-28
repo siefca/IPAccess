@@ -66,8 +66,9 @@ module IPAccess::Patches
         orig_sysaccept          = self.instance_method :sysaccept
         
         define_method :__ipacall__initialize do |block, *args|
-          @close_on_deny = true
-          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = false
+          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          args.pop if args.last.nil?
           self.acl = valid_acl?(args.last) ? args.pop : :global
           orig_initialize.bind(self).call(*args, &block)
           return self
@@ -101,7 +102,7 @@ module IPAccess::Patches
 
         # connect on steroids.
         define_method :connect do |*args|
-          if @close_on_deny
+          unless @opened_on_deny
             real_acl.check_out_sockaddr(args.first)
             return orig_connect.bind(self).call(*args)
           else
@@ -170,7 +171,7 @@ module IPAccess::Patches
         
         define_method :__ipacall__initialize do |block, *args|
           self.acl = valid_acl?(args.last) ? args.pop : :global
-          @close_on_deny = false
+          @opened_on_deny = true
           orig_initialize.bind(self).call(*args, &block)
           return self
         end
@@ -256,11 +257,12 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :__pacall__initialize do |block, *args|
-          @close_on_deny = true
-          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = false
+          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          args.pop if args.last.nil?
           self.acl = valid_acl?(args.last) ? args.pop : :global
           args[0] = self.class.getaddress(args[0])
-          if @close_on_deny
+          unless @opened_on_deny
             real_acl.check_out_ipstring args[0]
             orig_initialize.bind(self).call(*args, block)
           else
@@ -313,11 +315,12 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :__ipacall__initialize do |block, *args|
-          @close_on_deny = true
-          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = false
+          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          args.pop if args.last.nil?
           self.acl = valid_acl?(args.last) ? args.pop : :global
           args[0] = self.class.getaddress(args[0])
-          if @close_on_deny
+          unless @opened_on_deny
             real_acl.check_out_ipstring(args[0], :none)
             orig_initialize.bind(self).call(*args, &block)
           else
@@ -373,8 +376,9 @@ module IPAccess::Patches
         
         # initialize on steroids.
         define_method :__ipacall__initialize do |block, *args|
-          @close_on_deny = true
-          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = false
+          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          args.pop if args.last.nil?
           self.acl = valid_acl?(args.last) ? args.pop : :global
           return orig_initialize.bind(self).call(*args, &block)
         end
@@ -449,8 +453,8 @@ module IPAccess::Patches
     # This method tries to arm socket object.
     # If a wanted access set and an object's access
     # set is no different then acl_recheck is called
-    # by force. It sets armed socket's +close_on_deny+
-    # flag to +false+.
+    # by force. It sets armed socket's +opened_on_deny+
+    # flag to +true+.
     
     def try_arm_socket(obj, initial_acl=nil)
       late_sock = real_socket(obj)
@@ -471,8 +475,8 @@ module IPAccess::Patches
     # care we mean automatic triggering of acl_recheck
     # when object's acl= method had been called.
     # The acl_recheck will be called without any conditions.
-    # This method sets armed socket's +close_on_deny+
-    # flag to +false+. When exception will happen during check
+    # This method sets armed socket's +opened_on_deny+
+    # flag to +true+. When exception will happen during check
     # it will fill up +originator+ attribute of IPAccessDenied
     # kind of object. The originator will be set to
     # +self+.

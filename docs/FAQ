@@ -4,5 +4,9 @@
 Q:: How to check if access set is global?
 A:: Use IPAccess::Set#global method on an object.
 
+Q:: I'm trying to figure out real object that caused an IPAccessDenied exception to happend. Should I rely on +originator+ or on +peer_ip.tag[:Originator]+?
+A:: You should rely on +originator+ attriburte of an exception object.
+
+
 
 

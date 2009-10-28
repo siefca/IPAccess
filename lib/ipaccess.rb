@@ -116,8 +116,8 @@ require 'ipaccess/ip_access_set'
 # Note that when exception is thrown
 # the communication session is closed in case
 # of connection-oriented network objects.
-# You may change it by switching +close_on_deny+
-# attribute to +false+.
+# You may change it by switching +opened_on_deny+
+# attribute to +true+.
 # 
 # See IPAccess::Set#check_in to know more
 # about tracking original network object
@@ -150,9 +150,9 @@ require 'ipaccess/ip_access_set'
 # to them the same access set that is used by main
 # object. It is done to avoid access leaks.
 # However, such armed internal sockets will have
-# +close_on_deny+ flag switched off since
-# closing session should be settled
-# by main object.
+# +opened_on_deny+ flag switched on since
+# closing session (and an eventual connection)
+# should be settled by main object.
 # 
 # === Ordination of elements
 # 

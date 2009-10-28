@@ -40,7 +40,6 @@ rescue IPAccessDenied => e
   
 end
 
-
 # Case 1: simple setup with custom ACL
 res = IPAccess::Net::HTTP.start(url.host, url.port, acl) { |http|
   http.get("/#{url.path}")

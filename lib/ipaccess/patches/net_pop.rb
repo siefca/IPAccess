@@ -56,9 +56,10 @@ module IPAccess::Patches::Net
             
             # overwrite POP3.start()
             define_method :__ipacall__start do |block, address, *args|
-              late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
               late_on_deny = nil
               args.delete_if { |x| late_on_deny = x if (x.is_a?(Symbol) && x == :opened_on_deny) }
+              args.pop if args.last.nil?
+              late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
               port, account, password, isapop = *args
               isapop = false if isapop.nil?
               obj = new(address, port, isapop, late_acl, late_on_deny)
@@ -110,8 +111,9 @@ module IPAccess::Patches::Net
         
         # initialize on steroids.
         define_method  :initialize do |addr, *args|
-          @close_on_deny = true
-          args.delete_if { |x| @close_on_deny = false if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = false
+          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          args.pop if args.last.nil?
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           obj = orig_initialize.bind(self).call(addr, *args)
           self.acl_recheck

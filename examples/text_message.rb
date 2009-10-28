@@ -62,7 +62,7 @@ begin
   acl = IPAccess::Set.new
   acl.input.blacklist :local, :private
   s = IPAccess::TCPServer.new(31337, acl)
-  s.close_on_deny = false
+  s.opened_on_deny = true
   puts "\nnow use terminal and issue: telnet 127.0.0.1 31337\n"
   n  = s.accept
 rescue IPAccessDenied => e

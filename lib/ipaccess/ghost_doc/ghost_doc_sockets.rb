@@ -130,8 +130,8 @@ class IPAccess::Socket
   # It uses internal socket's address and access set assigned
   # to an object. It will close your communication session
   # before throwing an exception in case of denied access
-  # – you can prevent it by setting the flag +close_on_deny+
-  # to +false+. The flag can be set while initializing object
+  # – you can prevent it by setting the flag +opened_on_deny+
+  # to +true+. The flag can be set while initializing object
   # (through argument +:opened_on_deny+) or by setting the
   # attribute.
   
@@ -223,8 +223,8 @@ class IPAccess::UDPSocket
   # It uses internal socket's address and access set assigned
   # to an object. It will close your communication session
   # before throwing an exception in case of denied access
-  # – you can prevent it by setting the flag +close_on_deny+
-  # to +false+. The flag can be set while initializing object
+  # – you can prevent it by setting the flag +opened_on_deny+
+  # to +true+. The flag can be set while initializing object
   # (through argument +:opened_on_deny+) or by setting the
   # attribute.
   
@@ -321,8 +321,8 @@ class IPAccess::SOCKSSocket
   # It uses internal socket's address and access set assigned
   # to an object. It will close your communication session
   # before throwing an exception in case of denied access
-  # – you can prevent it by setting the flag +close_on_deny+
-  # to +false+. The flag can be set while initializing object
+  # – you can prevent it by setting the flag +opened_on_deny+
+  # to +true+. The flag can be set while initializing object
   # (through argument +:opened_on_deny+) or by setting the
   # attribute.
   
@@ -446,8 +446,8 @@ class IPAccess::TCPSocket
   # It uses internal socket's address and access set assigned
   # to an object. It will close your communication session
   # before throwing an exception in case of denied access
-  # – you can prevent it by setting the flag +close_on_deny+
-  # to +false+. The flag can be set while initializing object
+  # – you can prevent it by setting the flag +opened_on_deny+
+  # to +true+. The flag can be set while initializing object
   # (through argument +:opened_on_deny+) or by setting the
   # attribute.
   
@@ -553,8 +553,8 @@ class IPAccess::TCPServer
   # It uses internal socket's address and access set assigned
   # to an object. It will close your communication session
   # before throwing an exception in case of denied access
-  # – you can prevent it by setting the flag +close_on_deny+
-  # to +false+. The flag can be set while initializing object
+  # – you can prevent it by setting the flag +opened_on_deny+
+  # to +true+. The flag can be set while initializing object
   # (through argument +:opened_on_deny+) or by setting the
   # attribute.
   
