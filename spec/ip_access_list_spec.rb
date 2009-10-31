@@ -62,6 +62,10 @@ describe IPAccess::List do
         lambda { IPAccess::List.new [URI('http://localhost/'),URI('http://127.0.0.2:80/')] }.should_not raise_error
       end
 
+      it "should take an array of URI strings as parameter" do
+        lambda { IPAccess::List.new ['http://localhost/','http://127.0.0.2:80'] }.should_not raise_error
+      end
+
       it "should take an array of CIDR objects as parameter" do
         lambda { IPAccess::List.new [NetAddr::CIDR.create('192.168.1.1'),NetAddr::CIDR.create('192.168.0.0/24')] }.should_not raise_error
       end
@@ -79,9 +83,17 @@ describe IPAccess::List do
         tree.add!('172.16.0.0')
         lambda { z = IPAccess::List.new [tree] }.should_not raise_error
       end
-     
-    end # initializer
-    
+
+      it "should take an array of hostnames as parameter" do
+        lambda { IPAccess::List.new ['localhost'] }.should_not raise_error
+      end
+      
+      it "should take an array of hostnames with masks as parameter" do
+        lambda { IPAccess::List.new ['localhost/24','localhost/255.255.0.0'] }.should_not raise_error
+      end
+      
+    end
+
     describe "rules" do
     
       before(:each) do
