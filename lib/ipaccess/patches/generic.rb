@@ -350,7 +350,7 @@ module IPAccess
       # If the access list selector is omited it
       # operates on the default access list that certain
       # kind of network object uses. The allowed format of address
-      # is the same as for IPAccess::List.to_cidrs.
+      # is the same as for IPAccess.to_cidrs.
       # This method will not add nor remove any
       # blacklisted item.
       # 
@@ -396,7 +396,7 @@ module IPAccess
       # If the access list selector is omited it
       # operates on the default access list that certain
       # kind of network object uses. The allowed format of address
-      # is the same as for IPAccess::List.to_cidrs.
+      # is the same as for IPAccess.to_cidrs.
       # This method will not add nor remove any
       # blacklisted item.
       # 
@@ -440,7 +440,7 @@ module IPAccess
       # If the access list selector is omited it
       # operates on the default access list that certain
       # kind of network object uses. The allowed format of address
-      # is the same as for IPAccess::List.to_cidrs.
+      # is the same as for IPAccess.to_cidrs.
       # This method will not add nor remove any
       # blacklisted item.
       # 
@@ -487,7 +487,7 @@ module IPAccess
       # If the access list selector is omited it
       # operates on the default access list that certain
       # kind of network object uses. The allowed format of address
-      # is the same as for IPAccess::List.to_cidrs.
+      # is the same as for IPAccess.to_cidrs.
       # This method will not add nor remove any
       # blacklisted item.
       # 
@@ -532,7 +532,7 @@ module IPAccess
       # If the access list selector is omited it
       # operates on the default access list that certain
       # kind of network object uses. The allowed format of address
-      # is the same as for IPAccess::List.to_cidrs.
+      # is the same as for IPAccess.to_cidrs.
       # This method will not add nor remove any
       # whitelisted item.
       # 
@@ -578,7 +578,7 @@ module IPAccess
       # If the access list selector is omited it
       # operates on the default access list that certain
       # kind of network object uses. The allowed format of address
-      # is the same as for IPAccess::List.to_cidrs.
+      # is the same as for IPAccess.to_cidrs.
       # This method will not add nor remove any
       # whitelisted item.
       # 
@@ -622,7 +622,7 @@ module IPAccess
       # If the access list selector is omited it
       # operates on the default access list that certain
       # kind of network object uses. The allowed format of address
-      # is the same as for IPAccess::List.to_cidrs.
+      # is the same as for IPAccess.to_cidrs.
       # This method will not add nor remove any
       # whitelisted item.
       # 
@@ -669,7 +669,7 @@ module IPAccess
       # If the access list selector is omited it
       # operates on the default access list that certain
       # kind of network object uses. The allowed format of address
-      # is the same as for IPAccess::List.to_cidrs.
+      # is the same as for IPAccess.to_cidrs.
       # This method will not add nor remove any
       # whitelisted item.
       # 

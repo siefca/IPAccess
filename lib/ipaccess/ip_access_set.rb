@@ -355,12 +355,12 @@ module IPAccess
     # +exception+ should be an exception class that
     # will be used to raise an exception and +args+
     # should be a list of objects containing IP
-    # addresses. See the description of IPAccess::List.to_cidrs
+    # addresses. See the description of IPAccess.to_cidrs
     # for more info about arguments you may pass.
     # This method will try to set up originators
     # for tested addresses. That's why it will pass
     # +:include_origins+ option to underlying methods
-    # which use IPAccess::List.to_cidrs to fetch
+    # which use IPAccess.to_cidrs to fetch
     # IP addresses from many kinds of objects.
     # 
     # === Workflow
@@ -519,7 +519,7 @@ module IPAccess
     # any CIDR. Also remember that NetAddr::CIDR objects
     # are never set nor reported as originators.
     # In order to track originators the +:include_origin+
-    # option is used when calling IPAccess::List.to_cidrs.
+    # option is used when calling IPAccess.to_cidrs.
     # 
     # === Passing a block
     # 
@@ -548,7 +548,7 @@ module IPAccess
     # single IP and is a known kind.
     # 
     # See the protected check method description for more
-    # info about internals. See IPAccess::List.to_cidrs
+    # info about internals. See IPAccess.to_cidrs
     # description for more info about arguments you may
     # pass to this method.
     
@@ -609,7 +609,7 @@ module IPAccess
     # <br />
     # 
     # See the protected check_cidr method description for more
-    # info about internals. See IPAccess::List.to_cidrs
+    # info about internals. See IPAccess.to_cidrs
     # description for more info about arguments you may
     # pass to this method.
   

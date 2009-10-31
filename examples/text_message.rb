@@ -6,8 +6,8 @@ require 'ipaccess/socket'
 # used as originator
 
 s = TCPSocket.new('randomseed.pl', 80)
-cidr  = IPAccess::List.to_cidrs(s).first
-cidr  = IPAccess::List.to_cidrs(cidr, :include_origins).first
+cidr  = IPAccess.to_cidrs(s).first
+cidr  = IPAccess.to_cidrs(cidr, :include_origins).first
 cidr = cidr.first
 puts "cidr's originator tag is: #{cidr.tag[:Originator]}\n\n"
 

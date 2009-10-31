@@ -40,7 +40,7 @@ module IPAccess
   # === Rules management
   # 
   # The class provides methods for easy administration
-  # of lists and makes use of method IPAccess::List.to_cidrs that
+  # of lists and makes use of method IPAccess.to_cidrs that
   # "understands" most common IP representations including
   # DNS names, sockets, file descriptors bound to sockets and more.
   # 
@@ -94,7 +94,7 @@ module IPAccess
     
     # Creates new IPAccess::List object. You may pass objects
     # (containing IP information) to it. These objects will
-    # create black list rules. See to_cidrs description
+    # create black list rules. See IPAccess.to_cidrs description
     # for more info on how to pass arguments.
     #
     # IPAccess::List object and/or NetAddr::CIDR object(s) may
@@ -119,357 +119,6 @@ module IPAccess
       return self
     end
     
-    # This method converts names to NetAddr::CIDR objects. It returns an array of CIDR objects.
-    # 
-    # Allowed input are strings (DNS names or IP addresses optionally with masks), numbers (IP addresses representation),
-    # IPSocket objects, URI objects, IPAddr objects, Net::HTTP objects, IPAddrList objects, NetAddr::CIDR objects,
-    # NetAddr::Tree objects, IPAccess::List objects, symbols, objects that contain file descriptors bound to sockets
-    # (including OpenSSL sockets) and arrays of these.
-    #
-    # In case of resolving the IPv6 link-local addresses zone index is removed. In case of DNS names there may
-    # occur Resolv::ResolvError exceptions.
-    #
-    # When an argument called +:include_origins+ is present then the method will attach
-    # original converted objects to results as the +:Origin+ tag of CIDR objects (<tt>tag[:Origin]</tt>).
-    # This rule applies only to single objects or objects inside of arrays or sets.
-    # Objects that are kind of NetAddr::CIDR, IPAccess::Set, NetAddr::Tree and arrays will
-    # never be set as originators.
-    # 
-    # ==== Examples
-    # 
-    #     to_cidrs("127.0.0.1")                      # uses the IP address
-    #     to_cidrs(2130706433)                       # uses numeric representation of 127.0.0.1
-    #     to_cidrs(:private, "localhost")            # uses special symbol and DNS hostname
-    #     to_cidrs(:private, :localhost)             # uses special symbols
-    #     to_cidrs [:private, :auto]                 # other way to write the above
-    #     to_cidrs "10.0.0.0/8"                      # uses masked IP address
-    #     to_cidrs "10.0.0.0/255.0.0.0"              # uses masked IP address
-    #     to_cidrs IPSocket.new("www.pl", 80)        # uses the socket
-    #     to_cidrs IPAddr("10.0.0.1")                # uses IPAddr object
-    #     to_cidrs NetAddr::CIDR.create("10.0.0.1")  # uses NetAddr object
-    #     to_cidrs URI('http://www.pl/')             # uses URI
-    #     to_cidrs 'http://www.pl/'                  # uses the extracted host string
-    #     to_cidrs 'somehost.xx'                     # uses the host string (fetches ALL addresses from DNS)
-    #     to_cidrs 'somehost.xx/16'                  # uses the host string and a netmask
-    #
-    # ==== Special symbols
-    #
-    # When symbol is passed to this method it tries to find out if it has special meaning.
-    # That allows you to create access rules in an easy way. For most of them you may
-    # also specify IP protocol version using +ipv4_+ or +ipv6_+ prefix.
-    # 
-    # Known symbols are:
-    #
-    # <b>+:all+</b> (+:any+, +:anyone+, +:world+, +:internet+, +:net+, +:everything+, +:everyone+, +:everybody+, +:anybody+)
-    # 
-    # variants: +:ipv4_+ and +:ipv6_+
-    #
-    # Creates masked IP address that matches all networks:
-    #     – 0.0.0.0/0
-    #     – ::/0
-    # 
-    # <b>+:broadcast+</b> (+:brd+)
-    # 
-    # variants: +:ipv4_+ and +:ipv6_+
-    #
-    # Creates masked IP address that matches generic broadcast address:
-    #     – 255.255.255.255/32
-    #     – ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128
-    #
-    # <b>+:local+</b> (+:localhost+, +:localdomain+, +:loopback+, +:lo+)
-    # 
-    # variants: +:ipv4_+ and +:ipv6_+
-    # 
-    # Creates masked IP addresses that match localhost:
-    #     – 127.0.0.1/8
-    #     – ::1/128
-    #
-    # <b>+:auto+</b> (+:automatic+, +:linklocal+)
-    # 
-    # variants: +:ipv4_+ and +:ipv6_+
-    #  
-    # Creates masked IP addresses that match automatically assigned address ranges:
-    #     – 169.254.0.0/16
-    #     – fe80::/10
-    # 
-    # <b>+:private+</b> (+:intra+, +:intranet+, +:internal+)
-    # 
-    # variants: +:ipv4_+ and +:ipv6_+
-    #
-    # Creates masked IP addresses that match private ranges:
-    #     – 10.0.0.0/8
-    #     – 172.16.0.0/12
-    #     – 192.168.0.0/16
-    #     – 2001:10::/28
-    #     – 2001:db8::/32
-    #     – fc00::/7
-    #     – fdde:9e1a:dc85:7374::/64
-    # 
-    # <b>+:multicast+</b> (+:multi+, +:multiemission+)
-    # 
-    # variants: +:ipv4_+ and +:ipv6_+
-    #
-    # Creates masked IP addresses that match multicast addresses ranges:
-    #     – 224.0.0.0/4
-    #     – ff00::/8
-    #     – ff02::1:ff00:0/104
-    # 
-    # <b>+:reserved+</b> (+:example+)
-    # 
-    # variants: +:ipv4_+
-    # 
-    # Creates masked IP addresses that match reserved addresses ranges:
-    #     – 192.0.2.0/24
-    #     – 128.0.0.0/16
-    #     – 191.255.0.0/16
-    #     – 192.0.0.0/24
-    #     – 198.18.0.0/15
-    #     – 223.255.255.0/24
-    #     – 240.0.0.0/4
-    # 
-    # <b>+:strange+</b> (+:unusual+, +:nonpublic+, +:unpublic+)
-    #
-    # Creates masked IP addressess that match the following sets (both IPv4 and IPv6):
-    #     – :local
-    #     – :auto
-    #     – :private
-    #     – :reserved
-    #     – :multicast
-    
-    def self.to_cidrs(*obj)
-      obj = obj.flatten
-      include_origins = false
-      obj.delete_if { |x| include_origins = true if (x.is_a?(Symbol) && x == :include_origins) }
-      
-      if obj.size == 1
-        obj = obj.first
-      else
-        ary = []
-        obj.each do |o|
-          ary += include_origins ? to_cidrs(o, :include_origins) : to_cidrs(o)
-        end
-        ary.flatten!
-        return ary
-      end
-      
-      ori_obj = obj
-      
-      # NetAddr::CIDR - immediate generation
-      if obj.is_a?(NetAddr::CIDR)
-        r = obj.dup
-        r.tag[:Originator] = ori_obj if include_origins
-        return [r] 
-      end
-      
-      # IPAccess::List - immediate generation
-      return obj.to_a if obj.is_a?(self.class)
-    
-      # NetAddr::Tree - immediate generation
-      return obj.dump.map { |addr| addr[:CIDR] } if obj.is_a?(NetAddr::Tree)
-    
-      # number - immediate generation
-      if obj.is_a?(Numeric)
-        r =  NetAddr::CIDR.create(obj)
-        r.tag[:Originator] = ori_obj if include_origins
-        return [r]
-      end
-          
-      # object containing socket member (e.g. Net::HTTP) - fetch socket
-      if obj.respond_to?(:socket)
-        obj = obj.socket
-      elsif obj.respond_to?(:sock)
-        obj = obj.sock
-      elsif obj.respond_to?(:client_socket)
-        obj = obj.client_socket
-      elsif obj.instance_variable_defined?(:@socket)
-        obj = obj.instance_variable_get(:@socket)
-      elsif obj.instance_variable_defined?(:@client_socket)
-        obj = obj.instance_variable_get(:@client_socket)
-      elsif obj.instance_variable_defined?(:@sock)
-        obj = obj.instance_variable_get(:@sock)
-      end
-      obj = obj.io if (obj.respond_to?(:io) && obj.io.respond_to?(:getpeername))
-      
-      # some file descriptor but not socket - fetch socket
-      obj = Socket.for_fd(obj.fileno) if (!obj.respond_to?(:getpeername) && obj.respond_to?(:fileno))
-      
-      # Socket - immediate generation
-      if obj.respond_to?(:getpeername)
-        peeraddr = Socket.unpack_sockaddr_in(obj.getpeername).last.split('%').first
-        r = NetAddr::CIDR.create(peeraddr)
-        r.tag[:Originator] = ori_obj if include_origins
-        return [r]
-      end
-      
-      # symbol - immediate generation
-      r_args = nil
-      if obj.is_a?(Symbol)
-      case obj
-        when :ipv4_all, :ipv4_any, :ipv4_anyone, :ipv4_world, :ipv4_internet, :ipv4_net, :ipv4_everything, :ipv4_everyone, :ipv4_everybody, :ipv4_anybody
-          obj = [ "0.0.0.0/0" ]
-        when :ipv6_all, :ipv6_any, :ipv6_anyone, :ipv6_world, :ipv6_internet, :ipv6_net, :ipv6_everything, :ipv6_everyone, :ipv6_everybody, :ipv6_anybody
-          obj = [ "0.0.0.0/0", "::/0" ]
-        when :ipv4_broadcast, :ipv4_brd
-          obj = [ "255.255.255.255/32" ]
-        when :ipv6_broadcast, :ipv6_brd
-          obj = [ "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128" ]
-        when :ipv4_local, :ipv4_localhost, :ipv4_loopback, :ipv4_lo
-          obj = [ "127.0.0.1/8" ]
-        when :ipv6_local, :ipv6_localhost, :ipv6_loopback, :ipv6_lo
-          obj = [ "::1/128" ]
-        when :ipv4_auto, :ipv4_automatic, :ipv4_linklocal
-          obj = [ "169.254.0.0/16" ]
-        when :ipv6_auto, :ipv6_automatic, :ipv6_linklocal
-          obj = [ "fe80::/10" ]
-        when :ipv4_private, :ipv4_intra, :ipv4_intranet, :ipv4_internal
-          obj = [ "10.0.0.0/8",
-                  "172.16.0.0/12",
-                  "192.168.0.0/16" ]
-        when :ipv6_private, :ipv6_intra, :ipv6_intranet, :ipv6_internal, :ipv6_ula, :ipv6_unique
-          obj = [ "2001:10::/28",
-                  "2001:db8::/32",
-                  "fc00::/7",
-                  "fdde:9e1a:dc85:7374::/64" ]
-        when :ipv4_multicast, :ipv4_multi, :ipv4_multiemission
-          obj = [ "224.0.0.0/4" ]
-        when :ipv6_multicast, :ipv6_multi, :ipv6_multiemission
-          obj = [ "ff00::/8",
-                  "ff02::1:ff00:0/104" ]
-        when :ipv4_example, :ipv4_reserved
-          obj = [ "192.0.2.0/24",
-                  "128.0.0.0/16",
-                  "191.255.0.0/16",
-                  "192.0.0.0/24",
-                  "198.18.0.0/15",
-                  "223.255.255.0/24",
-                  "240.0.0.0/4" ]
-        when :all, :any, :anyone, :world, :internet, :net, :everything, :everyone, :everybody, :anybody
-          r_args = [ :ipv4_all,
-                     :ipv6_all ] 
-        when :broadcast, :brd
-          r_args = [ :ipv4_broadcast,
-                     :ipv6_broadcast ]
-        when :local, :localhost, :localdomain, :loopback, :lo
-          r_args = [ :ipv4_local,
-                     :ipv6_local ]
-        when :auto, :automatic, :linklocal
-          r_args = [ :ipv4_auto,
-                     :ipv6_auto ]            
-        when :private, :intra, :intranet, :internal
-          r_args = [ :ipv4_private,
-                     :ipv6_private ]
-        when :multicast, :multi, :multiemission
-          r_args = [ :ipv4_multicast,
-                     :ipv6_multicast ]
-        when :reserved, :example
-          r_args = [ :ipv4_example ]
-        when :strange, :unusual, :nonpublic, :unpublic
-          r_args = [ :local,
-                     :auto,
-                     :private,
-                     :reserved,
-                     :multicast ]
-        else
-          raise ArgumentError, "provided symbol is unknown: #{obj.to_s}"
-        end
-        
-        unless r_args.nil?
-          r_args.push :include_origins if include_origins
-          return to_cidrs(*r_args)
-        end
-        
-        # strange types here
-        if obj.is_a?(Array)
-          return obj.map do |addr|
-            r = NetAddr::CIDR.create(addr)
-            r.tag[:Originator] = addr if include_origins
-            r
-          end
-        end
-      end
-      
-      # URI or something that responds to host method - fetch string
-      obj = obj.host if obj.respond_to?(:host)
-      
-      # objects of external classes 
-      case obj.class.name.to_sym
-      when :IPAddr                                          # IPAddr - fetch IP/mask string
-        obj = obj.native.inspect.split[1].chomp('>')[5..-1]
-      when :IPAddrList                                      # IPAddrList - pass array to parse
-        return include_origins ? to_cidrs(obj.to_a, :include_origins) : to_cidrs(obj.to_a)
-      end
-      
-      # string or similar - immediate generation
-      if obj.respond_to?(:to_s)
-        hostmask = ""
-        obj = obj.to_s
-        # URI
-        if obj =~ /^[^:]+:\/\/(.*)/
-          obj = $1.split('/').first
-          # IP in URI
-          if obj =~ /^\[([^\]]+)\]/
-            obj = $1
-          else
-            obj = obj.split(':').first
-          end
-        # host(s) and a mask
-        elsif obj =~ /^([^\/]+)(\/((\d{1,2}$)|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b$)))/
-          obj = $1
-          hostmask = $2
-        end
-        begin
-          ipa = obj.split('%').first.to_s
-          r = NetAddr::CIDR.create(ipa + hostmask)
-        rescue NetAddr::ValidationError
-          begin
-            addresses = Resolv::getaddresses(obj)
-          rescue NoMethodError # unhandled error
-            raise Resolv::ResolvError, "not connected or network error"
-          end
-          addresses.map! do |addr|
-            begin
-              r = NetAddr::CIDR.create(addr.split('%').first + hostmask)
-              r.tag[:Originator] = ori_obj
-              r
-            rescue ArgumentError
-              nil
-            end
-          end
-          addresses.flatten!
-          addresses.compact!
-          return addresses
-        end
-        r.tag[:Originator] = ori_obj
-        return [r]
-      end
-      
-      # should never happend
-      r = obj.is_a?(NetAddr::CIDR) ? obj.dup : NetAddr::CIDR.create(obj.to_s)
-      r.tag[:Originator] = ori_obj
-      return [r]
-    end
-    
-    # This method calls IPAccess::List.to_cidrs
-    
-    def to_cidrs(*args)
-      self.class.to_cidrs(*args)
-    end
-    
-    # This method calls IPAccess::List.to_cidr
-    
-    def to_cidr(*args)
-      self.class.to_cidr(*args)
-    end  
-
-    # This method calls IPAccess::List.to_cidrs
-    # and returns first obtained entry containing
-    # single IP address with mask (NetAddr::CIDR).
-    
-    def self.to_cidr(*args)
-      r = self.to_cidrs(*args)
-      return r.respond_to?(:first) ? first : r
-    end
-    
     # This method finds all matching addresses in the list
     # and returns an array containing these addresses.
     # If the optional block is supplied, each matching element
@@ -479,13 +128,13 @@ module IPAccess
     # Ba aware that it may call the block for same object twice
     # if you'll pass two matching addresses.
     #
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def grep(*args)
       return [] if empty?
       out_ary = []
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       addrs.each do |addr|
         m = included_cidr(addr)
         out_ary.push( block_given? ? yield(m) : m) unless m.nil?
@@ -504,13 +153,13 @@ module IPAccess
     # each matching element is passed to it, and the block‘s
     # result is stored in the output array.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def grep_exact(*args)
       return [] if empty?
       out_ary = []
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       addrs.each do |addr|
         m = included_cidr(addr)
         if (m == addr)
@@ -543,7 +192,7 @@ module IPAccess
     # list will be altered always give its name when passing
     # IPAccess::List.
     #  
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def add!(*args)
@@ -551,7 +200,7 @@ module IPAccess
       acl_list = args.shift if (args.first.is_a?(Symbol) && (args.first == :white || args.first == :black))
       acl_list = args.pop if (args.last.is_a?(Symbol) && (args.last == :white || args.last == :black))
       return nil if args.empty?
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       addrs.each do |addr|
         addr = addr.ipv4 if addr.ipv4_compliant?
         add_list = acl_list.nil? ? addr.tag[:ACL] : acl_list  # object with extra sugar
@@ -602,7 +251,7 @@ module IPAccess
     # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def delete!(*args)
@@ -611,7 +260,7 @@ module IPAccess
       acl_list = args.pop if (args.last.is_a?(Symbol) && (args.last == :white || args.last == :black))
       removed = []
       return removed if (args.empty? || empty?)
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       addrs.each do |addr|
         addr = addr.ipv4 if addr.ipv4_compliant?
         exists = find_me(addr)
@@ -702,7 +351,7 @@ module IPAccess
     # It is designed to browse rules, NOT to check access. To do access
     # check use IPAccess::List#granted and IPAccess::List#denied methods.
     #
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     #
     # Examples:
@@ -715,7 +364,7 @@ module IPAccess
     def included(*args)
       found = []
       return found if empty?
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       return found if addrs.empty?
       addrs.each do |addr|
         rule = included_cidr(addr)
@@ -731,12 +380,12 @@ module IPAccess
     # It is designed to browse rules, NOT to check access. To do access
     # check use IPAccess::List#granted and IPAccess::List#denied methods.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def include?(*args)
       return false if empty?
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       return false if addrs.empty?
       addrs.each do |addr|
         rule = included_cidr(addr)
@@ -754,12 +403,12 @@ module IPAccess
     # It is designed to browse rules, NOT to check access. To do access
     # check use IPAccess::List#granted and IPAccess::List#denied methods.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def included_first(*args)
       return nil if empty?
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       return nil if addrs.empty?
       addrs.each do |addr|
         rule = included_cidr(addr)
@@ -775,7 +424,7 @@ module IPAccess
     # It is designed to browse rules, NOT to check access. To do access
     # check use IPAccess::List#granted and IPAccess::List#denied methods.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def include_one?(*args)
@@ -820,7 +469,7 @@ module IPAccess
     def rule_exists(list, *args)
       found = []
       return found if empty?
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       return found if addrs.empty?
       addrs.each do |addr|
         rule = rule_exists_cidr(list, addr)
@@ -858,7 +507,7 @@ module IPAccess
     # It is designed to browse rules, NOT to check access. To do access
     # check use IPAccess::List#granted and IPAccess::List#denied methods.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def find_blacklist_rules(*args)
@@ -884,11 +533,11 @@ module IPAccess
     # It is designed to browse rules, NOT to check access. To do access
     # check use IPAccess::List#granted and IPAccess::List#denied methods.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def blacklist_rules_exist?(*args)
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       return found if addrs.empty?
       addrs.each do |addr|
         rule = rule_exists_cidr(:black, addr)
@@ -915,7 +564,7 @@ module IPAccess
     # It is designed to browse rules, NOT to check access. To do access
     # check use IPAccess::List#granted and IPAccess::List#denied methods.
     #
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def find_whitelist_rules(*args)
@@ -940,11 +589,11 @@ module IPAccess
     # It is designed to check rules, NOT access. To do access
     # check use allowed and denied methods.
     #
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def whitelist_rules_exist?(*args)
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       return found if addrs.empty?
       addrs.each do |addr|
         rule = rule_exists_cidr(:white, addr)
@@ -983,16 +632,15 @@ module IPAccess
     # It is designed to browse rules, NOT to check access. To do access
     # check use IPAccess::List#granted and IPAccess::List#denied methods.
     # 
-    # See to_cidrs description for more info about argument
+    # See IPAccess.to_cidrs description for more info about argument
     # you may pass to it. Be aware that in case of name or special
     # symbol given as an address only first result will be used and
     # it will probably do not match because lack of proper netmask.
-      
+    
     def find(addr)
       return nil if empty?
-      addr = to_cidrs(addr)
-      return nil if addr.empty?
-      addr = addr.first
+      addr = IPAccess.to_cidr(addr)
+      return nil if addr.nil?
       addr = addr.ipv4 if addr.ipv4_compliant?
       root = addr.version == 4 ? @v4_root : @v6_root
       return nil if root.tag[:Subnets].empty?
@@ -1069,7 +717,7 @@ module IPAccess
     # This pair is present in returned hash if given IP address matches
     # black list rules and noesn't match white list rules.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     #
     # It should be used to check access for many IP addresses
@@ -1090,7 +738,7 @@ module IPAccess
       found = []
       return found if empty?
       nodup = args.last.is_a?(TrueClass) ? args.pop : false
-      addrs = to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*args)
       addrs.each do |addr|
         pair = denied_cidr(addr, nodup)
         found.push(pair) unless pair.empty?
@@ -1102,7 +750,7 @@ module IPAccess
     # objects matches black list rules and doesn't match white
     # list rules. Otherwise it returns +false+.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def denied?(*args)
@@ -1137,7 +785,7 @@ module IPAccess
     # This method returns an array of the given CIDR objects that
     # don't match black list rules or match white list rules.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     #
     # It should be used to check access for many IP addresses
@@ -1158,7 +806,7 @@ module IPAccess
     def granted(*args)
       found = []
       return found if empty?
-      args = to_cidrs(*args)
+      args = IPAccess.to_cidrs(*args)
       args.each do |addr|
         rule = denied_cidr(addr, true)
         found.push(addr) if rule.empty?
@@ -1170,7 +818,7 @@ module IPAccess
     # objects are not blacklisted or are whitelisted.
     # Otherwise it returns +false+.
     # 
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     # 
     # If the symbol +:include_origin+ is present as one of
@@ -1197,7 +845,7 @@ module IPAccess
     # information but it's impossible to obtain whether they
     # relate to black or white list, then blacklisting is assumed.
     #
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def +(*args)
@@ -1210,7 +858,7 @@ module IPAccess
     # the same as objects passed as an argument. The original
     # object is not changed.
     #
-    # See to_cidrs description for more info about arguments
+    # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
     def -(*args)
