@@ -1,7 +1,6 @@
 == IPAccess
 
 - add support for reason when adding to list. Use NetAddr::CIDR fields.
-- TEST getaddress against known error with getaddresses (that has workaround)
 - TEST FTP.open with a block!!!!!!!!!!!!!
 
 === Specification
@@ -10,7 +9,7 @@
 
 == Documentation
 
-- rewrite css a bit
+- rewrite css a bit (replace in rakefile)
 - sockets: document initializers
 - blocks for check_ methods
 - describe access checking workflow using diagram

@@ -424,7 +424,7 @@ module IPAccess
           begin
             addresses = Resolv::getaddresses(obj)
           rescue NoMethodError # unhandled error
-            raise Resolv::ResolvError, "not connected"
+            raise Resolv::ResolvError, "not connected or network error"
           end
           addresses.map! do |addr|
             begin
@@ -440,13 +440,13 @@ module IPAccess
           return addresses
         end
         r.tag[:Originator] = ori_obj
-        return r
+        return [r]
       end
       
       # should never happend
       r = obj.is_a?(NetAddr::CIDR) ? obj.dup : NetAddr::CIDR.create(obj.to_s)
       r.tag[:Originator] = ori_obj
-      return r
+      return [r]
     end
     
     # This method calls IPAccess::List.to_cidrs
@@ -454,7 +454,22 @@ module IPAccess
     def to_cidrs(*args)
       self.class.to_cidrs(*args)
     end
-      
+    
+    # This method calls IPAccess::List.to_cidr
+    
+    def to_cidr(*args)
+      self.class.to_cidr(*args)
+    end  
+
+    # This method calls IPAccess::List.to_cidrs
+    # and returns first obtained entry containing
+    # single IP address with mask (NetAddr::CIDR).
+    
+    def self.to_cidr(*args)
+      r = self.to_cidrs(*args)
+      return r.respond_to?(:first) ? first : r
+    end
+    
     # This method finds all matching addresses in the list
     # and returns an array containing these addresses.
     # If the optional block is supplied, each matching element
