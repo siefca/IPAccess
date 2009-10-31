@@ -247,8 +247,11 @@ module IPAccess
   # NetAddr::Tree objects, IPAccess::List objects, symbols, objects that contain file descriptors bound to sockets
   # (including OpenSSL sockets) and arrays of these.
   #
-  # In case of resolving the IPv6 link-local addresses zone index is removed. In case of DNS names there may
-  # occur Resolv::ResolvError exceptions.
+  # In case of resolving the IPv6 link-local addresses
+  # zone index is removed. In case of DNS names there may
+  # occur Resolv::ResolvError exception. If there is an
+  # object that cannot be converted the ArgumentError
+  # exception is raised.
   #
   # When an argument called +:include_origins+ is present then the method will attach
   # original converted objects to results as the +:Origin+ tag of CIDR objects (<tt>tag[:Origin]</tt>).
@@ -388,8 +391,8 @@ module IPAccess
     # NetAddr::Tree - immediate generation
     return obj.dump.map { |addr| addr[:CIDR] } if obj.is_a?(NetAddr::Tree)
   
-    # number - immediate generation
-    if obj.is_a?(Numeric)
+    # number or nil - immediate generation or exception
+    if (obj.is_a?(Numeric) || obj.nil?)
       r =  NetAddr::CIDR.create(obj)
       r.tag[:Originator] = ori_obj if include_origins
       return [r]
