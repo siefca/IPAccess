@@ -22,6 +22,7 @@
 #++
 
 require 'socket'
+require 'ipaccess'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_errors'
 

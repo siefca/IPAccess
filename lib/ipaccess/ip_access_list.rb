@@ -23,6 +23,7 @@
 require 'socket'
 require 'resolv'
 require 'netaddr'
+require 'ipaccess'
 require 'ipaccess/patches/netaddr'
 
 module IPAccess
