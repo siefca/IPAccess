@@ -306,6 +306,10 @@ module IPAccess
             #exists.tag[:ACL] = (src_list == :black) ? :white : :black
           elsif (src_list.nil? || ex_list == src_list)
             removed.push exists.safe_dup(:Subnets, :Parent)
+            exists.tag.delete(:Reason_white) # help garbage collector a bit
+            exists.tag.delete(:Reason_black)
+            exists.tag.delete(:ACL)
+            exists.tag.delete(:Originator)
             parent.tag[:Subnets].delete(exists)
             children.each { |childaddr| add_to_parent(childaddr, parent) }
           end
