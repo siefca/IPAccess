@@ -546,8 +546,6 @@ module IPAccess
       # You may operate on IPAccess::Set.Global or use
       # blacklist! instead.
       # 
-      #
-      #
       # === Revalidation
       #
       # After modyfing access set current connection

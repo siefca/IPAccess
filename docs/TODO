@@ -1,6 +1,8 @@
 == IPAccess
 
-- add support for reason when adding to list. Use NetAddr::CIDR tag
+- add examples with blocks
+- remove reasons when object is unlisted? (:ashen type)
+- add reasons to proxy-methods of general network objects
 - TEST FTP.open with a block!!!!!!!!!!!!!
 
 === Specification
@@ -22,7 +24,8 @@
 
 == Future
 
-- Ruby 1.9-specific socket methods
+- ability to react on graylisted entries? :)
+- some Ruby 1.9-specific socket methods
 - utilize @debug_mode in certain network objects to pring access denied message
 - maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
 - to speed up ACL seeks maybe a small, fast buffer for up to 128 IP matches cleaned when something will change?

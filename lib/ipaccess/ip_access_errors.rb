@@ -70,6 +70,7 @@ class IPAccessDenied < SecurityError
   # Remote address that caused an
   # exceotion to happend as an
   # NetAddr::CIDR object
+  
   attr_reader :peer_ip
   
   # Access set that was used to check access.
@@ -148,11 +149,31 @@ class IPAccessDenied < SecurityError
     end
   end
   
+  # Returns a string representing a reason
+  # of adding to a black list or +nil+
+  # if there was no reason given.
+  
+  def reason
+    return nil unless (rule.respond_to?(:tag) && rule.tag.respond_to?(:has_key?))
+    r = rule.tag[:Reason_black]
+    return r.nil? ? r : r.to_s
+  end
+  
+  # This returns reason but will return
+  # an empty string instead of +nil+
+  # if something will go wrong. It will
+  # wrap the text in braces.
+  
+  def reason_desc
+    reason.nil? ? "" : " (#{reason})"
+  end
+  
   # Returns an error message.
   
   def message
     return "connection with #{peer_ip_short} " +
-            "denied by #{set_desc}#{rule_short}"
+            "denied by #{set_desc}#{rule_short}" +
+            "#{reason_desc}"
   end
   
   # Returns the result of calling peer_ip_short.
@@ -160,7 +181,7 @@ class IPAccessDenied < SecurityError
   def to_s
     peer_ip_short
   end
-  
+    
 end
 
 # This class handles IP access denied exceptions
@@ -169,9 +190,10 @@ end
 class IPAccessDenied::Input < IPAccessDenied
 
   def message
-    return "incoming connection from "  +
-           "#{peer_ip_short} denied by "    +
-           "#{set_desc}#{rule_short}"
+    return "incoming connection from "    +
+           "#{peer_ip_short} denied by "  +
+           "#{set_desc}#{rule_short}"     +
+           "#{reason_desc}"
   end
 
 end
@@ -182,9 +204,10 @@ end
 class IPAccessDenied::Output < IPAccessDenied
 
   def message
-    return "outgoing connection to "  +
+    return "outgoing connection to "      +
            "#{peer_ip_short} denied by "  +
-           "#{set_desc}#{rule_short}"
+           "#{set_desc}#{rule_short}"     +
+           "#{reason_desc}"
   end
   
 end

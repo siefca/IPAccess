@@ -197,6 +197,24 @@ module IPAccess
     # you may pass to it.
     
     def add!(*args)
+      add_core(nil, *args)
+    end
+    
+    alias_method :add, :add!
+    
+    # This method works the same way as add! but allows
+    # you to attach reason that will be stored with an
+    # element.
+    
+    def add_reasonable!(reason, *args)
+      add_core(reason, *args)
+    end
+    
+    alias_method :add_reasonable, :add_reasonable!
+    
+    # This is core adding method.
+    
+    def add_core(reason, *args)
       acl_list = nil
       acl_list = args.shift if (args.first.is_a?(Symbol) && (args.first == :white || args.first == :black))
       acl_list = args.pop if (args.last.is_a?(Symbol) && (args.last == :white || args.last == :black))
@@ -206,19 +224,24 @@ module IPAccess
         addr = addr.ipv4 if addr.ipv4_compliant?
         add_list = acl_list.nil? ? addr.tag[:ACL] : acl_list  # object with extra sugar
         add_list = :black if add_list.nil?
+        unless reason.to_s.empty?
+          reason_tag = ("Reason_" + add_list.to_s).to_sym
+          reason = reason.to_s.to_sym
+        end
         exists = find_me(addr)
         if exists.nil?
           addr.tag[:Subnets] = []
           addr.tag[:ACL] = add_list
+          addr.tag[reason_tag] = reason unless reason.to_s.empty?
           add_to_tree(addr)
         elsif exists.tag[:ACL] != add_list
           exists.tag[:ACL] = :ashen
+          exists.tag[reason_tag] = reason unless reason.to_s.empty?
         end
       end
       return nil
     end
-    
-    alias_method :add, :add!
+    private :add_core
     
     # This method removes CIDR rules specified by the given
     # objects containing IP information. It returns an array
@@ -303,6 +326,13 @@ module IPAccess
     alias_method :add_white,  :whitelist
     alias_method :allow,      :whitelist
     alias_method :permit,     :whitelist
+
+    # This works the same way as whitelist but allows you to
+    # store a reason.
+
+    def whitelist_reasonable(reason, *args)
+      args.empty? ? self.to_a(:white) : add_reasonable!(reason, :white, *args)
+    end
     
     # This method removes IP address(-es) from whitelist
     # by calling delete! on it. It returns the
@@ -316,8 +346,8 @@ module IPAccess
     alias_method :del_white,  :unwhitelist
     alias_method :unallow,    :unwhitelist
     alias_method :unpermit,   :unwhitelist
-      
-    # Adds IP addresses in given object(s) to black list if called
+    
+    # Adds IP addresses from given object(s) to black list if called
     # with at least one argument. Returns black list if called
     # without arguments (array of CIDR objects).
     #
@@ -332,6 +362,13 @@ module IPAccess
     alias_method :add_black,  :blacklist
     alias_method :deny,       :blacklist
     alias_method :block,      :blacklist
+    
+    # This works the same way as blacklist but allows
+    # you to store a reason.
+    
+    def blacklist_reasonable(reason, *args)
+      args.empty? ? self.to_a(:black) : add_reasonable!(reason, :black, *args)
+    end
     
     # This method removes IP address(-es) from blacklist
     # by calling delete! on it. It returns the
@@ -929,15 +966,20 @@ module IPAccess
     end
     
     # This method shows internal tree of CIDR objects marked
-    # with access list they belong to. While interpreting it
+    # with access list they belong to.
+    # 
+    # While interpreting it
     # you should be aware that access for tested IP will not
     # be denied if black list rule has at least one whitelisted,
     # preceding rule in the path that leads to it. You may
     # also notice doubled entries sometimes. That happens
     # in case when the same rule is belongs to both:
     # black list and white list.
+    #
+    # When the argument is set to +true+ it will also
+    # print a reasons of adding to lists.
     
-    def show()
+    def show(reasons=false)
       list4 = dump_children(@v4_root)
       list6 = dump_children(@v6_root)
       
@@ -947,12 +989,15 @@ module IPAccess
         depth   = entry[:Depth]
         alist   = cidr.tag[:ACL]
         indent  = depth.zero? ? "" : " " * (depth*3)
+        space   = " " * (44 - (cidr.desc.length+(depth*3)))
+        space   = " " if space.empty?
         if alist == :ashen
-          printed << "[black] #{indent}#{cidr.desc}\n"
-          printed << "[white] #{indent}#{cidr.desc}\n"
+          printed << "[black] #{indent}#{cidr.desc}#{space}#{cidr.tag[:Reason_black]}\n"
+          printed << "[white] #{indent}#{cidr.desc}#{space}#{cidr.tag[:Reason_white]}\n"
         else
-          alist   = cidr.tag[:ACL].nil? ? "[undef]" : "[#{cidr.tag[:ACL]}]" 
-          printed << "#{alist} #{indent}#{cidr.desc}\n"
+          alist   = cidr.tag[:ACL].nil? ? "undef" : cidr.tag[:ACL]
+          reason  = cidr.tag[("Reason_" + alist.to_s).to_sym]
+          printed << "[#{alist}] #{indent}#{cidr.desc}#{space}#{reason}\n"
         end
       end
       
@@ -961,16 +1006,19 @@ module IPAccess
         cidr    = entry[:CIDR]
         depth   = entry[:Depth]
         alist   = cidr.tag[:ACL]
+        desc    = cidr.desc(:Short=>true)
+        desc    = "::#{desc}" if desc =~ /^\//
+        desc    = ":#{desc}" if desc =~ /^:[^:]/
         indent  = depth.zero? ? "" : " " * (depth*3)
-        pip     = cidr.desc(:Short => true)
-        pip     = "::#{pip}" if pip =~ /^\//
-        pip     = ":#{pip}" if pip =~ /^:[^:]/
+        space   = " " * (44 - (desc.length+(depth*3)))
+        space   = " " if space.empty?
         if alist == :ashen
-          printed << "[black] #{indent}#{pip}\n"
-          printed << "[white] #{indent}#{pip}\n"
+          printed << "[black] #{indent}#{desc}#{space}#{cidr.tag[:Reason_black]}\n"
+          printed << "[white] #{indent}#{desc}#{space}#{cidr.tag[:Reason_white]}\n"
         else
-          alist   = cidr.tag[:ACL].nil? ? "[undef]" : "[#{cidr.tag[:ACL]}]" 
-          printed << "#{alist} #{indent}#{pip}\n"
+          alist   = cidr.tag[:ACL].nil? ? "undef" : cidr.tag[:ACL]
+          reason  = cidr.tag[("Reason_" + alist.to_s).to_sym]
+          printed << "[#{alist}] #{indent}#{desc}#{space}#{reason}\n"
         end
       end
       return printed

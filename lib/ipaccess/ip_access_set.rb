@@ -707,19 +707,19 @@ module IPAccess
     
     # This method shows access set in human readable form.
     
-    def show
+    def show(reasons=false)
       r = ""
       unless @input.empty?
         r = ".=========================================.\n"   +
             ". Rules for incoming traffic:\n\n"               +
-            @input.show
+            @input.show(reasons)
         r += "\n" if @output.empty?
       end
       unless @output.empty?
         r += "\n" unless @input.empty?
         r +=  ".=========================================.\n" +
               ". Rules for outgoing traffic:\n\n"             +
-              @output.show + "\n"
+              @output.show(reasons) + "\n"
       end
       return r
     end
