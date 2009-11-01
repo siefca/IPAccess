@@ -264,9 +264,9 @@ module IPAccess::Patches
           args[0] = self.class.getaddress(args[0])
           unless @opened_on_deny
             real_acl.check_out_ipstring args[0]
-            orig_initialize.bind(self).call(*args, block)
+            orig_initialize.bind(self).call(*args, &block)
           else
-            orig_initialize.bind(self).call(*args, block)
+            orig_initialize.bind(self).call(*args, &block)
             real_acl.check_out_socket(self)
           end
           return self

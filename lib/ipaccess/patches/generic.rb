@@ -636,8 +636,6 @@ module IPAccess
       # You may operate on IPAccess::Set.Global or use
       # unwhitelist! instead.
       # 
-      #
-      #
       # === Revalidation
       #
       # After modyfing access set current connection
