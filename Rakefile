@@ -59,16 +59,8 @@ task :docs do
   images = Dir.glob('docs/images/*')
   FileUtils.mkdir 'doc/images' unless Dir.exists? 'doc/images'
   FileUtils.cp_r images, 'doc/images'
-  
-  ["docs/README.html", "index.html"].each do |ht_name|
-    output_f = File.new("doc/#{ht_name}.tempfile", 'w')
-    File.foreach("doc/#{ht_name}") do |line|
-      line.gsub!('src="../images/ipaccess_logo.png"', 'src="../images/ipaccess_logo.png" align="left" style="margin-right:1em;padding-top:0em;"')
-      output_f.write(line)
-    end
-    output_f.close 
-    FileUtils.mv "doc/#{ht_name}.tempfile", "doc/#{ht_name}"
-  end
+  FileUtils.mv 'doc/rdoc.css', 'doc/rdoc_base.css'
+  FileUtils.cp 'docs/rdoc.css', 'doc/rdoc.css'
 
 end
 
