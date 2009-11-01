@@ -551,11 +551,11 @@ module IPAccess
     # the following arguments:
     # 
     # <br />
-    # * _address_ of a denied IP (a kind of NetAddr::CIDR)
-    # * _rule_ that matched (a kind of NetAddr::CIDR)
-    # * _access_list_ pointing to a used access list (kind of IPAccess::List)
-    # * _args_ containing an array of arguments (IP addresses)
-    # * _orig_ indended to be placed as the +originator+ attribute in an exception
+    # * +address+ of a denied IP (a kind of NetAddr::CIDR)
+    # * +rule+ that matched (a kind of NetAddr::CIDR)
+    # * +access_list+ pointing to a used access list (kind of IPAccess::List)
+    # * +args+ containing an array of arguments (IP addresses)
+    # * +orig+ indended to be placed as the +originator+ attribute in an exception
     # <br />
     # 
     # === Faster alternatives

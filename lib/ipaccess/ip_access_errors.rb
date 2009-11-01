@@ -43,8 +43,8 @@
 #     puts
 #     puts "ACL:\t\t#{e.acl}"
 #     puts "Exception:\t#{e.inspect}"
-#     puts "Remote IP:\t#{e.peer_ip}"
-#     puts "Rule:\t\t#{e.rule}"
+#     puts "Remote IP:\t#{e.peer_ip} (#{e.peer_ip_short})"
+#     puts "Rule:\t\t#{e.rule} (#{e.rule_short})"
 #     puts "Originator:\t#{e.originator}"
 #     puts "CIDR's Origin:\t#{e.peer_ip.tag[:Originator]}\n\n"
 #     
@@ -107,11 +107,12 @@ class IPAccessDenied < SecurityError
   
   # Returns string representation of rule.
   
-  def rule_desc
+  def rule_short
     if @rule.is_a?(NetAddr::CIDR)
       if @rule.version == 6
         rule = @rule.to_s(:Short => true)
-        rule = ":#{rule}" if rule =~ /^\//
+        rule = "::#{rule}" if rule =~ /^\//
+        rule = ":#{rule}" if rule =~ /^:[^:]/
       else
         rule = @rule.to_s
       end
@@ -125,16 +126,14 @@ class IPAccessDenied < SecurityError
   
   # Returns string representation of address.
   
-  def addr_desc
+  def peer_ip_short
     if @peer_ip.is_a?(NetAddr::CIDR)
       if @peer_ip.version == 6
-        if @peer_ip.to_i(:netmask) == ((2**128)-1)
-          return @peer_ip.ip(:Short => true)
-        else
-          pip = @peer_ip.to_s(:Short => true)
-          pip = ":#{pip}" if pip =~ /^\//
-          return pip
-        end
+        pip = @peer_ip.to_s(:Short => true)
+        pip = "::#{pip}" if pip =~ /^\//
+        pip = ":#{pip}" if pip =~ /^:[^:]/
+        pip = pip.split('/').first if pip =~ /\/128$/
+        return pip
       else
         if @peer_ip.to_i(:netmask) == 4294967295
           return @peer_ip.ip
@@ -152,14 +151,14 @@ class IPAccessDenied < SecurityError
   # Returns an error message.
   
   def message
-    return "connection with #{addr_desc} " +
-            "denied by #{set_desc}#{rule_desc}"
+    return "connection with #{peer_ip_short} " +
+            "denied by #{set_desc}#{rule_short}"
   end
   
-  # Returns the result of calling addr_desc.
+  # Returns the result of calling peer_ip_short.
   
   def to_s
-    addr_desc
+    peer_ip_short
   end
   
 end
@@ -171,8 +170,8 @@ class IPAccessDenied::Input < IPAccessDenied
 
   def message
     return "incoming connection from "  +
-           "#{addr_desc} denied by "    +
-           "#{set_desc}#{rule_desc}"
+           "#{peer_ip_short} denied by "    +
+           "#{set_desc}#{rule_short}"
   end
 
 end
@@ -184,8 +183,8 @@ class IPAccessDenied::Output < IPAccessDenied
 
   def message
     return "outgoing connection to "  +
-           "#{addr_desc} denied by "  +
-           "#{set_desc}#{rule_desc}"
+           "#{peer_ip_short} denied by "  +
+           "#{set_desc}#{rule_short}"
   end
   
 end

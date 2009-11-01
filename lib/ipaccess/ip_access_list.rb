@@ -670,7 +670,8 @@ module IPAccess
       addr = addr.ipv4 if addr.ipv4_compliant?
       root = addr.version == 4 ? @v4_root : @v6_root
       list = root
-      return nil if list.tag[:Subnets].length.zero?
+      ret = {}
+      return ret if list.tag[:Subnets].length.zero?
       
       until (li = NetAddr.cidr_find_in_list(addr, list.tag[:Subnets])).nil?
         if li.is_a?(Integer)
@@ -685,7 +686,6 @@ module IPAccess
         end
       end
       
-      ret = {}
       li = list if li.nil?
       if (!li.nil? && li.tag[:ACL] == :black && li.matches?(addr))
         if nodup
@@ -940,7 +940,7 @@ module IPAccess
     def show()
       list4 = dump_children(@v4_root)
       list6 = dump_children(@v6_root)
-    
+      
       printed = "IPv4 Tree\n---------\n" if list4.length.nonzero?
       list4.each do |entry|
         cidr    = entry[:CIDR]
@@ -962,12 +962,15 @@ module IPAccess
         depth   = entry[:Depth]
         alist   = cidr.tag[:ACL]
         indent  = depth.zero? ? "" : " " * (depth*3)
+        pip     = cidr.desc(:Short => true)
+        pip     = "::#{pip}" if pip =~ /^\//
+        pip     = ":#{pip}" if pip =~ /^:[^:]/
         if alist == :ashen
-          printed << "[black] #{indent}#{cidr.desc(:Short => true)}\n"
-          printed << "[white] #{indent}#{cidr.desc(:Short => true)}\n"
+          printed << "[black] #{indent}#{pip}\n"
+          printed << "[white] #{indent}#{pip}\n"
         else
           alist   = cidr.tag[:ACL].nil? ? "[undef]" : "[#{cidr.tag[:ACL]}]" 
-          printed << "#{alist} #{indent}#{cidr.desc(:Short => true)}\n"
+          printed << "#{alist} #{indent}#{pip}\n"
         end
       end
       return printed
