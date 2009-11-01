@@ -507,7 +507,7 @@ module IPAccess
     
     def check_fd(list, exception, fd, orig=nil, &block) # :yields: address, rule, access_list, socket, orig
       orig = fd if orig.nil?
-      check_socket(list, exception, Socket.for_fd(fd), orig, &block)
+      check_socket(list, exception, ::Socket.for_fd(fd), orig, &block)
       return fd
     end
     protected :check_fd

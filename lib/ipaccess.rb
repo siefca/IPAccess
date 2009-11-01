@@ -415,11 +415,11 @@ module IPAccess
     obj = obj.io if (obj.respond_to?(:io) && obj.io.respond_to?(:getpeername))
     
     # some file descriptor but not socket - fetch socket
-    obj = Socket.for_fd(obj.fileno) if (!obj.respond_to?(:getpeername) && obj.respond_to?(:fileno))
+    obj = ::Socket.for_fd(obj.fileno) if (!obj.respond_to?(:getpeername) && obj.respond_to?(:fileno))
     
     # Socket - immediate generation
     if obj.respond_to?(:getpeername)
-      peeraddr = Socket.unpack_sockaddr_in(obj.getpeername).last.split('%').first
+      peeraddr = ::Socket.unpack_sockaddr_in(obj.getpeername).last.split('%').first
       r = NetAddr::CIDR.create(peeraddr)
       r.tag[:Originator] = ori_obj if include_origins
       return [r]

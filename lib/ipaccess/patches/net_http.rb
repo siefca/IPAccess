@@ -140,7 +140,7 @@ module IPAccess::Patches::Net
         # conn_address on steroids.
         define_method :conn_address do
           addr = orig_conn_address.bind(self).call
-          ipaddr = TCPSocket.getaddress(addr)
+          ipaddr = ::TCPSocket.getaddress(addr)
           real_acl.check_out_ipstring(ipaddr, self)
           return ipaddr
         end

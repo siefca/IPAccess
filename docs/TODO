@@ -17,27 +17,9 @@
 
 - inspect methods?
 
-Reported IPv6 address is not shortened. Fix it:
-
-	Remote IP: 0000:0000:0000:0000:0000:0000:0000:0001/128
-
 == Ruby 1.8
 
-./examples/../lib/ipaccess/patches/sockets.rb:408:in `sysaccept': undefined method `for_fd' for IPAccess::Patches::Socket:Module (NoMethodError)
-        from ./examples/../lib/ipaccess/ip_access_set.rb:437:in `check_socket'
-        from ./examples/../lib/ipaccess/ip_access_set.rb:510:in `check_fd'
-        from ./examples/../lib/ipaccess/ip_access_set.rb:697:in `check_in_fd'
-        from ./examples/../lib/ipaccess/patches/sockets.rb:408:in `sysaccept'
-        from examples/tcp_server.rb:16
-
-		./examples/../lib/ipaccess/patches/net_imap.rb:55:in `instance_method': undefined method `start_tls_session' for class `IPAccess::Net::IMAP' (NameError)
-		        from ./examples/../lib/ipaccess/patches/net_imap.rb:55:in `included'
-		        from ./examples/../lib/ipaccess/patches/net_imap.rb:51:in `class_eval'
-		        from ./examples/../lib/ipaccess/patches/net_imap.rb:51:in `included'
-		        from ./examples/../lib/ipaccess/net/imap.rb:35:in `include'
-		        from ./examples/../lib/ipaccess/net/imap.rb:35
-		        from examples/imap.rb:3:in `require'
-		        from examples/imap.rb:3
+- ok
 
 == Future
 

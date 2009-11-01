@@ -96,7 +96,7 @@ module IPAccess::Patches
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
           ret = orig_accept.bind(self).call(*args)
-          real_acl.check_in_sockaddr(ret.last, ret.last) { try_terminate_subsocket(Socket.for_fd(ret.first)) }
+          real_acl.check_in_sockaddr(ret.last, ret.last) { try_terminate_subsocket(::Socket.for_fd(ret.first)) }
           return ret
         end
 
@@ -187,7 +187,7 @@ module IPAccess::Patches
           real_acl.check_out_sockaddr(peer_ip, self)
           return orig_connect.bind(self).call(peer_ip, *args)
         end
-
+        
         # send on steroids.
         define_method :send do |*args|
           hostname = args[2]
@@ -405,7 +405,7 @@ module IPAccess::Patches
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
           r = orig_sysaccept.bind(self).call(*args)
-          real_acl.check_in_fd(r, r) { try_terminate_subsocket(Socket.for_fd(r)) }
+          real_acl.check_in_fd(r, r) { try_terminate_subsocket(::Socket.for_fd(r)) }
           return r
         end
         

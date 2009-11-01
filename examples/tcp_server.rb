@@ -27,6 +27,6 @@ s = IPAccess::TCPServer.new(31337, acl)
 #IPAccess.arm s, acl
 
 puts s.acl.show
+puts "\nissue in terminal: telnet 127.0.0.1 31337\n\n"
 g = s.accept
-
 

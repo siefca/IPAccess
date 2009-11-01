@@ -52,7 +52,7 @@ module IPAccess::Patches::Net
         
         orig_initialize       = self.instance_method :initialize
         orig_authenticate     = self.instance_method :authenticate
-        orig_start_tls_session= self.instance_method :start_tls_session
+        orig_start_tls_session= self.instance_method :start_tls_session if self.method_defined?(:start_tls_session)
         
         # initialize on steroids.
         define_method  :__ipacall__initialize do |block, host, *args|
@@ -60,7 +60,7 @@ module IPAccess::Patches::Net
           args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
           args.pop if args.last.nil?
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
-          ipaddr = TCPSocket.getaddress(host)
+          ipaddr = ::TCPSocket.getaddress(host)
           real_acl.check_out_ipstring(ipaddr, :none)
           obj = orig_initialize.bind(self).call(ipaddr, *args, &block)
           @host = host
@@ -80,10 +80,12 @@ module IPAccess::Patches::Net
         end
         
         # start_tls_session on steroids.
-        define_method :start_tls_session do |params|
-          ret = orig_start_tls_session.bind(self).call(params)
-          self.acl_recheck
-          return ret
+        if self.method_defined?(:start_tls_session)
+          define_method :start_tls_session do |params|
+            ret = orig_start_tls_session.bind(self).call(params)
+            self.acl_recheck
+            return ret
+          end
         end
         
         # This method returns default access list indicator
