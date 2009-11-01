@@ -7,7 +7,7 @@ begin
   # add some rules
   acl = IPAccess::Set.new
   acl.input.blacklist_reasonable "Local and private addresses aren't welcome here", :local, :private
-  acl.input.whitelist_reasonable "I like that computer, it makes toasts", '172.16.0.10', '1234:1234:1234:1234:1234:1234:1234:1234'
+  acl.input.whitelist_reasonable "I like that system, it makes toasts", '172.16.0.10', '1234:1234:1234:1234:1234:1234:1234:1234'
 
   # show the lists with reasons for entries
   puts acl.show(true)

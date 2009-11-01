@@ -235,7 +235,7 @@ module IPAccess
           addr.tag[reason_tag] = reason unless reason.to_s.empty?
           add_to_tree(addr)
         elsif exists.tag[:ACL] != add_list
-          exists.tag[:ACL] = :ashen
+          exists.tag[:ACL] = :grey
           exists.tag[reason_tag] = reason unless reason.to_s.empty?
         end
       end
@@ -289,14 +289,21 @@ module IPAccess
         addr = addr.ipv4 if addr.ipv4_compliant?
         exists = find_me(addr)
         unless exists.nil?
-          src_list = acl_list.nil? ? addr.tag[:ACL] : acl_list
-          src_list = nil if src_list == :ashen
-          ex_list = exists.tag[:ACL]
-          parent = exists.tag[:Parent]
-          children = exists.tag[:Subnets]
-          if (!src_list.nil? && ex_list == :ashen)
+          src_list  = acl_list.nil? ? addr.tag[:ACL] : acl_list
+          src_list  = nil if src_list == :grey
+          ex_list   = exists.tag[:ACL]
+          parent    = exists.tag[:Parent]
+          children  = exists.tag[:Subnets]
+          if (!src_list.nil? && ex_list == :grey)
             removed.push exists.safe_dup(:Subnets, :Parent)
-            exists.tag[:ACL] = (src_list == :black) ? :white : :black
+            if src_list == :black
+              exists.tag[:ACL] = :white
+              exists.tag.delete(:Reason_black)
+            else
+              exists.tag[:ACL] = :black
+              exists.tag.delete(:Reason_white)
+            end
+            #exists.tag[:ACL] = (src_list == :black) ? :white : :black
           elsif (src_list.nil? || ex_list == src_list)
             removed.push exists.safe_dup(:Subnets, :Parent)
             parent.tag[:Subnets].delete(exists)
@@ -531,7 +538,7 @@ module IPAccess
       return nil if root.tag[:Subnets].empty?
       found = find_me(addr)
       if (found.nil? || found.hash == root.hash ||
-          (found.tag[:ACL] != list && found.tag[:ACL] != :ashen))
+          (found.tag[:ACL] != list && found.tag[:ACL] != :grey))
         return nil
       else
         return found.safe_dup(:Subnets, :Parent)
@@ -943,7 +950,7 @@ module IPAccess
     def dump_flat_list(parent, type=nil)
       list = []
       parent.tag[:Subnets].each do |entry|
-        if (type.nil? || entry.tag[:ACL] == type || entry.tag[:ACL] == :ashen)
+        if (type.nil? || entry.tag[:ACL] == type || entry.tag[:ACL] == :grey)
           list.push(entry)
         end
         if (entry.tag[:Subnets].length > 0)
@@ -991,7 +998,7 @@ module IPAccess
         indent  = depth.zero? ? "" : " " * (depth*3)
         space   = " " * (44 - (cidr.desc.length+(depth*3)))
         space   = " " if space.empty?
-        if alist == :ashen
+        if alist == :grey
           printed << "[black] #{indent}#{cidr.desc}#{space}#{cidr.tag[:Reason_black]}\n"
           printed << "[white] #{indent}#{cidr.desc}#{space}#{cidr.tag[:Reason_white]}\n"
         else
@@ -1012,7 +1019,7 @@ module IPAccess
         indent  = depth.zero? ? "" : " " * (depth*3)
         space   = " " * (44 - (desc.length+(depth*3)))
         space   = " " if space.empty?
-        if alist == :ashen
+        if alist == :grey
           printed << "[black] #{indent}#{desc}#{space}#{cidr.tag[:Reason_black]}\n"
           printed << "[white] #{indent}#{desc}#{space}#{cidr.tag[:Reason_white]}\n"
         else
