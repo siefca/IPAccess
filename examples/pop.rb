@@ -15,7 +15,7 @@ acl.output.blacklist 'gmail.com'
 # 1
 
 i = 0
-IPAccess::Net::POP3.delete_all('randomseed.pl', 110,
+IPAccess::Net::APOP.delete_all('randomseed.pl', 110,
                      'YourAccount', 'YourPassword') do |m|
   File.open("inbox/#{i}", 'w') do |f|
     f.write m.pop

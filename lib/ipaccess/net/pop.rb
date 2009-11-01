@@ -35,5 +35,12 @@ module IPAccess::Net
     include IPAccess::Patches::Net::POP3
   end
   
+  class APOP < IPAccess::Net::POP3
+    # Always returns true.
+    def apop?
+      true
+    end
+  end
+  
 end
 

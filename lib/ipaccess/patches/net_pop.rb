@@ -162,6 +162,9 @@ module IPAccess::Patches::Net
     
   end # module POP3
   
+  # patching APOP works the same way as patching POP3
+  APOP = :POP3
+  
 end # module IPAccess::Patches
 
 # :startdoc:
