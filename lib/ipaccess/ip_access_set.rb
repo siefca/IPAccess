@@ -69,20 +69,34 @@ module IPAccess
   # ==== Exceptions
   # 
   # Access checking methods throw exceptions that are
-  # kind of IPAccessDenied. Each of these exceptions contain
+  # kind of IPAccessDenied. Each exception contain
   # IP address, rule that matched, diagnostic message
-  # and an optional object that had been passed to any
-  # of the access checking methods as their optional
-  # argument.
+  # and an optional object that points to so
+  # called originator described below.
   # 
   # ==== Accessing original object
   # 
-  # The optional object mentioned before is intended to
+  # You can pass an optional object to almost all
+  # of the access checking methods. It usually will be
+  # passed as the last argument called +orig+.
+  # The originator is intended to
   # be used as a helpful reference to original object for
   # which access is checked.
-  # That allows you to use it while handling the exception;
-  # e.g. send some data through the socket before closing it.
-  # If this additional object is +nil+ or wasn't passed
+  # It is transported within an exception so you can
+  # use it in rescue section to send some data through
+  # the socket or do other stuff before closing network
+  # object. In case of patched network objects that
+  # this library provides you may also find
+  # +:opened_on_deny+ option helpful to achieve that.
+  # 
+  # In case of general purpose methods like check_in and check_out
+  # you cannot pass the originator because they use
+  # variant list of arguments of different kinds –
+  # in that case however the originators will be set
+  # to original, checked objects. The only disadvantage
+  # is that you cannot set the originators manually.
+  # 
+  # If this additional argument +orig+ is +nil+ or wasn't passed
   # to the access checking method, the method
   # will try to obtain it automagically. How?
   # It will try to fetch it from the +:Originator+ tag
@@ -358,11 +372,14 @@ module IPAccess
     # should be a list of objects containing IP
     # addresses. See the description of IPAccess.to_cidrs
     # for more info about arguments you may pass.
+    # 
     # This method will try to set up originators
     # for tested addresses. That's why it will pass
     # +:include_origins+ option to underlying methods
     # which use IPAccess.to_cidrs to fetch
     # IP addresses from many kinds of objects.
+    # You may force originators to be set to
+    # +orig+ if it's not +nil+.
     # 
     # === Workflow
     # 
@@ -371,14 +388,14 @@ module IPAccess
     # 
     # link:images/ipaccess_ac_for_args.png
     
-    def check(list, exception=IPAccessDenied, *args) # :yields: address, rule, acl, args, orig
+    def check(list, exception=IPAccessDenied, orig=nil, *args) # :yields: address, rule, acl, args, orig
       return args if list.empty?
       args.push :include_origins
       pairs = list.denied(*args)
       unless pairs.empty?
         addr = pairs.first[:IP]
         rule = pairs.first[:Rule]
-        orig = setup_originator(addr)
+        orig = setup_originator(addr, orig)
         dont_scream = false
         dont_scream = yield(addr, rule, list, args, orig) if block_given?
         scream!(addr, rule, exception, orig) unless dont_scream
@@ -509,7 +526,7 @@ module IPAccess
     # passed as one of the arguments. This object
     # is passed as +originator+ attribute of the
     # exception.
-    # That allows you to find the original object
+    # That allows you to find the original network object
     # that had been checked, not just its internal
     # representation (+peer_ip+ attribute) that
     # is a kind of NetAddr::CIDR.
@@ -554,7 +571,7 @@ module IPAccess
     # pass to this method.
     
     def check_in(*args, &block) # :yields: address, rule, access_list, args, orig
-      check(@input, IPAccessDenied::Input, *args, &block)
+      check(@input, IPAccessDenied::Input, nil, *args, &block)
     end
     
     # This method acts the same way as check_in
@@ -562,9 +579,9 @@ module IPAccess
     # the exception object called IPAccessDenied::Output.
     
     def check_out(*args, &block) # :yields: address, rule, access_list, args, orig
-      check(@output, IPAccessDenied::Output, *args, &block)
+      check(@output, IPAccessDenied::Output, nil, *args, &block)
     end
-    
+        
     # This method checks access for the given NetAddr::CIDR
     # kind of object containing IP address against input access
     # list. If the access for the given address is denied then
@@ -574,20 +591,21 @@ module IPAccess
     # 
     # === Tracking original network objects
     # 
-    # Exception raises when some IP is denied.
-    # That IP comes from given +cidr+ object
+    # An exception is raised when access for some
+    # IP is denied. That IP comes from given +cidr+ object
     # passed as first argument. This object's
     # <tt>tag[:Originator]</tt> is fetched and
-    # is passed as +originator+ attribute of the exception.
+    # passed as +originator+ attribute of an exception
+    # which is kind of IPAccessDenied.
     # That step may be skipped if there is +orig+ argument
     # present. In such case the originator is taken
-    # from that one. All of that allows you
-    # to find the original object that
-    # had been checked while catching the excetion.
+    # from it. That allows you to find the original
+    # network object that had been checked while catching
+    # the excetion.
     # 
     # Remember that NetAddr::CIDR objects
     # are never set nor reported as originators unless
-    # you force them to be by passing the
+    # you force them to be by passing as the
     # +orig+ argument.
     # 
     # === Passing a block
@@ -602,11 +620,11 @@ module IPAccess
     # the following arguments:
     # 
     # <br />
-    # * _address_ of a denied IP (a kind of NetAddr::CIDR)
-    # * _rule_ that matched (a kind of NetAddr::CIDR)
-    # * _access_list_ pointing to a used access list (kind of IPAccess::List)
-    # * _args_ containing an array of arguments (IP addresses)
-    # * _orig_ indended to be placed as the +originator+ attribute in an exception
+    # * +address+ of a denied IP (a kind of NetAddr::CIDR)
+    # * +rule+ that matched (a kind of NetAddr::CIDR)
+    # * +access_list+ pointing to a used access list (kind of IPAccess::List)
+    # * +args+ containing an array of arguments (IP addresses)
+    # * +orig+ indended to be placed as the +originator+ attribute in an exception
     # <br />
     # 
     # See the protected check_cidr method description for more
