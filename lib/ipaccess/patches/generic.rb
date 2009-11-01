@@ -388,6 +388,16 @@ module IPAccess
       alias_method :allow,      :whitelist
       alias_method :permit,     :whitelist
       
+      # This method works like whitelist but allows
+      # to set reason.
+      
+      def whitelist_reasonable(reason, *args)
+        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+        r = @acl.send(aclist).whitelist_reasonable(reason, *args)
+        self.acl_recheck
+        return r
+      end
+      
       # :call-seq:
       #   whitelist!(list, *addresses)
       #   whitelist!(*addresses)
@@ -431,6 +441,16 @@ module IPAccess
       alias_method :add_white!,  :whitelist!
       alias_method :allow!,      :whitelist!
       alias_method :permit!,     :whitelist!
+
+      # This method works like whitelist! but
+      # allows to set reason.
+
+      def whitelist_reasonable!(*args)
+        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+        r = real_acl.send(aclist).whitelist_reasonable(reason, *args)
+        self.acl_recheck
+        return r
+      end
       
       # :call-seq:
       #   unwhitelist(list, *addresses)
@@ -568,6 +588,16 @@ module IPAccess
       alias_method :deny,       :blacklist
       alias_method :block,      :blacklist
       
+      # This method works like blacklist but allows to
+      # set reason.
+      
+      def blacklist_reasonable(reason, *args)
+        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+        r = @acl.send(aclist).blacklist_reasonable(reason, *args)
+        self.acl_recheck
+        return r
+      end
+      
       # :call-seq:
       #   blacklist!(list, *addresses)
       #   blacklist!(*addresses)
@@ -611,6 +641,16 @@ module IPAccess
       alias_method :add_black!,  :blacklist!
       alias_method :deny!,       :blacklist!
       alias_method :block!,      :blacklist!
+      
+      # This method works like blacklist! but allows
+      # to set reason.
+      
+      def blacklist_reasonable!(reason, *args)
+        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
+        r = real_acl.send(aclist).blacklist(reason, *args)
+        self.acl_recheck
+        return r
+      end
       
       # :call-seq:
       #   unblacklist(list, *addresses)
