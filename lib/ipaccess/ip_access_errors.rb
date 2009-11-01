@@ -23,25 +23,43 @@
 
 
 # This class handles IP access denied exceptions.
+#
+# === Example
+# 
+#   require 'ipaccess/sockets'
+#   
+#   begin
+#   
+#     IPAccess::Set::Global.input.blacklist :local, :private
+#     s = IPAccess::TCPServer.new(31337)
+#     s.opened_on_deny = true
+#     
+#     puts "\nnow use terminal and issue: telnet 127.0.0.1 31337\n"
+#     n  = s.accept
+#     
+#   rescue IPAccessDenied => e
+#     
+#     puts "Message:\t#{e.message}"
+#     puts
+#     puts "ACL:\t\t#{e.acl}"
+#     puts "Exception:\t#{e.inspect}"
+#     puts "Remote IP:\t#{e.peer_ip}"
+#     puts "Rule:\t\t#{e.rule}"
+#     puts "Originator:\t#{e.originator}"
+#     puts "CIDR's Origin:\t#{e.peer_ip.tag[:Originator]}\n\n"
+#     
+#     unless e.originator.closed?
+#       e.originator.write("Access denied!!!\n\r\n\r")
+#       e.originator.close
+#     end
+#   end
  
 class IPAccessDenied < SecurityError
   
   # Object passed during raising an exception.
   # Usually a network object that is used
-  # to communicate with prohibited peer.
-  #
-  # === Patched network objects
-  # 
-  # Patched network classes and object
-  # along with network classes' variants
-  # with access controll enabled make
-  # use of this field.
-  # 
-  # In case of server objects it contains
-  # newly created socket that was checked.
-  # This attribute may be +nil+, which means
-  # that the exception happened during initialization.
-  
+  # to communicate with a prohibited peer.
+
   attr_accessor :originator
   
   # Access list's rule that matched as
@@ -131,12 +149,14 @@ class IPAccessDenied < SecurityError
     end
   end
   
-  # Shows an error message.
+  # Returns an error message.
   
   def message
     return "connection with #{addr_desc} " +
             "denied by #{set_desc}#{rule_desc}"
   end
+  
+  # Returns the result of calling addr_desc.
   
   def to_s
     addr_desc

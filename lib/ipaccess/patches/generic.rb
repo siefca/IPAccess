@@ -124,7 +124,9 @@ module IPAccess
   # pass second, optional argument, which
   # should be an initial access set. If
   # this argument is omited then IPAccess::Set.Global
-  # is used. 
+  # is used. If +:opened_on_deny+ is passed then
+  # any connection remains opened in case of IPAccessDenied
+  # exception during arming.
   # 
   # ==== Patching Ruby's sockets
   # 
