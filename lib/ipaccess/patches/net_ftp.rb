@@ -54,25 +54,31 @@ module IPAccess::Patches::Net
         unless (base.name.nil? && base.class.name == "Class")
           (class << self; self; end).class_eval do
                       
-            alias :orig_open :open
-            
-            # overload FTP.open()
+            # overwrite FTP.open()
             define_method :__ipacall__open do |block, host, *args|
               late_opened_on_deny = false
-        	    args.delete_if { |x| late_opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
-        	    args.pop if args.last.nil?
-              late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
-              obj = orig_open(*args, &block)
-              obj.acl = late_acl unless obj.acl = late_acl
-              obj.opened_on_deny = late_opened_on_deny
-              return obj
+        	    args.each { |x| late_opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+              args.unshift host
+              if block.is_a?(Proc)
+                if late_opened_on_deny
+                  raise ArgumentError, "The :opened_on_deny flag cannot be used when passing a block to FTP.open"
+                end
+                ftp = new(*args)
+                begin
+                  block.call(ftp)
+                ensure
+                  ftp.close
+                end
+              else
+                new(*args)
+              end
             end
             
             # block passing wrapper for Ruby 1.8
             def open(*args, &block)
               __ipacall__open(block, *args)
             end
-                        
+                  
       	  end
       	
     	  end # class methods

@@ -96,17 +96,26 @@ class IPAccessDenied < SecurityError
   
   # Returns string representation of access set name rule.
   
-  def set_desc
+  def access_set
     if (@acl.is_a?(IPAccess::Set) && !@acl.name.to_s.empty?)
-      @acl.name.to_s + " "
+      @acl.name.to_s
     elsif @acl.is_a?(String)
-      @acl + " "
+      @acl
     else
       ""
     end
   end
   
-  # Returns string representation of rule.
+  # Returns string representation of access set name rule.
+  
+  def access_set_desc
+    as = self.access_set
+    as.empty? ? "" : as + " "
+  end
+  protected :access_set_desc
+  
+  # Returns string representation of a rule
+  # in short version.
   
   def rule_short
     if @rule.is_a?(NetAddr::CIDR)
@@ -117,15 +126,25 @@ class IPAccessDenied < SecurityError
       else
         rule = @rule.to_s
       end
-      return "rule: #{rule}"
+      return rule
     elsif @rule.is_a?(String)
-      return "rule: #{@rule}"
+      return @rule
     else
-      return "rule"
+      return ""
     end
   end
+
+  # Returns string representation of a rule
+  # with prefix.
   
-  # Returns string representation of address.
+  def rule_desc
+    rs = self.rule_short
+    rs.empty? ? "rule" : "rule: #{rs}"
+  end
+  protected :rule_desc
+  
+  # Returns string representation of an IP address
+  # in short version.
   
   def peer_ip_short
     if @peer_ip.is_a?(NetAddr::CIDR)
@@ -167,13 +186,27 @@ class IPAccessDenied < SecurityError
   def reason_desc
     reason.nil? ? "" : " (#{reason})"
   end
+  protected :reason_desc
   
   # Returns an error message.
   
   def message
-    return "connection with #{peer_ip_short} " +
-            "denied by #{set_desc}#{rule_short}" +
+    return "connection with #{peer_ip_short} "  +
+            "denied by #{access_set_desc}#{rule_desc}" +
             "#{reason_desc}"
+  end
+  
+  # This method returns a string containing
+  # all important attributes of an exception.
+  
+  def show
+    "Message:\t#{self.message}\n\n"                           +
+    "ACL:\t\t#{self.acl}\n"                                   +
+    "Exception:\t#{self.inspect}\n"                           +
+    "Remote IP:\t#{self.peer_ip} (#{self.peer_ip_short})\n"   +
+    "Rule:\t\t#{self.rule} (#{self.rule_short})\n"            +
+    "Originator:\t#{self.originator}\n"                       +
+    "CIDR's Origin:\t#{self.peer_ip.tag[:Originator]}\n\n"
   end
   
   # Returns the result of calling peer_ip_short.
@@ -190,9 +223,9 @@ end
 class IPAccessDenied::Input < IPAccessDenied
 
   def message
-    return "incoming connection from "    +
-           "#{peer_ip_short} denied by "  +
-           "#{set_desc}#{rule_short}"     +
+    return "incoming connection from "      +
+           "#{peer_ip_short} denied by "    +
+           "#{access_set_desc}#{rule_desc}" +
            "#{reason_desc}"
   end
 
@@ -204,9 +237,9 @@ end
 class IPAccessDenied::Output < IPAccessDenied
 
   def message
-    return "outgoing connection to "      +
-           "#{peer_ip_short} denied by "  +
-           "#{set_desc}#{rule_short}"     +
+    return "outgoing connection to "        +
+           "#{peer_ip_short} denied by "    +
+           "#{access_set_desc}#{rule_desc}" +
            "#{reason_desc}"
   end
   
