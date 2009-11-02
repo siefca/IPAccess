@@ -11,6 +11,21 @@ acl.output.blacklist 'randomseed.pl'
 
 ###### Example cases
 
+begin
+  IPAccess::Net::FTP.open('ftp.icm.edu.pl', acl) { |ftp|
+    ftp.passive = true
+    ftp.blacklist! 'ftp.icm.edu.pl'
+    files = ftp.list('li*')
+    puts files
+  }
+
+rescue IPAccessDenied => e
+
+  puts e.show
+  puts "Connection is " + (e.originator.closed? ? "closed" : "opened")
+  
+end
+
 # Using IPAccess::Net::FTP variant instead of Net::FTP
 
 ftp = IPAccess::Net::FTP.new('ftp.pld-linux.org', :private) # private access set

@@ -1,8 +1,7 @@
 == IPAccess
 
 - add examples with blocks
-- remove reasons when object is unlisted? (:grey type)
-- TEST FTP.open with a block!!!!!!!!!!!!!
+- check all overloaded class methods that take blocks for bugs
 
 === Specification
 
@@ -10,6 +9,8 @@
 
 == Documentation
 
+- rewrite docs for patches to use proxy methods!!!
+- insert hints in documentation: acl.output.blacklist before object is created and obj.blacklist when it exists as a good example!
 - add IPAccess::Net ghost-doc
 - sockets: document initializers and other stuff that takes :opened_on_deny
 
