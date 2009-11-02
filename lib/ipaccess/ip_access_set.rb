@@ -82,11 +82,25 @@ module IPAccess
   # The originator is intended to
   # be used as a helpful reference to original object for
   # which access is checked.
-  # It is transported within an exception so you can
-  # use it in rescue section to send some data through
-  # the socket or do other stuff before closing network
-  # object. In case of patched network objects that
-  # this library provides you may also find
+  # 
+  # You may want to ask why there is a need for
+  # originator when some object is tested already.
+  # There are some situations when you want to test
+  # something that represents network object's IP
+  # but it's not related to network object itself.
+  # For example imagine that your program creates
+  # objects for HTTP sessions. In your HTTP class
+  # you may add some access checks but the tested
+  # object is a socket. In that case you may want
+  # to pass HTTP object to an access checking method
+  # as the originator instead of socket.
+  # 
+  # Originator is transported within an exception so you can
+  # use it in rescue section to send some data
+  # or do other stuff before closing network
+  # object. In case of patched network objects and
+  # special variants of network classes that
+  # this library also provides, you may also find
   # +:opened_on_deny+ option helpful to achieve that.
   # 
   # In case of general purpose methods like check_in and check_out
@@ -368,7 +382,7 @@ module IPAccess
     #
     # +list+ should be an access list (a kind of IPAccess::List),
     # +exception+ should be an exception class that
-    # will be used to raise an exception and +args+
+    # will be used to raise an exception and +addresses+
     # should be a list of objects containing IP
     # addresses. See the description of IPAccess.to_cidrs
     # for more info about arguments you may pass.
@@ -388,19 +402,19 @@ module IPAccess
     # 
     # link:images/ipaccess_ac_for_args.png
     
-    def check(list, exception=IPAccessDenied, orig=nil, *args) # :yields: address, rule, acl, args, orig
-      return args if list.empty?
-      args.push :include_origins
-      pairs = list.denied(*args)
+    def check(list, exception=IPAccessDenied, orig=nil, *addresses) # :yields: address, rule, acl, addresses, orig
+      return addresses if list.empty?
+      addresses.push :include_origins
+      pairs = list.denied(*addresses)
       unless pairs.empty?
         addr = pairs.first[:IP]
         rule = pairs.first[:Rule]
         orig = setup_originator(addr, orig)
         dont_scream = false
-        dont_scream = yield(addr, rule, list, args, orig) if block_given?
+        dont_scream = yield(addr, rule, list, addresses, orig) if block_given?
         scream!(addr, rule, exception, orig) unless dont_scream
       end
-      return args
+      return addresses
     end
     protected :check
     
@@ -554,7 +568,7 @@ module IPAccess
     # * +address+ of a denied IP (a kind of NetAddr::CIDR)
     # * +rule+ that matched (a kind of NetAddr::CIDR)
     # * +access_list+ pointing to a used access list (kind of IPAccess::List)
-    # * +args+ containing an array of arguments (IP addresses)
+    # * +addresses+ containing an array of arguments (IP addresses)
     # * +orig+ indended to be placed as the +originator+ attribute in an exception
     # <br />
     # 
@@ -570,16 +584,16 @@ module IPAccess
     # description for more info about arguments you may
     # pass to this method.
     
-    def check_in(*args, &block) # :yields: address, rule, access_list, args, orig
-      check(@input, IPAccessDenied::Input, nil, *args, &block)
+    def check_in(*addresses, &block) # :yields: address, rule, access_list, addresses, orig
+      check(@input, IPAccessDenied::Input, nil, *addresses, &block)
     end
     
     # This method acts the same way as check_in
     # but uses output access list and raises
     # the exception object called IPAccessDenied::Output.
     
-    def check_out(*args, &block) # :yields: address, rule, access_list, args, orig
-      check(@output, IPAccessDenied::Output, nil, *args, &block)
+    def check_out(*addresses, &block) # :yields: address, rule, access_list, addresses, orig
+      check(@output, IPAccessDenied::Output, nil, *addresses, &block)
     end
         
     # This method checks access for the given NetAddr::CIDR
@@ -623,7 +637,7 @@ module IPAccess
     # * +address+ of a denied IP (a kind of NetAddr::CIDR)
     # * +rule+ that matched (a kind of NetAddr::CIDR)
     # * +access_list+ pointing to a used access list (kind of IPAccess::List)
-    # * +args+ containing an array of arguments (IP addresses)
+    # * +addresses+ containing an array of arguments (IP addresses)
     # * +orig+ indended to be placed as the +originator+ attribute in an exception
     # <br />
     # 

@@ -260,13 +260,13 @@ module IPAccess
       # 
       # ==== Example
       #
-      #     socket.acl = :global        # use global access set
-      #     socket.acl = :private       # create and use individual access set
-      #     socket.acl = IPAccess::Set.new   # use external (shared) access set
+      #     socket.acl = :global            # use global access set
+      #     socket.acl = :private           # create and use individual access set
+      #     socket.acl = IPAccess::Set.new  # use external (shared) access set
       
-      def acl=(obj)
-        if obj.is_a?(Symbol)
-          case obj
+      def acl=(access_set)
+        if access_set.is_a?(Symbol)
+          case access_set
           when :global
             @acl = IPAccess::Set::GlobalSet.instance
           when :private
@@ -274,13 +274,13 @@ module IPAccess
           else
             raise ArgumentError, "bad access list selector, use: :global or :private"
           end
-        elsif obj.is_a?(IPAccess::Set)
-          if obj == IPAccess::Set::Global
+        elsif access_set.is_a?(IPAccess::Set)
+          if access_set == IPAccess::Set::Global
             @acl = IPAccess::Set::GlobalSet.instance
           else
-            @acl = obj
+            @acl = access_set
           end
-        elsif obj.nil?
+        elsif access_set.nil?
           @acl = IPAccess::Set::GlobalSet.instance
         else
           raise ArgumentError, "bad access list"
@@ -364,8 +364,6 @@ module IPAccess
       # You may operate on IPAccess::Set.Global or use
       # whitelist! instead.
       # 
-      #
-      #
       # === Revalidation
       #
       # After modyfing access set current connection
@@ -377,9 +375,9 @@ module IPAccess
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
 
-      def whitelist(*args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = @acl.send(aclist).whitelist(*args)
+      def whitelist(*addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = @acl.send(aclist).whitelist(*addresses)
         self.acl_recheck
         return r
       end
@@ -391,9 +389,9 @@ module IPAccess
       # This method works like whitelist but allows
       # to set reason.
       
-      def whitelist_reasonable(reason, *args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = @acl.send(aclist).whitelist_reasonable(reason, *args)
+      def whitelist_reasonable(reason, *addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = @acl.send(aclist).whitelist_reasonable(reason, *addresses)
         self.acl_recheck
         return r
       end
@@ -431,9 +429,9 @@ module IPAccess
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
 
-      def whitelist!(*args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = real_acl.send(aclist).whitelist(*args)
+      def whitelist!(*addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = real_acl.send(aclist).whitelist(*addresses)
         self.acl_recheck
         return r
       end
@@ -445,9 +443,9 @@ module IPAccess
       # This method works like whitelist! but
       # allows to set reason.
 
-      def whitelist_reasonable!(*args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = real_acl.send(aclist).whitelist_reasonable(reason, *args)
+      def whitelist_reasonable!(*addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = real_acl.send(aclist).whitelist_reasonable(reason, *addresses)
         self.acl_recheck
         return r
       end
@@ -487,9 +485,9 @@ module IPAccess
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
       
-      def unwhitelist(*args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = @acl.send(aclist).unwhitelist(*args)
+      def unwhitelist(*addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = @acl.send(aclist).unwhitelist(*addresses)
         self.acl_recheck
         return r
       end
@@ -532,9 +530,9 @@ module IPAccess
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
       
-      def unwhitelist!(*args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = real_acl.send(aclist).unwhitelist(*args)
+      def unwhitelist!(*addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = real_acl.send(aclist).unwhitelist(*addresses)
         self.acl_recheck
         return r
       end
@@ -577,9 +575,9 @@ module IPAccess
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
           
-      def blacklist(*args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = @acl.send(aclist).blacklist(*args)
+      def blacklist(*addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = @acl.send(aclist).blacklist(*addresses)
         self.acl_recheck
         return r
       end
@@ -591,9 +589,9 @@ module IPAccess
       # This method works like blacklist but allows to
       # set reason.
       
-      def blacklist_reasonable(reason, *args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = @acl.send(aclist).blacklist_reasonable(reason, *args)
+      def blacklist_reasonable(reason, *addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = @acl.send(aclist).blacklist_reasonable(reason, *addresses)
         self.acl_recheck
         return r
       end
@@ -631,9 +629,9 @@ module IPAccess
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
       
-      def blacklist!(*args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = real_acl.send(aclist).blacklist(*args)
+      def blacklist!(*addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = real_acl.send(aclist).blacklist(*addresses)
         self.acl_recheck
         return r
       end
@@ -645,9 +643,9 @@ module IPAccess
       # This method works like blacklist! but allows
       # to set reason.
       
-      def blacklist_reasonable!(reason, *args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = real_acl.send(aclist).blacklist(reason, *args)
+      def blacklist_reasonable!(reason, *addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = real_acl.send(aclist).blacklist(reason, *addresses)
         self.acl_recheck
         return r
       end
@@ -685,9 +683,9 @@ module IPAccess
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
       
-      def unblacklist(*args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = @acl.send(aclist).unblacklist(*args)
+      def unblacklist(*addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = @acl.send(aclist).unblacklist(*addresses)
         self.acl_recheck
         return r
       end
@@ -728,9 +726,9 @@ module IPAccess
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
       
-      def unblacklist!(*args)
-        aclist = ( args.first.is_a?(Symbol) && [:input,:output].include?(args.first) ) ? args.shift : self.default_list
-        r = real_acl.send(aclist).unblacklist(*args)
+      def unblacklist!(*addresses)
+        aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
+        r = real_acl.send(aclist).unblacklist(*addresses)
         self.acl_recheck
         return r
       end

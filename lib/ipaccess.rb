@@ -360,8 +360,8 @@ module IPAccess
   #     – :reserved
   #     – :multicast
   
-  def self.to_cidrs(*obj)
-    obj = obj.flatten
+  def self.to_cidrs(*addresses)
+    obj = addresses.flatten
     include_origins = false
     obj.delete_if { |x| include_origins = true if (x.is_a?(Symbol) && x == :include_origins) }
     
@@ -577,8 +577,8 @@ module IPAccess
   # and returns first obtained entry containing
   # single IP address with mask (NetAddr::CIDR).
   
-  def self.to_cidr(*args)
-    r = self.to_cidrs(*args)
+  def self.to_cidr(*addresses)
+    r = self.to_cidrs(*addresses)
     return r.respond_to?(:first) ? first : r
   end
   

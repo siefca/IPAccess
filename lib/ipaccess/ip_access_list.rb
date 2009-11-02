@@ -113,10 +113,10 @@ module IPAccess
     #     IPAccess::List.new :private, :local
     #     IPAccess::List.new "randomseed.pl", :nonpublic
     
-    def initialize(*args)
-      args = [] if args == [nil]
+    def initialize(*addresses)
+      addresses = [] if addresses == [nil]
       super()
-      add!(*args) unless args.empty?
+      add!(*addresses) unless addresses.empty?
       return self
     end
     
@@ -132,10 +132,10 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def grep(*args)
+    def grep(*addresses)
       return [] if empty?
       out_ary = []
-      addrs = IPAccess.to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*addresses)
       addrs.each do |addr|
         m = included_cidr(addr)
         out_ary.push( block_given? ? yield(m) : m) unless m.nil?
@@ -157,10 +157,10 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def grep_exact(*args)
+    def grep_exact(*addresses)
       return [] if empty?
       out_ary = []
-      addrs = IPAccess.to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*addresses)
       addrs.each do |addr|
         m = included_cidr(addr)
         if (m == addr)
@@ -196,8 +196,8 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def add!(*args)
-      add_core(nil, *args)
+    def add!(*addresses)
+      add_core(nil, *addresses)
     end
     
     alias_method :add, :add!
@@ -206,20 +206,20 @@ module IPAccess
     # you to attach reason that will be stored with an
     # element.
     
-    def add_reasonable!(reason, *args)
-      add_core(reason, *args)
+    def add_reasonable!(reason, *addresses)
+      add_core(reason, *addresses)
     end
     
     alias_method :add_reasonable, :add_reasonable!
     
     # This is core adding method.
     
-    def add_core(reason, *args)
+    def add_core(reason, *addresses)
       acl_list = nil
-      acl_list = args.shift if (args.first.is_a?(Symbol) && (args.first == :white || args.first == :black))
-      acl_list = args.pop if (args.last.is_a?(Symbol) && (args.last == :white || args.last == :black))
-      return nil if args.empty?
-      addrs = IPAccess.to_cidrs(*args)
+      acl_list = addresses.shift if (addresses.first.is_a?(Symbol) && (addresses.first == :white || addresses.first == :black))
+      acl_list = addresses.pop if (addresses.last.is_a?(Symbol) && (addresses.last == :white || addresses.last == :black))
+      return nil if addresses.empty?
+      addrs = IPAccess.to_cidrs(*addresses)
       addrs.each do |addr|
         addr = addr.ipv4 if addr.ipv4_compliant?
         add_list = acl_list.nil? ? addr.tag[:ACL] : acl_list  # object with extra sugar
@@ -278,13 +278,13 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def delete!(*args)
+    def delete!(*addresses)
       acl_list = nil
-      acl_list = args.shift if (args.first.is_a?(Symbol) && (args.first == :white || args.first == :black))
-      acl_list = args.pop if (args.last.is_a?(Symbol) && (args.last == :white || args.last == :black))
+      acl_list = addresses.shift if (addresses.first.is_a?(Symbol) && (addresses.first == :white || addresses.first == :black))
+      acl_list = addresses.pop if (addresses.last.is_a?(Symbol) && (addresses.last == :white || addresses.last == :black))
       removed = []
-      return removed if (args.empty? || empty?)
-      addrs = IPAccess.to_cidrs(*args)
+      return removed if (addresses.empty? || empty?)
+      addrs = IPAccess.to_cidrs(*addresses)
       addrs.each do |addr|
         addr = addr.ipv4 if addr.ipv4_compliant?
         exists = find_me(addr)
@@ -314,7 +314,7 @@ module IPAccess
             children.each { |childaddr| add_to_parent(childaddr, parent) }
           end
         end # if found
-      end # args.each
+      end # addresses.each
       
       return removed
     end
@@ -330,8 +330,8 @@ module IPAccess
     # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
     
-    def whitelist(*args)
-      args.empty? ? self.to_a(:white) : add!(:white, *args)
+    def whitelist(*addresses)
+      addresses.empty? ? self.to_a(:white) : add!(:white, *addresses)
     end
     
     alias_method :add_white,  :whitelist
@@ -341,16 +341,16 @@ module IPAccess
     # This works the same way as whitelist but allows you to
     # store a reason.
 
-    def whitelist_reasonable(reason, *args)
-      args.empty? ? self.to_a(:white) : add_reasonable!(reason, :white, *args)
+    def whitelist_reasonable(reason, *addresses)
+      addresses.empty? ? self.to_a(:white) : add_reasonable!(reason, :white, *addresses)
     end
     
     # This method removes IP address(-es) from whitelist
     # by calling delete! on it. It returns the
     # result of delete!
     
-    def unwhitelist(*args)
-      self.delete!(:white, *args)
+    def unwhitelist(*addresses)
+      self.delete!(:white, *addresses)
     end
     
     alias_method :unwhite,    :unwhitelist
@@ -366,8 +366,8 @@ module IPAccess
     # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
     
-    def blacklist(*args)
-      args.empty? ? self.to_a(:black) : add!(:black, *args)
+    def blacklist(*addresses)
+      addresses.empty? ? self.to_a(:black) : add!(:black, *addresses)
     end
     
     alias_method :add_black,  :blacklist
@@ -377,16 +377,16 @@ module IPAccess
     # This works the same way as blacklist but allows
     # you to store a reason.
     
-    def blacklist_reasonable(reason, *args)
-      args.empty? ? self.to_a(:black) : add_reasonable!(reason, :black, *args)
+    def blacklist_reasonable(reason, *addresses)
+      addresses.empty? ? self.to_a(:black) : add_reasonable!(reason, :black, *addresses)
     end
     
     # This method removes IP address(-es) from blacklist
     # by calling delete! on it. It returns the
     # result of delete!
     
-    def unblacklist(*args)
-      self.delete!(:black, *args)
+    def unblacklist(*addresses)
+      self.delete!(:black, *addresses)
     end
     
     alias_method :unblack,    :unblacklist
@@ -404,16 +404,16 @@ module IPAccess
     # you may pass to it.
     #
     # Examples:
-    #     access = IPAccess::List.new '127.0.0.1/8'   # blacklisted local IP
+    #     access = IPAccess::List.new '127.0.0.1/8' # blacklisted local IP
     #     access.included '127.0.0.1'               # returns [127.0.0.0/8]
     #     access.included '127.0.0.1/24'            # returns [127.0.0.0/8]
     #     access.included '127.0.0.1'/8             # returns [127.0.0.0/8]
     #     access.included '127.0.1.2'/8             # returns [127.0.0.0/8]
     
-    def included(*args)
+    def included(*addresses)
       found = []
       return found if empty?
-      addrs = IPAccess.to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*addresses)
       return found if addrs.empty?
       addrs.each do |addr|
         rule = included_cidr(addr)
@@ -432,9 +432,9 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def include?(*args)
+    def include?(*addresses)
       return false if empty?
-      addrs = IPAccess.to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*addresses)
       return false if addrs.empty?
       addrs.each do |addr|
         rule = included_cidr(addr)
@@ -455,9 +455,9 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def included_first(*args)
+    def included_first(*addresses)
       return nil if empty?
-      addrs = IPAccess.to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*addresses)
       return nil if addrs.empty?
       addrs.each do |addr|
         rule = included_cidr(addr)
@@ -476,7 +476,7 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def include_one?(*args)
+    def include_one?(*addresses)
       not included_first.nil?
     end
     
@@ -515,10 +515,10 @@ module IPAccess
     # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
     
-    def rule_exists(list, *args)
+    def rule_exists(list, *addresses)
       found = []
       return found if empty?
-      addrs = IPAccess.to_cidrs(*args)
+      addrs = IPAccess.to_cidrs(*addresses)
       return found if addrs.empty?
       addrs.each do |addr|
         rule = rule_exists_cidr(list, addr)
@@ -559,8 +559,8 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def find_blacklist_rules(*args)
-      rule_exists(:black, *args)
+    def find_blacklist_rules(*addresses)
+      rule_exists(:black, *addresses)
     end
     
     alias_method :find_blacklist_rule, :find_blacklist_rules
@@ -585,8 +585,8 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def blacklist_rules_exist?(*args)
-      addrs = IPAccess.to_cidrs(*args)
+    def blacklist_rules_exist?(*addresses)
+      addrs = IPAccess.to_cidrs(*addresses)
       return found if addrs.empty?
       addrs.each do |addr|
         rule = rule_exists_cidr(:black, addr)
@@ -616,8 +616,8 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def find_whitelist_rules(*args)
-      rule_exists(:white, *args)
+    def find_whitelist_rules(*addresses)
+      rule_exists(:white, *addresses)
     end
     
     alias_method :find_blacklist_rule, :find_blacklist_rules
@@ -641,8 +641,8 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def whitelist_rules_exist?(*args)
-      addrs = IPAccess.to_cidrs(*args)
+    def whitelist_rules_exist?(*addresses)
+      addrs = IPAccess.to_cidrs(*addresses)
       return found if addrs.empty?
       addrs.each do |addr|
         rule = rule_exists_cidr(:white, addr)
@@ -783,11 +783,11 @@ module IPAccess
     # modifying returned object may affect internal
     # structure of access list.
     
-    def denied(*args)
+    def denied(*addresses)
       found = []
       return found if empty?
-      nodup = args.last.is_a?(TrueClass) ? args.pop : false
-      addrs = IPAccess.to_cidrs(*args)
+      nodup = addresses.last.is_a?(TrueClass) ? addresses.pop : false
+      addrs = IPAccess.to_cidrs(*addresses)
       addrs.each do |addr|
         pair = denied_cidr(addr, nodup)
         found.push(pair) unless pair.empty?
@@ -802,9 +802,9 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def denied?(*args)
-      args.push true
-      not denied(*args).empty?
+    def denied?(*addresses)
+      addresses.push true
+      not denied(*addresses).empty?
     end
     
     alias_method :denied_one?,     :denied?
@@ -852,11 +852,11 @@ module IPAccess
     # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
       
-    def granted(*args)
+    def granted(*addresses)
       found = []
       return found if empty?
-      args = IPAccess.to_cidrs(*args)
-      args.each do |addr|
+      addresses = IPAccess.to_cidrs(*addresses)
+      addresses.each do |addr|
         rule = denied_cidr(addr, true)
         found.push(addr) if rule.empty?
       end
@@ -881,9 +881,9 @@ module IPAccess
     # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
     
-    def granted?(*args)
-      args.push true
-      denied(*args).empty?
+    def granted?(*addresses)
+      addresses.push true
+      denied(*addresses).empty?
     end
     
     alias_method :granted_one?,     :granted?
@@ -897,9 +897,9 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def +(*args)
+    def +(*addresses)
       obj = self.class.new(self)
-      obj.add!(*args)
+      obj.add!(*addresses)
       return obj
     end
     
@@ -910,9 +910,9 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def -(*args)
+    def -(*addresses)
       self_copy = self.class.new(self)
-      self_copy.delete(*args)
+      self_copy.delete(*addresses)
       return self_copy
     end
     
@@ -941,8 +941,8 @@ module IPAccess
     
     # This operator calls add! method.
     
-    def <<(*args)
-      add!(*args)
+    def <<(*addresses)
+      add!(*addresses)
       return self
     end
     
