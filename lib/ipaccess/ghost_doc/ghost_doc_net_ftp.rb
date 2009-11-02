@@ -50,9 +50,9 @@
 #     files = ftp.chdir('/')
 #     
 #     # blacklist the host (a bit late but we'll try)
-#     ftp.acl.output.blacklist 'ftp.pld-linux.org'
+#     ftp.blacklist 'ftp.pld-linux.org'
 #     
-#     # this command opens socket so there is no need to call ftp.acl_recheck
+#     # try to get listing
 #     files = ftp.list('n*')
 #     ftp.close
 #     
@@ -60,17 +60,24 @@
 #     
 #     require 'ipaccess/net/ftp'
 #     
+#     # create shared access set
 #     acl = IPAccess::Set.new
 #     acl.output.blacklist 'ftp.pld-linux.org'
+#     
+#     # create an object and connect
 #     ftp = Net::FTP.new('ftp.pld-linux.org')
 #     ftp.passive = true
 #     ftp.login
+#     
+#     # arm the object and associate shared access set with it
 #     IPAccess.arm ftp, acl
+# 
+#     # perform some operations (an exception should be raised earlier)
 #     files = ftp.chdir('/')
 #     files = ftp.list('n*')
 #     ftp.close
 #     
-#     # Using patched Net::FTP[http://www.ruby-doc.org/stdlib/libdoc/net/ftp/rdoc/classes/Net/FTP.html] class
+# ==== Using patched Net::FTP[http://www.ruby-doc.org/stdlib/libdoc/net/ftp/rdoc/classes/Net/FTP.html] class
 #     
 #     acl = IPAccess::Set.new
 #     IPAccess.arm Net::FTP
@@ -148,19 +155,9 @@ class IPAccess::Net::FTP
   # 
   #     ftp.acl = :global                      # use global access set
   #     ftp.acl = :private                     # create and use individual access set
-  #     ftp.acl = IPAccess::Set.new                 # use external (shared) access set
+  #     ftp.acl = IPAccess::Set.new            # use external (shared) access set
 
-  attr_writer :acl
-  
-  # This member keeps the information about currently
-  # used access set. You may use it to do low-level
-  # operations on IPAccess::Set object associated
-  # with instance. You cannot however call any
-  # of global access set operations – to do that
-  # use IPAccess::Set.Global contant referencing to
-  # global ACL.
-  
-  attr_reader :acl
+  attr_accessor :acl
   
   # :call-seq:
   #   new()<br />

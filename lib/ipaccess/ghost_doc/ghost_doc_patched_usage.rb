@@ -1,35 +1,64 @@
 # Access checks are lazy,
-# which means they are performed when real connection
-# is going to happend.
+# which means they are performed when
+# a real connection is going to happend.
 # 
 # Instances of this class will also
 # internally use patched versions of Ruby's network
 # socket objects to avoid access leaks.
 # 
 # You can pass access set in various ways: while
-# creating new object or while communication is
-# already started. You can also rely on global
+# creating a new object or while a communication is
+# already started. You can also rely on a global
 # access set, which is used by default.
 #
 # === Usage
 # 
 # There are 3 ways to enable access control:
 #
-# * patching original class (see IPAccess.arm) – use it in code that you cannot modify
-# * patching single instance (see IPAccess.arm) – use it occasionally
-# * using instances of this class directly – use it in your own code
+# * by patching original class (see IPAccess.arm) – use it in code that you cannot modify
+# * by patching single instance (see IPAccess.arm) – use it occasionally
+# * by using instances of this class directly – use it in your own code
 # 
-# There are also 3 ways to manage access rules:
+# There are also 4 ways to manage access rules:
 # 
-# * using new methods like blacklist and whitelist – preferred, ensures that access check is done after change
-# * using +acl+ member – you may control only private and shared access sets that way and have to ensure that re-check is done after change
-# * using <tt>IPAccess::Set.Global</tt> constant – use it when object is associated with global access set
+# * by using direct methods like blacklist and whitelist – preferred
+# * by using +acl+ member – low-level
+# * by using <tt>IPAccess::Set.Global</tt> constant – controls a global access set
+# * by using methods of an external IPAccess::Set object associated with an instance
 # 
-# The +acl+ member and <tt>IPAccess::Set.Global</tt> are IPAccess::Set objects.
-# Direct methods are documented below – they are easy to use
-# but their appliance is limited to existing objects (since they
-# are instance methods). That sometimes may not be what you need,
-# for example in case of quick setups when connection is made in
-# the very moment new object is created or when single object is patched
-# (armed) in connected state. Remeber to call acl_recheck
-# immediately after rules management operation to avoid leaks.
+# ==== Using direct methods
+# 
+# Patched network objects and variants have methods to control access.
+# You should use them since they are most reliable way to perform
+# modifications on an working instance. These methods (documented
+# below) are: whitelist, blacklist, whitelist! and blacklist!.
+# Each of the methods ensures that needed safety checks are made
+# when detecting some change in access lists.
+# 
+# ==== Using +acl+ member
+# 
+# The +acl+ member gives you direct access to internal IPAccess::Set
+# instance that an object uses to control an access. However,
+# by accessing this member you may only modify private and shared
+# access sets, and you have to manually re-check connection against lists
+# (e.g. by using method acl_recheck).
+# 
+# ==== Using IPAccess::Set.Global
+# 
+# You may use IPAccess::Set.Global to add or remove rules
+# conatined in lists of a global access set. You should use
+# it before some network objects are created and if it's not
+# possible call acl_recheck for any object that is using it
+# when some changes in rules are made. It is also possible
+# to manipulate global access set from object's scope using
+# whitelist! and blacklist! methods. For working
+# objects you should use them.
+# 
+# ==== Using external access set
+# 
+# External access sets are simply IPAccess::Set objects
+# that were associated with an instance during initialization
+# or by assigning it to +acl+ member. You may manipulate their
+# access rules safely before a networking object is in
+# a connected state. After it happens it is safer to use
+# direct controlling methods that network object provides.

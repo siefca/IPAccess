@@ -223,17 +223,7 @@ class IPAccess::UDPSocket
   #     socket.acl = :private           # create and use individual access set
   #     socket.acl = IPAccess::Set.new  # use external (shared) access set
   
-  attr_writer :acl
-  
-  # This member keeps the information about currently
-  # used access set. You may use it to do low-level
-  # operations on IPAccess::Set object associated
-  # with instance. You cannot however call any
-  # of global access set operations – to do that
-  # use IPAccess::Set.Global contant referencing to
-  # global ACL.
-  
-  attr_reader :acl
+  attr_accessor :acl
 
   # This method allows you to re-check access on demad.
   # It uses internal socket's address and access set assigned

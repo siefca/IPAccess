@@ -1,5 +1,9 @@
 # This member selects IPAccess::Set object that will be used to
-# control IP access for a socket. You may assign global access set,
+# control IP access for a socket.
+# 
+# === Setting an access set
+# 
+# You may assign global access set,
 # create local access set or use shared set.
 # 
 # - If an argument is +:global+ it uses global access set.
@@ -29,3 +33,22 @@
 # only by operation used to create. The private access set is created
 # automatically and shared access set exists before socket object is
 # formed.
+# 
+# === Using an access set
+# 
+# This member keeps the information about currently
+# used access set. You may use it to do low-level
+# operations on IPAccess::Set object associated
+# with instance. You cannot however call any
+# of global access set operations – to do that
+# use IPAccess::Set.Global contant referencing to
+# global ACL.
+# 
+# ==== Manipulating access lists
+# 
+# You should avoid manipulating an access set directly to add
+# or remove rules in lists. It works fine but under some circumstances
+# changes made on working (connected) network object may
+# not be noticed immediately. You should use direct methods
+# (like blacklist, whitelist, blacklist! and whitelist!)
+# to control access for existing network objects.

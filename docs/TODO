@@ -1,5 +1,7 @@
 == IPAccess
 
+- create a bus that will trigger rechecks for all objects that are using given access set.
+
 - add examples with blocks
 - check all overloaded class methods that take blocks for bugs
 

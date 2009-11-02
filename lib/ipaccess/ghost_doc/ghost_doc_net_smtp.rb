@@ -123,17 +123,7 @@ class IPAccess::Net::SMTP
   #     smtp.acl = :private                     # create and use individual access set
   #     smtp.acl = IPAccess::Set.new                 # use external (shared) access set
 
-  attr_writer :acl
-  
-  # This member keeps the information about currently
-  # used access set. You may use it to do low-level
-  # operations on IPAccess::Set object associated
-  # with instance. You cannot however call any
-  # of global access set operations – to do that
-  # use IPAccess::Set.Global contant referencing to
-  # global ACL.
-  
-  attr_reader :acl
+  attr_accessor :acl
   
   # :call-seq:
   #   new(address)<br />
