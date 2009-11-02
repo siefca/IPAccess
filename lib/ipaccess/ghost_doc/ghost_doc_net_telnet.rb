@@ -153,6 +153,22 @@ class IPAccess::Net::Telnet
   alias_method :block,      :blacklist
   alias_method :del_white!, :unwhitelist!
   alias_method :del_white,  :unwhitelist
+  
+  # This method works like whitelist! but
+  # allows to set reason.
+  def whitelist_reasonable!(reason, *addresses); end
+
+  # This method works like whitelist but
+  # allows to set reason.
+  def whitelist_reasonable(reason, *addresses); end
+
+  # This method works like blacklist! but
+  # allows to set reason.
+  def blacklist_reasonable!(reason, *addresses); end
+
+  # This method works like blacklist but
+  # allows to set reason.
+  def blacklist_reasonable(reason, *addresses); end
    
   #:include:ghost_doc_acl.rb
   #  

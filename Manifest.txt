@@ -14,6 +14,7 @@ docs/images/ipaccess_relations.png
 docs/images/ipaccess_setup_origin.png
 docs/images/ipaccess_setup_origin_tab.png
 docs/images/ipaccess_view.png
+docs/rdoc.css
 examples/ftp.rb
 examples/http.rb
 examples/imap.rb
