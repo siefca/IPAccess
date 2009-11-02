@@ -245,3 +245,26 @@ class IPAccessDenied::Output < IPAccessDenied
   
 end
 
+# This class handles multiple IP access denied
+# exception and behaves like a enumerable collection.
+# It is used to collect and throw many errors
+# at once.
+
+class IPAccessDenied::Aggregate < SecurityError
+  instance_methods.each { |m| undef_method m unless m =~ /(^__|^send$|^object_id$|^class$)/ }
+  
+  def method_missing(name, *args, &block)
+    target.send(name, *args, &block)
+  end
+  protected :method_missing
+
+  def target
+    @target ||= []
+  end
+  protected :target
+  
+  def message
+    "some connections reported access denied"
+  end
+  
+end

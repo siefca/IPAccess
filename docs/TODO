@@ -1,7 +1,5 @@
 == IPAccess
 
-- create a bus that will trigger rechecks for all objects that are using given access set.
-
 - add examples with blocks
 - check all overloaded class methods that take blocks for bugs
 
@@ -12,6 +10,7 @@
 == Documentation
 
 - rewrite docs for patches to use proxy methods!!!
+- add a doco with an example of a block that disables throwing an exception but closes connection and does stuff
 - insert hints in documentation: acl.output.blacklist before object is created and obj.blacklist when it exists as a good example!
 - add IPAccess::Net ghost-doc
 - sockets: document initializers and other stuff that takes :opened_on_deny
@@ -32,3 +31,10 @@
 - maybe some day: test input lists even if socket is a client socket - local socket address permit/deny
 - to speed up ACL seeks maybe a small, fast buffer for up to 128 IP matches cleaned when something will change?
 
+
+
+begin
+	a.blacklist '127.0.0.1'
+rescue
+	
+end
