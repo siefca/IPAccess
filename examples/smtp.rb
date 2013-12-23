@@ -10,7 +10,7 @@ acl = IPAccess::Set.new
 acl.output.blacklist 'randomseed.pl'
 acl.output.blacklist 'gmail.com'
 
-###### Example cases
+#===== Example cases
 
 # 1
 

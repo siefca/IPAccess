@@ -2,7 +2,7 @@
 # 
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009-2014 by Paweł Wilk
-# License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:LGPL-LICENSE.html] or Ruby License.
+# License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:LGPL.html] or Ruby License.
 # 
 # Classes contained are just for documentary purposes.
 # It is a scaffold for keeping virtual methods that

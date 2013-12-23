@@ -29,14 +29,12 @@ Hoe.plugin :yard
 Hoe.plugin :gemspec
 
 Hoe.spec 'ipaccess' do
+  developer           "Paweł Wilk", "pw@gnu.org"
   self.version         =  "1.2.0"
   self.rubyforge_name  = 'ipaccess'
   self.summary         = 'IP Access Control for Ruby'
   self.description     = 'This library allows you to control IP access for sockets and other objects'
   self.url             = 'https://rubygems.org/gems/ipaccess'
-
-  developer           "Paweł Wilk", "pw@gnu.org"
-  
   self.remote_rdoc_dir = ''
   self.rspec_options   = ['--options', 'spec/spec.opts']
   self.rsync_args      << '--chmod=a+rX'
@@ -55,16 +53,6 @@ Hoe.spec 'ipaccess' do
   self.spec_extras['rdoc_options'] = proc do |rdoc_options|
       rdoc_options << "--title=IP Access Control for Ruby"
   end
-
-end
-
-task :docs do
-  
-  images = Dir.glob('docs/images/*')
-  FileUtils.mkdir 'doc/images' unless Dir.exists? 'doc/images'
-  FileUtils.cp_r images, 'doc/images'
-  FileUtils.mv 'doc/rdoc.css', 'doc/rdoc_base.css'
-  FileUtils.cp 'docs/rdoc.css', 'doc/rdoc.css'
 
 end
 

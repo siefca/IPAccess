@@ -26,3 +26,7 @@ rescue IPAccessDenied => e
   puts "Session closed:\t#{t.closed?}"
   
 end
+
+p t
+p "end"
+

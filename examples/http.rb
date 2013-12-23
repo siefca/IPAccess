@@ -12,7 +12,7 @@ IPAccess::Set::Global.output.blacklist 'randomseed.pl'
 acl = IPAccess::Set.new
 acl.output.blacklist 'randomseed.pl'
 
-###### Example cases
+#===== Example cases
 
 # Case 0: custom access set and patched single instance
 

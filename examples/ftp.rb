@@ -9,7 +9,7 @@ IPAccess::Set::Global.output.blacklist 'randomseed.pl'
 acl = IPAccess::Set.new
 acl.output.blacklist 'randomseed.pl'
 
-###### Example cases
+#===== Example cases
 
 begin
   IPAccess::Net::FTP.open('ftp.icm.edu.pl', acl) { |ftp|

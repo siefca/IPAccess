@@ -2,7 +2,7 @@
 #
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
 # Copyright:: Copyright (c) 2009-2014 by Paweł Wilk
-# License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:docs/LGPL-LICENSE.html] or {Ruby License}[link:docs/COPYING.html].
+# License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:docs/LGPL.html] or {Ruby License}[link:docs/COPYING.html].
 # 
 # Classes contained in this file are subclasses
 # of Ruby's POP3 handling classes equipped
@@ -31,7 +31,7 @@ require 'ipaccess/patches/net_pop'
 
 module IPAccess::Net
   
-  class POP3 < Net::POP3
+  class POP3 < ::Net::POP3
     include IPAccess::Patches::Net::POP3
   end
   

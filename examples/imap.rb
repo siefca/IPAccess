@@ -10,7 +10,7 @@ acl = IPAccess::Set.new
 acl.output.blacklist 'randomseed.pl'
 acl.output.blacklist 'imap.heise.de'
 
-###### Example cases
+#===== Example cases
 
 # 1
 
