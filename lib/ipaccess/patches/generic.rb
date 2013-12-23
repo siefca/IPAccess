@@ -200,7 +200,7 @@ module IPAccess
     singleton_obj.__send__(:__ipa_singleton_hook, acl, cod) unless singleton_obj.nil?
     return klass
   end
-  
+    
   # :stopdoc:
   
   # This module patches network classes
@@ -215,39 +215,39 @@ module IPAccess
     # IPAccess::Set.Global constant instead.
 
     class IPAccess::Set::GlobalSet
-    
+
       include Singleton
 
       # imitate nil
       def nil?; true end
-      
+
       # This method returns +true+ if current object is IPAccess::Set.Global.
       # Otherwise it returns +false+.
       def global?; true end
-      
+
       # return +true+ when compared to IPAccess::Set.Global
       def ==(obj)
         return true if obj.object_id == IPAccess::Set::Global.object_id
         method_missing(:==, obj)
       end
-      
+
       def ===(obj)
         return true if obj.object_id == IPAccess::Set::Global.object_id
         method_missing(:===, obj)
       end
-      
+
       # imitate IPAccess::Set.Global when inspected
       def inspect
         IPAccess::Set::Global.inspect
       end
-      
+
       # imitate nil even more and disallow direct ACL modifications
       def method_missing(name, *args)
         return nil.method(name).call(*args) if nil.respond_to?(name)
         raise ArgumentError, "cannot access global set from object's scope, use IPAccess::Set::Global"
       end
-      
-  end # class IPAccess::Set.GlobalSet
+
+    end # class IPAccess::Set.GlobalSet
 
     # The ACL module contains methods
     # that are present in all network
@@ -255,6 +255,16 @@ module IPAccess
   
     module ACL
 
+      # This method is used to safely
+      # pass an eventual exception
+      # and fill its useables field with a current
+      # object.
+      
+      def __ipa_wrap_socket_call(*args, &block)
+        IPAccess.take_care(self, *args, &block)
+      end
+      protected :__ipa_wrap_socket_call
+      
       # This method enables usage of internal IP access list for object.
       # If argument is IPAccess::Set object then it is used.
       # 
@@ -265,27 +275,32 @@ module IPAccess
       #     socket.acl = IPAccess::Set.new  # use external (shared) access set
       
       def acl=(access_set)
+        new_acl = nil
+        prev_acl = @acl
         if access_set.is_a?(Symbol)
           case access_set
           when :global
-            @acl = IPAccess::Set::GlobalSet.instance
+            new_acl = IPAccess::Set::GlobalSet.instance
           when :private
-            @acl = IPAccess::Set.new
+            new_acl = IPAccess::Set.new
           else
             raise ArgumentError, "bad access list selector, use: :global or :private"
           end
         elsif access_set.is_a?(IPAccess::Set)
           if access_set == IPAccess::Set::Global
-            @acl = IPAccess::Set::GlobalSet.instance
+            new_acl = IPAccess::Set::GlobalSet.instance
           else
-            @acl = access_set
+            new_acl = access_set
           end
         elsif access_set.nil?
-          @acl = IPAccess::Set::GlobalSet.instance
+          new_acl = IPAccess::Set::GlobalSet.instance
         else
           raise ArgumentError, "bad access list"
         end
-        self.acl_recheck if self.respond_to?(:acl_recheck)
+        unless (new_acl.nil? || prev_acl.object_id == new_acl.object_id)
+          @acl = new_acl
+          self.acl_recheck if self.respond_to?(:acl_recheck)
+        end
       end
     
       # This method returns +true+ if the given object can be used to initialize ACL.
@@ -416,8 +431,6 @@ module IPAccess
       # This method will allow you to modify the list
       # even if the global access set is used by object.
       # 
-      #
-      #
       # === Revalidation
       #
       # After modyfing access set current connection
@@ -472,8 +485,6 @@ module IPAccess
       # You may operate on IPAccess::Set.Global or use
       # unwhitelist! instead.
       # 
-      #
-      #
       # === Revalidation
       #
       # After modyfing access set current connection
@@ -517,8 +528,6 @@ module IPAccess
       # This method will allow you to modify the list
       # even if the global access set is used by object.
       # 
-      #
-      #
       # === Revalidation
       #
       # After modyfing access set current connection
@@ -616,8 +625,6 @@ module IPAccess
       # This method will allow you to modify the list
       # even if the global access set is used by object.
       # 
-      #
-      #
       # === Revalidation
       #
       # After modyfing access set current connection
@@ -779,7 +786,7 @@ module IPAccess
       end
       private :try_terminate_subsocket
       
-      # This method will be called if
+      # This method will be called when
       # instance is patched.
       
       def __ipa_singleton_hook(acl=nil, open_on_deny=false)

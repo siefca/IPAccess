@@ -61,7 +61,7 @@ module IPAccess::Patches::Net
           args.pop if args.last.nil?
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           ipaddr = ::TCPSocket.getaddress(host)
-          real_acl.check_out_ipstring(ipaddr, :none)
+          real_acl.output.check_ipstring(ipaddr, :none)
           obj = orig_initialize.bind(self).call(ipaddr, *args, &block)
           @host = host
           self.acl_recheck

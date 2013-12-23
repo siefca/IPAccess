@@ -105,8 +105,10 @@ module IPAccess::Patches::Net
         
         # open_socket on steroids.
         define_method :open_socket do |host, port|
-          host = ::TCPSocket.getaddress(host)
-          real_acl.check_out_ipstring(host, self)
+          unless @opened_on_deny
+            host = ::TCPSocket.getaddress(host)
+            real_acl.output.check_ipstring(host, self)
+          end
           try_arm_and_check_socket( orig_open_socket.bind(self).call(host, port) )
         end
         private :open_socket
@@ -114,7 +116,7 @@ module IPAccess::Patches::Net
         # set_socket on steroids.
         define_method :set_socket do |sock, *args|
           ret = orig_set_socket.bind(self).call(sock, args.first)
-          try_arm_and_check_socket @sock
+          try_arm_and_check_socket(@sock, self)
           return ret
         end
         

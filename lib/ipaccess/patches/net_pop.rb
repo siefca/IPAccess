@@ -124,7 +124,7 @@ module IPAccess::Patches::Net
         define_method :do_start do |account, password|
           prev_addr = @address
           ipaddr = ::TCPSocket.getaddress(@address)
-          real_acl.check_out_ipstring(ipaddr, self)
+          real_acl.output.check_ipstring(ipaddr, self)
           @address = ipaddr
           ret = orig_do_start.bind(self).call(account, password)
           @address = prev_addr

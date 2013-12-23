@@ -62,7 +62,7 @@ module IPAccess::Patches::Net
           options["Host"] = "localhost" unless options.has_key?("Host")
           self.acl = IPAccess.valid_acl?(options["ACL"]) ? options["ACL"] : :global
           options["Host"] = ::TCPSocket.getaddress(options["Host"])
-          self.acl.check_out_ipstring(options["Host"], :none)
+          self.acl.output.check_ipstring(options["Host"], :none)
           args[0] = options
           ret = orig_initialize.bind(self).call(*args, &block)
           self.acl_recheck

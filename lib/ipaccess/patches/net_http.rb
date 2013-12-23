@@ -141,7 +141,7 @@ module IPAccess::Patches::Net
         define_method :conn_address do
           addr = orig_conn_address.bind(self).call
           ipaddr = ::TCPSocket.getaddress(addr)
-          real_acl.check_out_ipstring(ipaddr, self)
+          real_acl.output.check_ipstring(ipaddr, self)
           return ipaddr
         end
         private :conn_address

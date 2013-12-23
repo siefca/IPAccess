@@ -24,74 +24,11 @@ require 'socket'
 require 'resolv'
 require 'netaddr'
 require 'ipaccess'
+require 'ipaccess/ip_access_errors'
 require 'ipaccess/patches/netaddr'
 
 module IPAccess
   
-  # This class stores information about
-  # references to collection of objects and
-  # allows to call specified method on them.
-  
-  class Bus
-
-    def initialize
-      @bus = {}
-    end
-
-    # This method attaches objects to a special bus
-    # that allows them to be notified about any
-    # changes in an access list. The object must
-    # respond to acl_recheck since it will be
-    # called.
-    
-    def attach(*objects)
-      objects.each do |obj|
-        if obj.respond_to?(:acl_recheck)
-          @bus[obj.object_id] = obj.class.name.to_sym
-        else
-          raise ArgumentError, "attached object must respond to acl_recheck"
-        end
-      end
-      return nil
-    end
-    
-    # This method detaches given objects from collection.
-    
-    def detach(*objects)
-      objects.each do |obj|
-        @bus.delete obj.object_id  
-      end
-      return nil
-    end
-    
-    # This method calls acl_recheck
-    # for any object that is attached to a bus.
-    
-    def call
-      ecol = IPAccessDenied::Aggregate.new
-      @bus.delete_if do |o_id, o_klass|
-        obj = ObjectSpace.id2ref o_id
-        if (obj.class.name.to_sym == o_klass && obj.respond_to?(:acl_recheck))
-          begin
-            obj.acl_recheck
-          rescue IPAccessDenied => e
-            ecol.push e
-          end
-          false
-        else
-          true
-        end
-      end # delete_if
-      if block_given?
-        ecol.each { |e| yield e }
-      else
-        raise ecol unless ecol.empty?
-      end
-      return nil
-    end
-    
-  end
-
   # This class maintains a simple access list containing two lists of rules.
   # 
   # === Access lists
@@ -156,13 +93,7 @@ module IPAccess
   #     puts access.whitelist           # display whitelisted IP addresses
   
   class List < NetAddr::Tree
-    
-    # This attribute contains IPAccess::Bus object
-    # that allows network objects to register themselves
-    # in order to be notified when list is changed.
-    
-    attr_accessor :bus
-    
+        
     # Creates new IPAccess::List object. You may pass objects
     # (containing IP information) to it. These objects will
     # create black list rules. See IPAccess.to_cidrs description
@@ -185,7 +116,6 @@ module IPAccess
     
     def initialize(*addresses)
       addresses = [] if addresses == [nil]
-      @bus = IPAccess::Bus.new
       super()
       add!(*addresses) unless addresses.empty?
       return self
@@ -285,12 +215,12 @@ module IPAccess
     
     # This is core adding method.
     
-    def add_core(reason, *addresses, &block)
+    def add_core(reason, *addresses)
       acl_list = nil
       acl_list = addresses.shift if (addresses.first.is_a?(Symbol) && (addresses.first == :white || addresses.first == :black))
       acl_list = addresses.pop if (addresses.last.is_a?(Symbol) && (addresses.last == :white || addresses.last == :black))
-      return nil if addresses.empty?
-      added = false
+      added = []
+      return added if addresses.empty?
       addrs = IPAccess.to_cidrs(*addresses)
       addrs.each do |addr|
         addr = addr.ipv4 if addr.ipv4_compliant?
@@ -306,15 +236,14 @@ module IPAccess
           addr.tag[:ACL] = add_list
           addr.tag[reason_tag] = reason unless reason.to_s.empty?
           add_to_tree(addr)
-          added = true
+          added.push addr.safe_dup(:Subnets, :Parent)
         elsif exists.tag[:ACL] != add_list
           exists.tag[:ACL] = :grey
           exists.tag[reason_tag] = reason unless reason.to_s.empty?
-          added = true
+          added.push addr.safe_dup(:Subnets, :Parent)
         end
       end
-      @bus.call(&block) if added
-      return nil
+      return added
     end
     private :add_core
         
@@ -353,7 +282,7 @@ module IPAccess
     # See IPAccess.to_cidrs description for more info about arguments
     # you may pass to it.
     
-    def delete!(*addresses, &block)
+    def delete!(*addresses)
       acl_list = nil
       acl_list = addresses.shift if (addresses.first.is_a?(Symbol) && (addresses.first == :white || addresses.first == :black))
       acl_list = addresses.pop if (addresses.last.is_a?(Symbol) && (addresses.last == :white || addresses.last == :black))
@@ -390,7 +319,6 @@ module IPAccess
           end
         end # if found
       end # addresses.each
-      @bus.call(&block) unless removed.empty?
       return removed
     end
     
