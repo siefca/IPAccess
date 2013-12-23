@@ -73,6 +73,12 @@ class IPAccessDenied < SecurityError
   
   attr_reader :peer_ip
   
+  # Socket object associated with
+  # an exception. Only few checks
+  # sets it.
+  
+  attr_reader :socket
+  
   # Access set that was used to check access.
   
   attr_reader :acl
@@ -87,11 +93,12 @@ class IPAccessDenied < SecurityError
   # usualy it should be set to object that caused
   # the exception to happend.
   
-  def initialize(addr, rule=nil, acl=nil, obj=nil)
+  def initialize(addr, rule=nil, acl=nil, obj=nil, socket=nil)
     @peer_ip    = addr
     @rule       = rule
     @acl        = acl
     @originator = obj
+    @socket     = socket
   end
   
   # Returns string representation of access set name rule.
