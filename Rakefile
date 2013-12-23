@@ -26,7 +26,7 @@ end
 ### Gem
 
 Hoe.spec 'ipaccess' do
-  self.version         =  "1.0.1"
+  self.version         =  "1.0.2"
   self.rubyforge_name  = 'ipaccess'
   self.summary         = 'IP Access Control for Ruby'
   self.description     = 'This library allows you to control IP access for sockets and other objects'
@@ -37,16 +37,17 @@ Hoe.spec 'ipaccess' do
   self.remote_rdoc_dir = ''
   self.rspec_options   = ['--options', 'spec/spec.opts']
   self.rsync_args      << '--chmod=a+rX'
-  self.readme_file     = 'docs/README'
+  self.readme_file     = 'README'
   self.history_file    = 'docs/HISTORY'
 
-  self.extra_rdoc_files = ["docs/README",
-                      "docs/LGPL-LICENSE",
-                      "docs/LEGAL", "docs/HISTORY",
-                      "docs/COPYING"]
+  self.extra_rdoc_files = [ "README",
+                            "docs/LGPL-LICENSE",
+                            "docs/LEGAL",
+                            "docs/HISTORY",
+                            "docs/COPYING" ]
 
   extra_deps          << ["netaddr",">= 1.5.0"]
-  extra_dev_deps      << ['hoe', '>= 2.2']
+  extra_dev_deps      << ['hoe', '>~ 3.7']
 
   self.spec_extras['rdoc_options'] = proc do |rdoc_options|
       rdoc_options << "--title=IP Access Control for Ruby"
