@@ -434,7 +434,6 @@ module IPAccess
       end
       return socket
     end
-    protected :check_socket
     
     # This method checks access for a sockaddr.
     # It works the same way as check_socket but tests sockaddr structures.
@@ -458,7 +457,6 @@ module IPAccess
       end
       return sockaddr
     end
-    protected :check_sockaddr
     
     # This method checks access for a CIDR object.
     # It works the same way as check_socket but tests NetAddr::CIDR objects.
@@ -475,12 +473,11 @@ module IPAccess
       end
       return cidr
     end
-    protected :check_cidr
-    
+
     # This method checks access for a string containing
     # IP address. It works the same way as check_socket
     # but tests Strings containing IP addresses.
-    
+
     def check_ipstring(ipstring, originator=nil) # :yields: address, rule, list, ipstring, originator
       return ipstring if self.empty?
       addr = NetAddr::CIDR.create(ipstring.split('%').first)
@@ -495,19 +492,17 @@ module IPAccess
       end
       return ipstring
     end
-    protected :check_ipstring
-    
+
     # This method checks IP access but bases on file descriptor.
     # It works the same way as check_socket but tests file descriptor.
-    
+
     def check_fd(fd, originator=nil, &block) # :yields: address, rule, access_list, socket, originator
       originator = fd if originator.nil?
       check_socket(::Socket.for_fd(fd), originator, &block)
       return fd
     end
-    protected :check_fd
-  
+
   end # class List::Check
-  
+
 end # module IPAccess
 
