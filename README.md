@@ -84,10 +84,6 @@ See IPAccess module's documentation for more information.
 
 Copyright (c) 2009-2014 by Paweł Wilk.
 
-== License
-
-Copyright (c) 2011,2012 by Paweł Wilk.
-
 IPAccess is copyrighted software owned by Paweł Wilk (pw@gnu.org).
 You may redistribute and/or modify this software as long as you
 comply with either the terms of the LGPL (see {file:docs/LGPL}),
