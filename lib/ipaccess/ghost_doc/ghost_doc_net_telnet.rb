@@ -28,7 +28,7 @@
 # provides provides special member called +acl+ and a few new
 # instance methods for controlling IP access.
 # 
-#:include:ghost_doc_patched_usage.rb
+# {include:file:lib/ipaccess/ghost_doc/ghost_doc_patched_usage.rdoc}
 # 
 # This documentation doesn't cover description of all
 # class and instance methods of the original
@@ -117,29 +117,45 @@
 
 class IPAccess::Net::Telnet
   
-  #:include:ghost_doc_p_whitelist_e.rb
-  def whitelist!; end
+  # {include:IPAccess::Socket#whitelist!}
+  # @overload whitelist!(*addresses)
+  # @overload whitelist!(list, *addresses)
+  def whitelist!(*addresses); end
 
-  #:include:ghost_doc_p_whitelist.rb
-  def whitelist; end
+  # {include:IPAccess::Socket#whitelist}
+  # @overload whitelist(*addresses)
+  # @overload whitelist(list, *addresses)
+  def whitelist(*addresses); end
 
-  #:include:ghost_doc_p_blacklist_e.rb
-  def blacklist!; end
+  # {include:IPAccess::Socket#blacklist!}
+  # @overload blacklist!(*addresses)
+  # @overload blacklist!(list, *addresses)
+  def blacklist!(*addresses); end
 
-  #:include:ghost_doc_p_blacklist.rb
-  def blacklist; end
+  # {include:IPAccess::Socket#blacklist}
+  # @overload blacklist(*addresses)
+  # @overload blacklist(list, *addresses)
+  def blacklist(*addresses); end
 
-  #:include:ghost_doc_p_unwhitelist.rb
-  def unwhitelist; end
+  # {include:IPAccess::Socket#unwhitelist!}
+  # @overload unwhitelist!(*addresses)
+  # @overload unwhitelist!(list, *addresses)
+  def unwhitelist!(*addresses); end
+  
+  # {include:IPAccess::Socket#unwhitelist}
+  # @overload unwhitelist(*addresses)
+  # @overload unwhitelist(list, *addresses)
+  def unwhitelist(*addresses); end
 
-  #:include:ghost_doc_p_unwhitelist_e.rb
-  def unwhitelist!; end
+  #{include:IPAccess::Socket#unblacklist!}
+  # @overload unblacklist!(*addresses)
+  # @overload unblacklist!(list, *addresses)
+  def unblacklist!(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist_e.rb
-  def unblacklist!; end
-
-  #:include:ghost_doc_p_unblacklist.rb
-  def unblacklist; end
+  #{include:IPAccess::Socket#unblacklist}
+  # @overload unblacklist(*addresses)
+  # @overload unblacklist(list, *addresses)
+  def unblacklist(*addresses); end
   
   alias_method :unblock!,   :unblacklist!
   alias_method :del_black!, :unblacklist!
@@ -170,7 +186,7 @@ class IPAccess::Net::Telnet
   # allows to set reason.
   def blacklist_reasonable(reason, *addresses); end
    
-  #:include:ghost_doc_acl.rb
+  #{include:file:lib/ipaccess/ghost_doc/ghost_doc_acl.rdoc}
   #  
   # === Example
   # 

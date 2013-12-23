@@ -1,0 +1,54 @@
+This member selects IPAccess::Set object that will be used to
+control IP access for a socket.
+
+=== Setting an access set
+
+You may assign global access set,
+create local access set or use shared set.
+
+- If an argument is +:global+ it uses global access set.
+- If an argument is +:private+ it creates an empty, private access set.
+- If an argument is an IPAccess::Set object then it is used as external, shared set.
+
+==== Global access set
+
+Global access set is an IPAccess::Set object referenced by contant IPAccess::Set.Global
+It cannot be modified by calling +acl+ attribute. To add or remove rules
+use mentioned constant. By default all sockets with enabled IP access control
+are using this set.
+
+==== Private access set
+
+Private access set is an IPAccess::Set object created for socket object.
+You may modify it by referencing to +acl+ member of the socket object.
+
+Under some circumstances it is possible to share private access set
+– you just have to pass the +acl+ member of a socket to initializer
+of new socket object as shared access set.
+
+==== Shared access set
+
+Shared access set is an IPAccess::Set object that more than one socket
+may use to control IP access. It differs from private access set
+only by operation used to create. The private access set is created
+automatically and shared access set exists before socket object is
+formed.
+
+=== Using an access set
+
+This member keeps the information about currently
+used access set. You may use it to do low-level
+operations on IPAccess::Set object associated
+with instance. You cannot however call any
+of global access set operations – to do that
+use IPAccess::Set.Global contant referencing to
+global ACL.
+
+==== Manipulating access lists
+
+You should avoid manipulating an access set directly to add
+or remove rules in lists. It works fine but under some circumstances
+changes made on working (connected) network object may
+not be noticed immediately. You should use direct methods
+(like blacklist, whitelist, blacklist! and whitelist!)
+to control access for existing network objects.

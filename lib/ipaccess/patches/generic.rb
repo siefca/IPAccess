@@ -81,12 +81,7 @@ module IPAccess
     def global?; false end
         
   end # class Set
-  
-  # :call-seq:
-  #   arm(klass, acl=nil)<br />
-  #   arm(klass, :opened_on_deny)<br />
-  #   arm(klass, acl, :opened_on_deny)
-  # 
+
   # This special method patches Ruby's standard
   # library classes and enables IP access control
   # for them. Instances of such altered classes
@@ -95,10 +90,10 @@ module IPAccess
   # to manipulate access rules. It is also
   # able to patch single instance of supported
   # classes.
-  #
+  # 
   # This method returns object that has
   # been patched.
-  #
+  # 
   # ==== Supported classes
   #  
   # Currently supported classes are:
@@ -110,13 +105,13 @@ module IPAccess
   #   – Net::POP3,
   #   – Net::IMAP,
   #   – Net::SMTP.
-  #
+  # 
   # ==== Patching classes
   # 
   # Passed argument may be a class object,
   # a string representation of a class object
   # or a symbol representing a class object.
-  #
+  # 
   # ==== Patching single instances
   # 
   # Passed argument may be an instance of
@@ -135,37 +130,41 @@ module IPAccess
   # argument.
   # 
   # === Examples
-  #
+  # 
   # ==== Example 1 – sockets
   # 
-  #     require 'ipaccess/socket'                         # load sockets subsystem and IPAccess.arm method
+  #     require 'ipaccess/socket'                               # load sockets subsystem and IPAccess.arm method
   # 
-  #     IPAccess.arm TCPSocket                            # arm TCPSocket class  
-  #     IPAccess::Set::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
-  #     TCPSocket.new('randomseed.pl', 80)                # try to connect
+  #     IPAccess.arm TCPSocket                                  # arm TCPSocket class  
+  #     IPAccess::Set::Global.output.blacklist 'randomseed.pl'  # add host to black list of the global set
+  #     TCPSocket.new('randomseed.pl', 80)                      # try to connect
   # 
   # ==== Example 2 – HTTP
   # 
-  #     require 'ipaccess/net/http'                       # load net/http subsystem and IPAccess.arm method
+  #     require 'ipaccess/net/http'                             # load net/http subsystem and IPAccess.arm method
   # 
-  #     IPAccess.arm Net::HTTP                            # arm TCPSocket class  
-  #     IPAccess::Set::Global.output.blacklist 'randomseed.pl' # add host to black list of the global set
-  #     Net::HTTP.get_print('randomseed.pl', '/i.html')   # try to connect
+  #     IPAccess.arm Net::HTTP                                  # arm TCPSocket class  
+  #     IPAccess::Set::Global.output.blacklist 'randomseed.pl'  # add host to black list of the global set
+  #     Net::HTTP.get_print('randomseed.pl', '/i.html')         # try to connect
   # 
   # ==== Example 3 – single network object
   # 
-  #     require 'ipaccess/net/telnet'                     # load Net::Telnet version and IPAccess.arm method
+  #     require 'ipaccess/net/telnet'                           # load Net::Telnet version and IPAccess.arm method
   # 
   #     opts = {}
   #     opts["Host"]  = 'randomseed.pl'
   #     opts["Port"]  = '80'
   #     
-  #     t = Net::Telnet.new(opts)                         # try to connect to remote host
+  #     t = Net::Telnet.new(opts)                               # try to connect to remote host
   #     
-  #     acl = IPAccess::Set.new                                # create custom access set
-  #     acl.output.blacklist 'randomseed.pl'              # blacklist host
-  #     IPAccess.arm t, acl                               # arm Telnet object and pass optional ACL
-  
+  #     acl = IPAccess::Set.new                                 # create custom access set
+  #     acl.output.blacklist 'randomseed.pl'                    # blacklist host
+  #     IPAccess.arm t, acl                                     # arm Telnet object and pass optional ACL
+  # 
+  # @overload arm(klass, acl=nil)
+  # @overload arm(klass, :opened_on_deny)
+  # @overload arm(klass, acl, :opened_on_deny)
+
   def self.arm(*args)
     cod = args.delete(:opened_on_deny).nil? ? true : false
     klass, acl = *args
@@ -356,11 +355,7 @@ module IPAccess
       # +:output+.
       
       def default_list; :output end
-      
-      # :call-seq:
-      #   whitelist(list, *addresses)
-      #   whitelist(*addresses)
-      # 
+
       # This method whitelists IP address(-es) in
       # the input or output access list selected
       # by the *list* argument (+:input+ or +:output+).
@@ -380,15 +375,18 @@ module IPAccess
       # whitelist! instead.
       # 
       # === Revalidation
-      #
+      # 
       # After modyfing access set current connection
       # is validated again to avoid access leaks.
       # 
       # === DNS Warning
-      #
+      # 
       # You should avoid passing hostnames as arguments since
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
+      # 
+      # @overload whitelist(*addresses)
+      # @overload whitelist(list, *addresses)
 
       def whitelist(*addresses)
         aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
@@ -410,11 +408,7 @@ module IPAccess
         self.acl_recheck
         return r
       end
-      
-      # :call-seq:
-      #   whitelist!(list, *addresses)
-      #   whitelist!(*addresses)
-      # 
+
       # This method whitelists IP address(-es) in
       # the input or output access list selected
       # by the *list* argument (+:input+ or +:output+).
@@ -432,15 +426,18 @@ module IPAccess
       # even if the global access set is used by object.
       # 
       # === Revalidation
-      #
+      # 
       # After modyfing access set current connection
       # is validated again to avoid access leaks.
       # 
       # === DNS Warning
-      #
+      # 
       # You should avoid passing hostnames as arguments since
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
+      # 
+      # @overload whitelist!(*addresses)
+      # @overload whitelist!(list, *addresses)
 
       def whitelist!(*addresses)
         aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
@@ -462,11 +459,7 @@ module IPAccess
         self.acl_recheck
         return r
       end
-      
-      # :call-seq:
-      #   unwhitelist(list, *addresses)
-      #   unwhitelist(*addresses)
-      # 
+
       # This method removes whitelisted IP address(-es)
       # from the input or output access list selected
       # by the *list* argument (+:input+ or +:output+).
@@ -486,16 +479,19 @@ module IPAccess
       # unwhitelist! instead.
       # 
       # === Revalidation
-      #
+      # 
       # After modyfing access set current connection
       # is validated again to avoid access leaks.
       # 
       # === DNS Warning
-      #
+      # 
       # You should avoid passing hostnames as arguments since
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
-      
+      # 
+      # @overload unwhitelist(*addresses)
+      # @overload unwhitelist(list, *addresses)
+
       def unwhitelist(*addresses)
         aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
         r = @acl.send(aclist).unwhitelist(*addresses)
@@ -507,11 +503,7 @@ module IPAccess
       alias_method :del_white,  :unwhitelist
       alias_method :unallow,    :unwhitelist
       alias_method :unpermit,   :unwhitelist
-      
-      # :call-seq:
-      #   unwhitelist!(list, *addresses)
-      #   unwhitelist!(*addresses)
-      # 
+
       # This method removes whitelisted IP address(-es)
       # from the input or output access list selected
       # by the *list* argument (+:input+ or +:output+).
@@ -529,15 +521,18 @@ module IPAccess
       # even if the global access set is used by object.
       # 
       # === Revalidation
-      #
+      # 
       # After modyfing access set current connection
       # is validated again to avoid access leaks.
       # 
       # === DNS Warning
-      #
+      # 
       # You should avoid passing hostnames as arguments since
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
+      # 
+      # @overload unwhitelist!(*addresses)
+      # @overload unwhitelist!(list, *addresses)
       
       def unwhitelist!(*addresses)
         aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
@@ -550,11 +545,7 @@ module IPAccess
       alias_method :del_white!,  :unwhitelist!
       alias_method :unallow!,    :unwhitelist!
       alias_method :unpermit!,   :unwhitelist!
-      
-      # :call-seq:
-      #   blacklist(list, *addresses)
-      #   blacklist(*addresses)
-      # 
+
       # This method blacklists IP address(-es) in
       # the input or output access list selected
       # by the *list* argument (+:input+ or +:output+).
@@ -574,16 +565,19 @@ module IPAccess
       # blacklist! instead.
       # 
       # === Revalidation
-      #
+      # 
       # After modyfing access set current connection
       # is validated again to avoid access leaks.
       # 
       # === DNS Warning
-      #
+      # 
       # You should avoid passing hostnames as arguments since
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
-          
+      # 
+      # @overload blacklist(*addresses)
+      # @overload blacklist(list, *addresses)
+  
       def blacklist(*addresses)
         aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
         r = @acl.send(aclist).blacklist(*addresses)
@@ -604,11 +598,7 @@ module IPAccess
         self.acl_recheck
         return r
       end
-      
-      # :call-seq:
-      #   blacklist!(list, *addresses)
-      #   blacklist!(*addresses)
-      # 
+
       # This method blacklists IP address(-es) in
       # the input or output access list selected
       # by the *list* argument (+:input+ or +:output+).
@@ -626,16 +616,19 @@ module IPAccess
       # even if the global access set is used by object.
       # 
       # === Revalidation
-      #
+      # 
       # After modyfing access set current connection
       # is validated again to avoid access leaks.
       # 
       # === DNS Warning
-      #
+      # 
       # You should avoid passing hostnames as arguments since
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
-      
+      # 
+      # @overload blacklist!(*addresses)
+      # @overload blacklist!(list, *addresses)
+
       def blacklist!(*addresses)
         aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
         r = real_acl.send(aclist).blacklist(*addresses)
@@ -656,11 +649,7 @@ module IPAccess
         self.acl_recheck
         return r
       end
-      
-      # :call-seq:
-      #   unblacklist(list, *addresses)
-      #   unblacklist(*addresses)
-      # 
+
       # This method removes blacklisted IP address(-es)
       # from the input or output access list selected
       # by the *list* argument (+:input+ or +:output+).
@@ -680,15 +669,18 @@ module IPAccess
       # unwhitelist! instead.
       # 
       # === Revalidation
-      #
+      # 
       # After modyfing access set current connection
       # is validated again to avoid access leaks.
       # 
       # === DNS Warning
-      #
+      # 
       # You should avoid passing hostnames as arguments since
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
+      # 
+      # @overload unblacklist(*addresses)
+      # @overload unblacklist(list, *addresses)
       
       def unblacklist(*addresses)
         aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list
@@ -701,11 +693,7 @@ module IPAccess
       alias_method :undeny,     :unblacklist
       alias_method :unblock,    :unblacklist
       alias_method :del_black,  :unblacklist
-      
-      # :call-seq:
-      #   unblacklist!(list, *addresses)
-      #   unblacklist!(*addresses)
-      # 
+
       # This method removes blacklisted IP address(-es)
       # from the input or output access list selected
       # by the *list* argument (+:input+ or +:output+).
@@ -723,15 +711,18 @@ module IPAccess
       # even if the global access set is used by object.
       # 
       # === Revalidation
-      #
+      # 
       # After modyfing access set current connection
       # is validated again to avoid access leaks.
       # 
       # === DNS Warning
-      #
+      # 
       # You should avoid passing hostnames as arguments since
       # DNS is not reliable and responses may change with time,
       # which may cause security flaws.
+      # 
+      # @overload unblacklist!(*addresses)
+      # @overload unblacklist!(list, *addresses)
       
       def unblacklist!(*addresses)
         aclist = ( addresses.first.is_a?(Symbol) && [:input,:output].include?(addresses.first) ) ? addresses.shift : self.default_list

@@ -1,7 +1,6 @@
 .rspec
 .yardopts
 ChangeLog
-LGPL-LICENSE
 Manifest.txt
 README.md
 Rakefile
@@ -32,7 +31,7 @@ examples/text_message.rb
 lib/ipaccess.rb
 lib/ipaccess/arm_sockets.rb
 lib/ipaccess/ghost_doc/ghost_doc.rb
-lib/ipaccess/ghost_doc/ghost_doc_acl.rb
+lib/ipaccess/ghost_doc/ghost_doc_acl.rdoc
 lib/ipaccess/ghost_doc/ghost_doc_net_ftp.rb
 lib/ipaccess/ghost_doc/ghost_doc_net_http.rb
 lib/ipaccess/ghost_doc/ghost_doc_net_smtp.rb

@@ -31,7 +31,7 @@
 # class but provides special member called +acl+ and a few new
 # instance methods for controlling IP access.
 #
-#:include:ghost_doc_patched_usage.rb
+# {include:file:lib/ipaccess/ghost_doc/ghost_doc_patched_usage.rdoc}
 # 
 # This documentation doesn't cover description of all
 # class and instance methods of the original
@@ -66,29 +66,193 @@
 #     socket.close
 # 
 class IPAccess::Socket
-  #:include:ghost_doc_p_whitelist_e.rb
-  def whitelist!; end
 
-  #:include:ghost_doc_p_whitelist.rb
-  def whitelist; end
-
-  #:include:ghost_doc_p_blacklist_e.rb
-  def blacklist!; end
-
-  #:include:ghost_doc_p_blacklist.rb
-  def blacklist; end
-
-  #:include:ghost_doc_p_unwhitelist_e.rb
-  def unwhitelist!; end
+  # This method works same way as whitelist
+  # but it will allow you to modify the list
+  # even if the global access set is used by object.
+  # 
+  # @overload whitelist!(*addresses)
+  # @overload whitelist!(list, *addresses)
   
-  #:include:ghost_doc_p_unwhitelist.rb
-  def unwhitelist; end
+  def whitelist!(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist_e.rb
-  def unblacklist!; end
+  # This method whitelists IP address(-es) in
+  # the input or output access list selected
+  # by the *list* argument (+:input+ or +:output+).
+  # If the access list selector is omited it
+  # operates on the default access list that certain
+  # kind of network object uses. The allowed format of address
+  # is the same as for IPAccess.to_cidrs.
+  # This method will not add nor remove any
+  # blacklisted item.
+  # 
+  # === Restrictions
+  # 
+  # This method won't allow you to modify the list if
+  # the global access set is associated with an object.
+  # You may operate on IPAccess::Set.Global or use
+  # whitelist! instead.
+  # 
+  # === Return value
+  # 
+  # It will return the result of calling
+  # IPAccess::List#whitelist on the list.    
+  # 
+  # === Revalidation
+  #
+  # After modyfing access set current connection
+  # is validated again to avoid access leaks.
+  # 
+  # === DNS Warning
+  #
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time,
+  # which may cause security flaws.
+  # 
+  # @overload(*addresses)
+  # @overload(list, *addresses)
+  def whitelist(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist.rb
-  def unblacklist; end
+  # This method works same way as blacklist
+  # but it will allow you to modify the list
+  # even if the global access set is used by object.
+  # 
+  # @overload blacklist!(*addresses)
+  # @overload blacklist!(list, *addresses)
+
+  def blacklist!(*addresses); end
+
+  # This method blacklists IP address(-es) in
+  # the input or output access list selected
+  # by the *list* argument (+:input+ or +:output+).
+  # If the access list selector is omited it
+  # operates on the default access list that certain
+  # kind of network object uses. The allowed format of address
+  # is the same as for IPAccess.to_cidrs.
+  # This method will not add nor remove any
+  # whitelisted item.
+  # 
+  # === Restrictions
+  # 
+  # This method won't allow you to modify the list if
+  # the global access set is associated with an object.
+  # You may operate on IPAccess::Set.Global or use
+  # blacklist! instead.
+  # 
+  # === Return value
+  # 
+  # It will return the result of calling
+  # IPAccess::List#blacklist on the list.    
+  # 
+  # === Revalidation
+  #
+  # After modyfing access set current connection
+  # is validated again to avoid access leaks.
+  # 
+  # === DNS Warning
+  #
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time,
+  # which may cause security flaws.
+  # 
+  # @overload blacklist(*addresses)
+  # @overload blacklist(list, *addresses)
+
+  def blacklist(*addresses); end
+
+  # This method works same way as unwhitelist
+  # but it will allow you to modify the list
+  # even if the global access set is used by object.
+  # 
+  # @overload unwhitelist!(*addresses)
+  # @overload unwhitelist!(list, *addresses)
+
+  def unwhitelist!(*addresses); end
+
+  # This method removes whitelisted IP address(-es)
+  # from the input or output access list selected
+  # by the *list* argument (+:input+ or +:output+).
+  # If the access list selector is omited it
+  # operates on the default access list that certain
+  # kind of network object uses. The allowed format of address
+  # is the same as for IPAccess.to_cidrs.
+  # This method will not add nor remove any
+  # blacklisted item.
+  # 
+  # === Restrictions
+  # 
+  # This method won't allow you to modify the list if
+  # the global access set is associated with an object.
+  # You may operate on IPAccess::Set.Global or use
+  # unwhitelist! instead.
+  # 
+  # === Return value
+  # 
+  # It will return the result of calling
+  # IPAccess::List#unwhitelist on the list.    
+  # 
+  # === Revalidation
+  #
+  # After modyfing access set current connection
+  # is validated again to avoid access leaks.
+  # 
+  # === DNS Warning
+  #
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time,
+  # which may cause security flaws.
+  # 
+  # @overload unwhitelist(*addresses)
+  # @overload unwhitelist(list, *addresses)
+
+  def unwhitelist(*addresses); end
+
+  # This method works same way as unblacklist
+  # but it will allow you to modify the list
+  # even if the global access set is used by object.
+  # 
+  # @overload unblacklist!(*addresses)
+  # @overload unblacklist!(list, *addresses)
+
+  def unblacklist!(*addresses); end
+
+  # This method removes blacklisted IP address(-es)
+  # from the input or output access list selected
+  # by the *list* argument (+:input+ or +:output+).
+  # If the access list selector is omited it
+  # operates on the default access list that certain
+  # kind of network object uses. The allowed format of address
+  # is the same as for IPAccess.to_cidrs.
+  # This method will not add nor remove any
+  # whitelisted item.
+  # 
+  # === Restrictions
+  # 
+  # This method won't allow you to modify the list if
+  # the global access set is associated with an object.
+  # You may operate on IPAccess::Set.Global or use
+  # unblacklist! instead.
+  # 
+  # === Return value
+  # 
+  # It will return the result of calling
+  # IPAccess::List#unblacklist on the list.
+  # 
+  # === Revalidation
+  #
+  # After modyfing access set current connection
+  # is validated again to avoid access leaks.
+  # 
+  # === DNS Warning
+  #
+  # You should avoid passing hostnames as arguments since
+  # DNS is not reliable and responses may change with time,
+  # which may cause security flaws.
+  # 
+  # @overload unblacklist(*addresses)
+  # @overload unblacklist(list, *addresses)
+
+  def unblacklist(*addresses); end
 
   alias_method :unblock!,   :unblacklist!
   alias_method :del_black!, :unblacklist!
@@ -103,7 +267,7 @@ class IPAccess::Socket
   alias_method :del_white!, :unwhitelist!
   alias_method :del_white,  :unwhitelist
   
-  #:include:ghost_doc_acl.rb
+  # {include:file:lib/ipaccess/ghost_doc/ghost_doc_acl.rdoc}
   #  
   # === Example
   #
@@ -151,7 +315,7 @@ end
 # class but provides special member called +acl+ and a few new
 # instance methods for controlling IP access.
 #
-#:include:ghost_doc_patched_usage.rb
+# {include:file:lib/ipaccess/ghost_doc/ghost_doc_patched_usage.rdoc}
 # 
 # This documentation doesn't cover description of all
 # class and instance methods of the original
@@ -159,29 +323,45 @@ end
 # class, just the patched variants that make use of IP access control.
 
 class IPAccess::UDPSocket
-  #:include:ghost_doc_p_whitelist_e.rb
-  def whitelist!; end
+  # {include:IPAccess::Socket#whitelist!}
+  # @overload whitelist!(*addresses)
+  # @overload whitelist!(list, *addresses)
+  def whitelist!(*addresses); end
 
-  #:include:ghost_doc_p_whitelist.rb
-  def whitelist; end
+  # {include:IPAccess::Socket#whitelist}
+  # @overload whitelist(*addresses)
+  # @overload whitelist(list, *addresses)
+  def whitelist(*addresses); end
 
-  #:include:ghost_doc_p_blacklist_e.rb
-  def blacklist!; end
+  # {include:IPAccess::Socket#blacklist!}
+  # @overload blacklist!(*addresses)
+  # @overload blacklist!(list, *addresses)
+  def blacklist!(*addresses); end
 
-  #:include:ghost_doc_p_blacklist.rb
-  def blacklist; end
+  # {include:IPAccess::Socket#blacklist}
+  # @overload blacklist(*addresses)
+  # @overload blacklist(list, *addresses)
+  def blacklist(*addresses); end
 
-  #:include:ghost_doc_p_unwhitelist_e.rb
-  def unwhitelist!; end
+  # {include:IPAccess::Socket#unwhitelist!}
+  # @overload unwhitelist!(*addresses)
+  # @overload unwhitelist!(list, *addresses)
+  def unwhitelist!(*addresses); end
   
-  #:include:ghost_doc_p_unwhitelist.rb
-  def unwhitelist; end
+  # {include:IPAccess::Socket#unwhitelist}
+  # @overload unwhitelist(*addresses)
+  # @overload unwhitelist(list, *addresses)
+  def unwhitelist(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist_e.rb
-  def unblacklist!; end
+  #{include:IPAccess::Socket#unblacklist!}
+  # @overload unblacklist!(*addresses)
+  # @overload unblacklist!(list, *addresses)
+  def unblacklist!(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist.rb
-  def unblacklist; end
+  #{include:IPAccess::Socket#unblacklist}
+  # @overload unblacklist(*addresses)
+  # @overload unblacklist(list, *addresses)
+  def unblacklist(*addresses); end
 
   alias_method :unblock!,   :unblacklist!
   alias_method :del_black!, :unblacklist!
@@ -212,7 +392,7 @@ class IPAccess::UDPSocket
   # allows to set reason.
   def blacklist_reasonable(reason, *addresses); end
   
-  #:include:ghost_doc_acl.rb
+  #{include:file:lib/ipaccess/ghost_doc/ghost_doc_acl.rdoc}
   #  
   # === Example
   #     
@@ -248,7 +428,7 @@ end
 # class but provides special member called +acl+ and a few new
 # instance methods for controlling IP access.
 #
-#:include:ghost_doc_patched_usage.rb
+# {include:file:lib/ipaccess/ghost_doc/ghost_doc_patched_usage.rdoc}
 # 
 # This documentation doesn't cover description of all
 # class and instance methods of the original
@@ -256,29 +436,45 @@ end
 # class, just the patched variants that make use of IP access control.
 
 class IPAccess::SOCKSSocket
-  #:include:ghost_doc_p_whitelist_e.rb
-  def whitelist!; end
+  # {include:IPAccess::Socket#whitelist!}
+  # @overload whitelist!(*addresses)
+  # @overload whitelist!(list, *addresses)
+  def whitelist!(*addresses); end
 
-  #:include:ghost_doc_p_whitelist.rb
-  def whitelist; end
+  # {include:IPAccess::Socket#whitelist}
+  # @overload whitelist(*addresses)
+  # @overload whitelist(list, *addresses)
+  def whitelist(*addresses); end
 
-  #:include:ghost_doc_p_blacklist_e.rb
-  def blacklist!; end
+  # {include:IPAccess::Socket#blacklist!}
+  # @overload blacklist!(*addresses)
+  # @overload blacklist!(list, *addresses)
+  def blacklist!(*addresses); end
 
-  #:include:ghost_doc_p_blacklist.rb
-  def blacklist; end
+  # {include:IPAccess::Socket#blacklist}
+  # @overload blacklist(*addresses)
+  # @overload blacklist(list, *addresses)
+  def blacklist(*addresses); end
 
-  #:include:ghost_doc_p_unwhitelist_e.rb
-  def unwhitelist!; end
+  # {include:IPAccess::Socket#unwhitelist!}
+  # @overload unwhitelist!(*addresses)
+  # @overload unwhitelist!(list, *addresses)
+  def unwhitelist!(*addresses); end
   
-  #:include:ghost_doc_p_unwhitelist.rb
-  def unwhitelist; end
+  # {include:IPAccess::Socket#unwhitelist}
+  # @overload unwhitelist(*addresses)
+  # @overload unwhitelist(list, *addresses)
+  def unwhitelist(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist_e.rb
-  def unblacklist!; end
+  #{include:IPAccess::Socket#unblacklist!}
+  # @overload unblacklist!(*addresses)
+  # @overload unblacklist!(list, *addresses)
+  def unblacklist!(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist.rb
-  def unblacklist; end
+  #{include:IPAccess::Socket#unblacklist}
+  # @overload unblacklist(*addresses)
+  # @overload unblacklist(list, *addresses)
+  def unblacklist(*addresses); end
 
   alias_method :unblock!,   :unblacklist!
   alias_method :del_black!, :unblacklist!
@@ -293,7 +489,7 @@ class IPAccess::SOCKSSocket
   alias_method :del_white!, :unwhitelist!
   alias_method :del_white,  :unwhitelist
   
-  #:include:ghost_doc_acl.rb
+  #{include:file:lib/ipaccess/ghost_doc/ghost_doc_acl.rdoc}
   #  
   # === Example
   #
@@ -348,7 +544,7 @@ end
 # class but provides special member called +acl+ and a few new
 # instance methods for controlling IP access.
 #
-#:include:ghost_doc_patched_usage.rb
+# {include:file:lib/ipaccess/ghost_doc/ghost_doc_patched_usage.rdoc}
 # 
 # This documentation doesn't cover description of all
 # class and instance methods of the original
@@ -365,29 +561,45 @@ end
 #     socket = IPAccess::TCPSocket.new('randomseed.pl', 80)
 
 class IPAccess::TCPSocket
-  #:include:ghost_doc_p_whitelist_e.rb
-  def whitelist!; end
+  # {include:IPAccess::Socket#whitelist!}
+  # @overload whitelist!(*addresses)
+  # @overload whitelist!(list, *addresses)
+  def whitelist!(*addresses); end
 
-  #:include:ghost_doc_p_whitelist.rb
-  def whitelist; end
+  # {include:IPAccess::Socket#whitelist}
+  # @overload whitelist(*addresses)
+  # @overload whitelist(list, *addresses)
+  def whitelist(*addresses); end
 
-  #:include:ghost_doc_p_blacklist_e.rb
-  def blacklist!; end
+  # {include:IPAccess::Socket#blacklist!}
+  # @overload blacklist!(*addresses)
+  # @overload blacklist!(list, *addresses)
+  def blacklist!(*addresses); end
 
-  #:include:ghost_doc_p_blacklist.rb
-  def blacklist; end
+  # {include:IPAccess::Socket#blacklist}
+  # @overload blacklist(*addresses)
+  # @overload blacklist(list, *addresses)
+  def blacklist(*addresses); end
 
-  #:include:ghost_doc_p_unwhitelist_e.rb
-  def unwhitelist!; end
+  # {include:IPAccess::Socket#unwhitelist!}
+  # @overload unwhitelist!(*addresses)
+  # @overload unwhitelist!(list, *addresses)
+  def unwhitelist!(*addresses); end
   
-  #:include:ghost_doc_p_unwhitelist.rb
-  def unwhitelist; end
+  # {include:IPAccess::Socket#unwhitelist}
+  # @overload unwhitelist(*addresses)
+  # @overload unwhitelist(list, *addresses)
+  def unwhitelist(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist_e.rb
-  def unblacklist!; end
+  #{include:IPAccess::Socket#unblacklist!}
+  # @overload unblacklist!(*addresses)
+  # @overload unblacklist!(list, *addresses)
+  def unblacklist!(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist.rb
-  def unblacklist; end
+  #{include:IPAccess::Socket#unblacklist}
+  # @overload unblacklist(*addresses)
+  # @overload unblacklist(list, *addresses)
+  def unblacklist(*addresses); end
 
   alias_method :unblock!,   :unblacklist!
   alias_method :del_black!, :unblacklist!
@@ -402,7 +614,7 @@ class IPAccess::TCPSocket
   alias_method :del_white!, :unwhitelist!
   alias_method :del_white,  :unwhitelist
   
-  #:include:ghost_doc_acl.rb
+  #{include:file:lib/ipaccess/ghost_doc/ghost_doc_acl.rdoc}
   # 
   # === Example
   # 
@@ -430,11 +642,7 @@ class IPAccess::TCPSocket
   # global ACL.
   
   attr_reader :acl
-  
-  # :call-seq:
-  #   new(addr, port) <tt>{|socket| …}</tt><br />
-  #   new(addr, port, acl) <tt>{|socket| …}</tt> 
-  # 
+
   # Creates a new object and attempts to connect
   # to the host and port. If a block is provided,
   # it is yielded as socket object.
@@ -443,7 +651,11 @@ class IPAccess::TCPSocket
   # The access set given as an argument has precedence
   # over access set given in options. If ACL parameter
   # is not given it defaults to ACL to <tt>IPAccess::Set.Global</tt>.
-  
+  # 
+  # @overload new(addr, port)
+  #   @yieldparam socket [Socket,TCPSocket,UDPSocket,SOCKSSocket]
+  # @overload new(addr, port, acl)
+
   def initialize
     # Real code hidden.
   end
@@ -474,7 +686,7 @@ end
 # class but provides special member called +acl+ and a few new
 # instance methods for controlling IP access.
 #
-#:include:ghost_doc_patched_usage.rb
+# {include:file:lib/ipaccess/ghost_doc/ghost_doc_patched_usage.rdoc}
 # 
 # This documentation doesn't cover description of all
 # class and instance methods of the original
@@ -495,29 +707,45 @@ end
 #     sock = serv.sysaccept                     # accept connection
 
 class IPAccess::TCPServer
-  #:include:ghost_doc_p_whitelist_e.rb
-  def whitelist!; end
+  # {include:IPAccess::Socket#whitelist!}
+  # @overload whitelist!(*addresses)
+  # @overload whitelist!(list, *addresses)
+  def whitelist!(*addresses); end
 
-  #:include:ghost_doc_p_whitelist.rb
-  def whitelist; end
+  # {include:IPAccess::Socket#whitelist}
+  # @overload whitelist(*addresses)
+  # @overload whitelist(list, *addresses)
+  def whitelist(*addresses); end
 
-  #:include:ghost_doc_p_blacklist_e.rb
-  def blacklist!; end
+  # {include:IPAccess::Socket#blacklist!}
+  # @overload blacklist!(*addresses)
+  # @overload blacklist!(list, *addresses)
+  def blacklist!(*addresses); end
 
-  #:include:ghost_doc_p_blacklist.rb
-  def blacklist; end
+  # {include:IPAccess::Socket#blacklist}
+  # @overload blacklist(*addresses)
+  # @overload blacklist(list, *addresses)
+  def blacklist(*addresses); end
 
-  #:include:ghost_doc_p_unwhitelist_e.rb
-  def unwhitelist!; end
+  # {include:IPAccess::Socket#unwhitelist!}
+  # @overload unwhitelist!(*addresses)
+  # @overload unwhitelist!(list, *addresses)
+  def unwhitelist!(*addresses); end
   
-  #:include:ghost_doc_p_unwhitelist.rb
-  def unwhitelist; end
+  # {include:IPAccess::Socket#unwhitelist}
+  # @overload unwhitelist(*addresses)
+  # @overload unwhitelist(list, *addresses)
+  def unwhitelist(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist_e.rb
-  def unblacklist!; end
+  #{include:IPAccess::Socket#unblacklist!}
+  # @overload unblacklist!(*addresses)
+  # @overload unblacklist!(list, *addresses)
+  def unblacklist!(*addresses); end
 
-  #:include:ghost_doc_p_unblacklist.rb
-  def unblacklist; end
+  #{include:IPAccess::Socket#unblacklist}
+  # @overload unblacklist(*addresses)
+  # @overload unblacklist(list, *addresses)
+  def unblacklist(*addresses); end
 
   alias_method :unblock!,   :unblacklist!
   alias_method :del_black!, :unblacklist!
@@ -532,7 +760,7 @@ class IPAccess::TCPServer
   alias_method :del_white!, :unwhitelist!
   alias_method :del_white,  :unwhitelist
   
-  #:include:ghost_doc_acl.rb
+  #{include:file:lib/ipaccess/ghost_doc/ghost_doc_acl.rdoc}
   #  
   # === Example
   # 

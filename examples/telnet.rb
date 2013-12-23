@@ -6,7 +6,7 @@ opts = {}
 opts["Host"]  = 'randomseed.pl'
 opts["Port"]  = '80'
 
-t = Net::Telnet.new(opts)       # try to connect to remote host
+t = Net::Telnet.new(opts)       # try to connect to a remote host
 
 begin
 

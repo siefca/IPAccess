@@ -1,3 +1,21 @@
+commit 1abc7037ac85d2bf56dd5f8fa22450ef158fefd7
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 13:02:16 2013 +0100
+
+    Generated gemspec
+
+commit 77b1ccb98e7729fcfe43cb8147ae6e2034ec270a
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 12:56:33 2013 +0100
+
+    Checking methods relaxed
+
+commit 4f01890f5241c7aaa50404d9b133d87da3a32bfe
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 12:43:02 2013 +0100
+
+    ChangeLog and Manifest.txt updated
+
 commit 5c7c90b7962820c9b83a704f7faeffd461183e8d
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Mon Dec 23 12:42:22 2013 +0100

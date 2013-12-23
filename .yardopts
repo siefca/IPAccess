@@ -3,6 +3,8 @@
 --readme README.md
 --no-private
 --hide-void-return
+--embed-mixin ClassMethods
+--asset docs/images:images
 -p docs/yard-tpl
 -t default
 -
