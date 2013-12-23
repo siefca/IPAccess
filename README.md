@@ -3,7 +3,7 @@
 **ipaccess version `1.2`** (`Mortal Compat`)
 
 * https://rubygems.org/gems/ipaccess
-* https://github.com/siefca/ipaccess/tree
+* https://github.com/siefca/ipaccess
 * pw@gnu.org
 
 ## Description
@@ -65,7 +65,7 @@ classes that use IPAccess::Set instances to control access of the real TCP/IP tr
 
 ## Source code
 
-* https://github.com/siefca/IPAccess/tree
+* https://github.com/siefca/IPAccess
 * <tt>git clone git://github.com/siefca/IPAccess.git</tt>
 
 ## Gem

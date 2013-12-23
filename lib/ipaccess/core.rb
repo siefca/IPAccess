@@ -170,7 +170,7 @@ require 'ipaccess/ip_access_set'
 # * <tt>require 'ipaccess/socket'</tt>
 # 
 # Using the IPAccess.arm causes standard socket class to be altered,
-# while \IPAccess:: classes are just new variants of socket
+# while <tt>IPAccess::</tt> classes are just new variants of socket
 # handling classes.
 # 
 # ==== Using other supported network classes
@@ -190,16 +190,16 @@ require 'ipaccess/ip_access_set'
 # If you want to enable access control for single network
 # object from the list shown above you may issue:
 # 
-# 	require 'ipaccess/net/http'
-# 	obj = Net::HTTP.new(host, port)
-# 	IPAccess.arm obj
+#     require 'ipaccess/net/http'
+#     obj = Net::HTTP.new(host, port)
+#     IPAccess.arm obj
 # 
 # or
 # 
-# 	require 'ipaccess/socket'
-# 	socket = IPAccess::TCPServer.new(31337)
-# 	IPAccess.arm socket
-# 	
+#     require 'ipaccess/socket'
+#     socket = IPAccess::TCPServer.new(31337)
+#     IPAccess.arm socket
+# 
 # ..and so on.
 # 
 # === Structures
