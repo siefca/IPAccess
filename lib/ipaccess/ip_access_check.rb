@@ -1,7 +1,7 @@
 # encoding: utf-8
-#
+# 
 # Author::    Paweł Wilk (mailto:pw@gnu.org)
-# Copyright:: Copyright (c) 2009 Paweł Wilk
+# Copyright:: Copyright (c) 2009-2014 by Paweł Wilk
 # License::   This program is licensed under the terms of {GNU Lesser General Public License}[link:docs/LGPL-LICENSE.html] or {Ruby License}[link:docs/COPYING.html].
 # 
 # This file contains IPAccess::List::Check class, which
@@ -28,7 +28,6 @@ require 'ipaccess'
 require 'ipaccess/patches/netaddr'
 require 'ipaccess/ip_access_errors'
 require 'ipaccess/ip_access_list'
-require 'ipaccess/ip_access_bus'
 
 module IPAccess
   
@@ -138,14 +137,8 @@ module IPAccess
     # exception that this class should throw
     # when an access is denied. It must be
     # a kind of IPAccessDenied or derivative.
-    
+
     attr_accessor :exception
-    
-    # This attribute contains IPAccess::Bus object
-    # that allows network objects to register themselves
-    # in order to be notified when list is changed.
-    
-    attr_reader :bus
   
     # Creates new IPAccess::List::Ch object. You may pass objects
     # (containing IP information) to it. These objects will
@@ -169,7 +162,6 @@ module IPAccess
     
     def initialize(*addresses)
       @exception = IPAccessDenied
-      @bus = IPAccess::Bus.new(self)
       super(*addresses)
     end
 
@@ -177,7 +169,6 @@ module IPAccess
     
     def add_core(reason, *addresses)
       added = super(reason, *addresses)
-      @bus.call unless added.empty?
       return added
     end
     private :add_core
@@ -219,7 +210,6 @@ module IPAccess
     
     def delete!(*addresses)
       removed = super(*addresses)
-      @bus.call unless removed.empty?
       return removed
     end
     
