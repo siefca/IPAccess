@@ -1,3 +1,559 @@
+commit 5c7c90b7962820c9b83a704f7faeffd461183e8d
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 12:42:22 2013 +0100
+
+    Documentation updated
+
+commit 3d8807981890d46a0fcb0a8a0995fe74574eaea5
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 12:39:33 2013 +0100
+
+    Documentation updated
+
+commit b1d564f65fcb34a9375acc14703176352e6c445c
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 11:49:34 2013 +0100
+
+    Added ChangeLog
+
+commit e36a68cbc19e9e158eb89728f5f753b08d3865cb
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 11:49:24 2013 +0100
+
+    Added Gemfile
+
+commit 56d3b2af60f8d151ccdea3874d3372718901fef0
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 11:49:05 2013 +0100
+
+    RSpec options updated, added .yardopts
+
+commit 69ad58a583145eb67ccf947b6cde6a0a6e09851a
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 11:48:38 2013 +0100
+
+    Copyright note updated
+
+commit f1dc4209e041613ec4360813aabacc74ecaf43c4
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 11:47:48 2013 +0100
+
+    Rakefile refreshed
+
+commit 349c4f7ebae7c03235ff57e052aef7deb0577f24
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 11:25:51 2013 +0100
+
+    Moved some logic to ip_access_check.rb, added List::Check class
+
+commit aeb42501586a1dc9218f07f69bd16530c027a318
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 11:22:25 2013 +0100
+
+    Added optional socket attribute to IPAccessDenied exception class
+
+commit 7da56a71c0e5cf7ca7cb297a16c4d89803611dc1
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 11:21:04 2013 +0100
+
+    Deps updated, README moved
+
+commit aa70dcf9ff36a292d03ab9af371b0b276cdf27af
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 2 23:52:17 2009 +0100
+
+    Added bus for notifying objects about changes in access lists.
+    
+    - Added IPAccess::Bus class which maintains the bus,
+    - modified IPAccess::List#core_add and IPAccess::List#delete! to trigger a bus,
+    - added IPAccessDenied::Aggregate exception class which transports a set of exceptions
+      collected during issuing calls to acl_recheck of registered objects.
+
+commit 3600af7469157c90244e82b7ac6243f17b458f71
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 2 14:38:47 2009 +0100
+
+    Added some documentation about different ways to control access for patched objects.
+
+commit da4e279553d48fa214a193d938eac246174a4020
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 2 13:19:04 2009 +0100
+
+    Fixed IPAccess::Patches::Net::FTP.open with a block.
+
+commit 13b1ab75510b90612b28781c09853cee5fd16e61
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 2 13:18:23 2009 +0100
+
+    Added IPAccessDenied#show method and unified error describing methods.
+
+commit b895220a5476d8884f2149964e0b3b34b180720a
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 2 13:17:29 2009 +0100
+
+    Changed *args to *addresses in many places.
+
+commit 5fb4a78f6b6608f7be8263c8192f81c008f86f16
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 2 13:16:48 2009 +0100
+
+    Added _reasonable variants to ghost-docs.
+
+commit 710456f1922fae61a566ce98c42870da48ed52d7
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 23:47:00 2009 +0100
+
+    A day of love for the garbace collector.
+
+commit 6a59685d1e2419482dd49a4d97ee094ae772cf06
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 23:42:17 2009 +0100
+
+    Reasons are now deleted when IP is removed from white or blacklist. :ashen changed to :grey.
+
+commit b2e94bffed197c8efe7ebe9618b8362f23ea4251
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 18:47:40 2009 +0100
+
+    Added _reasonable variants of blacklisting and whitelisting methods to patches.
+
+commit 2caef4b370e607f4f85928dab932c4c5121b23a1
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 17:54:53 2009 +0100
+
+    Added support for storing reasons of blacklisting and whitelisting.
+
+commit 4488abe2a4b218eb7922546fb83a84dcbb7f7ef7
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 15:09:32 2009 +0100
+
+    Added custom CSS with some fixes. Also logo is now placed in documentation using CSS.
+
+commit ac813124d347ad2c05e59007955c74af47ab193f
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 15:08:27 2009 +0100
+
+    Added phantom patching module for Net::APOP.
+
+commit b954d685bfcf1cdea9f4c8754dd43081705b800e
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 12:25:50 2009 +0100
+
+    Fixes for Ruby 1.8 compliance.
+    
+    - Calls for original class methods like Socket.for_fd are now written as ::Socket and and so forth,
+    - in Net::IMAP patch there is a test whether start_tls_session is defined.
+
+commit b7413f95365495316f95e95f3f1e0d3796221edd
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 11:50:19 2009 +0100
+
+    Fixed IPv6 presentation in short form. Fixed IPAccess::List#denied_cidr return value.
+
+commit 1569ea06f6b5d42a08556d5087bbba47b9f3bba6
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 02:05:48 2009 +0100
+
+    Started tests against Ruby 1.8 compliance.
+
+commit 6603ccf967de5b6fc874d5df24486da24e5b8e41
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 01:34:40 2009 +0100
+
+    Documentation updated.
+
+commit aefe88b40891671591e3b5b2eaa48d621c0f1b69
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Nov 1 01:34:07 2009 +0100
+
+    Added orig argument to IPAccess::Set#check.
+
+commit 6bd7e47bd2ebe82e6ccaef9b6d521f225e9e1e07
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sat Oct 31 22:11:47 2009 +0100
+
+    Added require 'ipaccess' to ip_access_list.rb and ip_access_set.rb.
+
+commit 76387e74dcff6de470a302f980805376bd0296d2
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sat Oct 31 22:11:05 2009 +0100
+
+    Fixed exception raising when nil is given to IPAccess.to_cidrs.
+
+commit 9b3b7baf0b6876aa2f1af97474debdcf717c21f4
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sat Oct 31 22:10:32 2009 +0100
+
+    Added some tests for IPAccess.to_cidrs.
+
+commit 1324c52a10327d4c18ee05c453ae3e3e3d119334
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sat Oct 31 21:47:40 2009 +0100
+
+    IPAccess::List.to_cidrs renamed to IPAccess.to_cidrs.
+
+commit 3fd5392ca7adda3dd0aae1807d5633ff8416ef66
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sat Oct 31 21:28:24 2009 +0100
+
+    Tested getaddress calls against known error with getaddresses and fixed IPAccess::List#to_cidrs.
+
+commit 6529a495de45432f06dbf7732e4ba448dea113a5
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Wed Oct 28 14:47:40 2009 +0100
+
+    Serious fixes and documentation updates regarding @opened_on_deny flag and args processing.
+
+commit 12f967416a0b845c1436aa00ac4318f2eef30ec4
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Wed Oct 28 01:04:00 2009 +0100
+
+    Fixes and documentation updates in patching routines.
+
+commit 271050eb0b22ae973384eeae417e4748d0cd08b5
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 27 22:09:28 2009 +0100
+
+    Setting close_on_deny flag should be obtained from arguments before any other variables.
+
+commit 8ad4d6bb45a70ecc0a62dce0d1279d983ad9db9c
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 27 22:05:26 2009 +0100
+
+    High-level patches for networking objects adapted to new design.
+    
+    - IPAccess::Patches::ACL#try_arm_and_check_socket now sets the originator in exceptions,
+    - IPAccess::Patches::ACL#__ipa_singleton_hook method is now a prototype for all singleton hooks,
+    - added setting @close_on_deny to all initializers and class' 'new' methods,
+    - acl_recheck simplified in all cases (now it just calls try_arm_and_check_socket),
+    - added terminate methods to all patches.
+
+commit b245d0cd9376a519542157a74b368090e6ac869a
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 13 09:07:32 2009 +0200
+
+    Documentation update.
+
+commit 2af870c3aa4a5ed4f6cccd3ba28025637a5a8969
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 13 01:07:54 2009 +0200
+
+    Important documentation update for IPAccess::List and serious fixes.
+    
+    - Described originator fetching for access checking methods,
+    - renamed IPAccess::List.obj_to_cidr to IPAccess::List.to_cidrs,
+    - fixed arguments checking for symbolic flags in many places
+      - it seems that using delete is not safe since some objects don't
+        like to be compared with symbols.
+
+commit 97391bc782af17e2b49df3779d07d0fae87c467f
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Oct 12 13:09:42 2009 +0200
+
+    Image with general view of classes changed.
+
+commit d0a319f2eeb5d085d772e30cb616fa75bbdb61db
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Oct 12 12:48:41 2009 +0200
+
+    Documentation updated for IPAccess::Set, added some diagrams and a table of states for methods.
+
+commit 1903ba4ba6ca3527908e9e95dae9f2ab2b4eb7b3
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Oct 12 01:35:30 2009 +0200
+
+    Access checking methods modified for better handling of originator.
+
+commit a06e1269de366b66944cd145c7b6a5bd3914355d
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Oct 11 02:02:47 2009 +0200
+
+    Added simple examples about fetching informations from exception.
+
+commit bfa96feae6aaa9da61466bfbc608f92712318331
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Oct 11 02:02:09 2009 +0200
+
+    IPAccess::Patches for sockets adjusted for new methods from IPAccess::Set.
+    
+    - Invocations of access checking method now includes second argument which is the original object
+      that should be transported along with an exception object as the originator attribute.
+
+commit 286b2de126f1794373fca575b995484b811f29cd
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Oct 11 01:59:20 2009 +0200
+
+    IPAccess::Patches::ACL names' change.
+    
+    - close_connection method is now called terminate,
+    - try_close_connection method is now called try_terminate,
+    - try_close_subsocket method is now called try_terminate_subsocket.
+
+commit ed55a76a881cdd2c8f26e998deb0e36edd291f36
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Oct 11 01:55:56 2009 +0200
+
+    IPAccess::Set seriously modified. Passing information about original object is now possible.
+    
+    - added method setup_originator which takes NetAddr::CIDR and other object:
+      - if other object is not nil it returns it and tries to set cidr.tag[:Originator]
+        when the last one is empty;
+      - if other object is nil it tries to fetch it from cidr.tag[:Originator],
+    - scream! now takes address and rule separately instead of hashed pair,
+    - if block in checking methods evaluate to true the exception is not raised,
+    - checking methods use setup_originator to establish original object for tested IP,
+    - checking methods are passing original object to block and to scream! method,
+    - specialized checking methods are now protected instead of private,
+    - easy to use check method now takes optional object as a first argument,
+    - checking methods now take optional object as a last argument,
+    - the optional object mentioned above will be used to set up originator,
+    - added some documentation.
+
+commit 479605c5148916747bbc3276fe49b82f6a7866fe
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Oct 11 01:47:52 2009 +0200
+
+    IPAccess::List seriously changed.
+    
+    - obj_to_cidr now takes optional argument :include_origins which causes that reference
+      to original objects is stored within NetAddr::CIDR.tag[:Originator],
+    - obj_to_cidr now handles hostname/IP-mask format.
+
+commit a9253b6bab6087dccc0eff133efbfac0a3280c29
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sat Oct 10 00:22:10 2009 +0200
+
+    Patching methods seriously modified.
+    It's now possible to use exception to fully handle denied access.
+    
+    - Added IPAccess::Set::Global#to_s for better printing and inspection,
+    - added accessor close_on_deny:
+      - indicates if network object should be left opened if IPAccessDenied exception occurs,
+      - uses @close_on_deny added to each patched network class,
+    - added open_on_deny accessor which has opposite meaning then opened_on_deny,
+    - __ipa_singleton_hook moved to ipaccess/patches/generic.rb because may be shared,
+    - patched objects' constructors and singletons' initializers now take optional
+      argument called :opened_on_deny which tells underlying access checking methods
+      to not close connection-oriented objects,
+    - IPAccess.arm also takes optional :opened_on_deny and passes it to singleton's initializers,
+    - added methods close_connection and try_close_connection for uniform way of closing connections,
+    - try_close_connection will call close_connection if @close_on_deny evaluates to true,
+    - added try_close_subsocket which does the same but with passed socket,
+    - all patched sockets now use blocks to terminate connections (call try_close_connection),
+    - added example of using new flag and dealing with exceptions to display errors before
+      connection is terminated.
+
+commit 7db6ab5ce2604e7edf7d540cb785659be15f0c4c
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sat Oct 10 00:03:51 2009 +0200
+
+    IPAccess::Set seriously modified.
+    
+    - scream! now takes argument obj, which is passed as @originator in raised IPAccessDenied,
+    - access checking methods now take a block and argument obj,
+      - if block evaluate to true then exception is not raised;
+      - block takes:
+        - IP address that matched (CIDR),
+        - rule that IP matched to (CIDR),
+        - used access list (IPAccess::List),
+        - tested object (depends on checking method),
+        - additional object that had been passed to checking method;
+      - scream! that raises exception is called with:
+        - hash of CIDR objects (:IP and :Rule),
+        - exception class that should be used,
+        - additional object that had been passed to checking method.
+
+commit de6972bb7ffe4c5afa2a240fb3f2ada2351e5713
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Fri Oct 9 23:45:44 2009 +0200
+
+    IPAccessDenied modified.
+    
+    - The class now bases on SecurityError since it's the kind of Exception,
+    - added @originator accessor,
+    - @access_list now known as @acl (it's access set),
+    - added @peer_ip accessor,
+    - fixed message (removed unwanted space),
+    - added method to_s for better inspection and printing.
+
+commit 2f991bbfab29438a0c7a929e09bfe953765bcde7
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Fri Oct 9 23:42:00 2009 +0200
+
+    Documentation for IPAccess module updated.
+
+commit 2d170e872df711ceae7fa089055b166438405ca8
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Fri Oct 9 23:40:29 2009 +0200
+
+    Relations diagram updated.
+
+commit 663e4ce27d7ad87d24de81e8a3c4f37fad28e681
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Oct 8 12:57:10 2009 +0200
+
+    Added block passing wrappers for initializers of socket handling patches.
+
+commit 906628660d63392cd0baf39e3a70a03cf49a9db4
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Oct 8 12:56:38 2009 +0200
+
+    Indentation fixed in comments.
+
+commit 9788199bbf9b00d5d101a80d903144002e7284d8
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Oct 8 10:26:22 2009 +0200
+
+    Documentation updated.
+    
+    - Added IPAccess module description,
+    - some examples fixed.
+
+commit 9882f395cca5ed63b239d851c9ce4c5eb31291f5
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Oct 8 00:37:43 2009 +0200
+
+    Namespace related fixes and documentation updates.
+    
+    - Added logo and some diagrams to the documentation,
+    - documentation readjusted,
+    - some method and attributes names fixed according to new namespaces,
+    - added FAQ do docs subdirectory.
+
+commit d1477b251addfb445b95b407cb1271848d31072b
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Wed Oct 7 18:09:37 2009 +0200
+
+    BIG CHANGE: new namespaces.
+    
+    - IPAccess is now a module, not a class,
+    - source file ipaccess/ip_access is now ipaccess/ip_access_set since it contains IPAccess::Set,
+    - IPAccess::Set is a class that replaces previous IPAccess class,
+    - there is new singleton class called IPAccess::Set::GlobalClass, which bases on IPAccess::Set,
+    - IPAccess::Global constant is now IPAccess::Set::Global,
+    - IPAccess::Set::Global is now kind of IPAccess::Set::GlobalClass,
+    - IPAccess::List replaces IPAccessList class,
+    - documentation updated and fixed.
+
+commit 80b4560304faddcb3ccc65b72aad5879c3d09ce1
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 16:18:08 2009 +0200
+
+    Added documentation for IPAccess::Net::SMTP.
+
+commit 51550650c5d1b480985d106586e179f7ae8f48cb
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 16:17:37 2009 +0200
+
+    IPAccess::Patches::Net::SMTP#do_start made private.
+
+commit 5cd773353ad77020724b03ce2c19d581a549e331
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 13:43:46 2009 +0200
+
+    Fixes in the inline documentation.
+
+commit 1446fa415fcf8702c57e6ba3ac80fcc1133cf515
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 13:43:21 2009 +0200
+
+    IPAccess#show method improved; doesn't display empty lists.
+
+commit e750f66d77c86f89ebf52d070d348dd0caf28746
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 13:42:10 2009 +0200
+
+    The IPAccessList#show method now doesn't print "IPv4 Tree" header if none rules are on a list.
+
+commit 8927d0e4474d4faa2538b5c05aab748d2874165e
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 13:40:56 2009 +0200
+
+    Added example of arming TCPSocket.
+
+commit 2a3166e669f383b5bd140ea847047cf7e40bae9a
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 13:40:37 2009 +0200
+
+    Important fixes in whitelist, blacklist, unwhitelist and unclacklist methods of IPAccess::Patches.
+
+commit 78cb0b2e9d5ee626f053c417ddcd7bb86e03d298
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 12:39:05 2009 +0200
+
+    Documentation updated for IPAccess::Net::FTP, IPAccess::Net::Telnet, IPAccess::Net::HTTP, sockets.
+
+commit 466e01f867d2d9e01ed933ffd629952516f0eaf3
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 01:59:51 2009 +0200
+
+    Another typo fixed in docs.
+
+commit e0f0e28901f6752b3a0264a1e3317fdc685922dc
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 01:58:44 2009 +0200
+
+    Inline documentation typos fixed.
+
+commit af64164c423b060ea91fe845703fb77a2aa619d6
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Oct 6 01:54:59 2009 +0200
+
+    New model of rules management: direct instance methods for patched classes:
+    
+    - blacklist,
+    - whitelist,
+    - unblacklist,
+    - unwhitelist.
+
+commit b292544a0f0c7d426e770f19932da3f2a0742cd7
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Oct 5 11:59:50 2009 +0200
+
+    New IPAccessList methods for easy rules administration.
+    
+    - Added IPAccessList.unwhite for removing from whitelist,
+    - added IPAccessList.unblack for removing from black list,
+    - fixed inline documentation.
+
+commit e51ad244af3d05b27ccc588cd297322935dc1dba
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Oct 5 11:58:02 2009 +0200
+
+    Fixed resolver issue in IPAccessList.
+    
+    When there was no connection the Resolv.getaddress class method responded with NoMethodError instead of Resolv::ResolvError in Ruby 1.9.1.
+
+commit 3bc63aeb76d6b3cbaadfe415fa58ac70a3a41fca
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Oct 5 01:06:21 2009 +0200
+
+    Method IPAccess::Net::FTP::set_socket added.
+
+commit 7c4cce902f6fc4d6da74acc50c5e694544dbccd2
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Oct 5 00:47:43 2009 +0200
+
+    Documentation updated; added IPAccess::Net::Telnet docs.
+
+commit 47e39fcffd001fbc4bcf51267815dccc62cbc1a4
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Oct 4 13:54:53 2009 +0200
+
+    IPAccess::Net::HTTP::on_connect method made private.
+
+commit 92b4ad0af56b364b08f85936668abb8b293943b3
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Oct 4 13:54:19 2009 +0200
+
+    Serious documentation update and fixes.
+
+commit 155af9054ec081206090f9be76e556df847605e3
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Sun Oct 4 13:53:03 2009 +0200
+
+    Switched to Hoe 2.3.
+
 commit f6632a634767a44de3dfb775c6b413fc2f401018
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Sat Oct 3 16:59:44 2009 +0200
@@ -26,7 +582,7 @@ commit 817e00235d09514d7b9d4d82b171dd1be74428be
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Sat Oct 3 16:25:22 2009 +0200
 
-    Inline documentation updated in IPAccess and IPAccess::List.
+    Inline documentation updated in IPAccess and IPAccessList.
 
 commit 8dafe52c7412af43c17e311059ed8105fb3ca89b
 Author: Paweł Wilk <siefca@gnu.org>
@@ -84,7 +640,7 @@ commit 2e10d9afd5321307f08fd81fbf151e6d66a8c3b8
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Sat Oct 3 13:32:13 2009 +0200
 
-    Inline documentation updated for IPAccess::List.obj_to_cidr().
+    Inline documentation updated for IPAccessList.obj_to_cidr().
 
 commit 2d7d6441485c76be01f3c29fad460c21f20670f2
 Author: Paweł Wilk <siefca@gnu.org>
@@ -201,9 +757,9 @@ Date:   Tue Sep 29 15:25:40 2009 +0200
 
     Serious changes in internal ACL naming conventions.
     
-    - Added IPAccess::Patches::ACL::real_acl which returns IPAccess::Set::Global when ACL responds to nil?
-    - improved IPAccess::Patches::ACL::acl= setter; it sets @acl to IPAccess::Set::Global when ACL is nil,
-    - changed methods of network objects' patches accordingly.
+    - Added IPAccess::Patches::ACL::real_acl which returns IPAccess::Global when ACL responds to nil?
+    - improved IPAccess::Patches::ACL::acl= setter; it sets @acl to IPAccess::Global when ACL is nil,
+    - changed methods of networking objects' patches accordingly.
 
 commit ffa633a2b41d1b3a3f034316279bd30fda6b4147
 Author: Paweł Wilk <siefca@gnu.org>
@@ -246,7 +802,7 @@ commit a9a88453c31c7e79e06b32c323b24e34b829c67d
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Sun Sep 27 21:56:41 2009 +0200
 
-    GlobalSet.instance changed to IPAccess::Set::GlobalSet.instance in socket patching module.
+    GlobalSet.instance changed to IPAccess::GlobalSet.instance in socket patching module.
 
 commit 4c954d3b53fb28b6d998594a1790b80fcdb16fd0
 Author: Paweł Wilk <siefca@gnu.org>
@@ -268,9 +824,9 @@ Date:   Sun Sep 27 21:51:18 2009 +0200
 
     Serious changes in generic patching modules.
     
-    - IPAccess::Patches::GlobalSet renamed to IPAccess::Set::GlobalSet
-    - IPAccess::Set::GlobalSet now emulates IPAccess::Set::Global when compared with it or when inspected
-    - added method IPAccess.global? and IPAccess::Set::Global.global? which test if ACL is the global one,
+    - IPAccess::Patches::GlobalSet renamed to IPAccess::GlobalSet
+    - IPAccess::GlobalSet now emulates IPAccess::Global when compared with it or when inspected
+    - added method IPAccess.global? and IPAccess::Global.global? which test if ACL is the global one,
     - added documentation example containing arming of a single object,
     - IPAccess.arm takes now the acl argument passed to __ipa_singleton_hook when arming single object.
 
@@ -296,7 +852,7 @@ Date:   Sun Sep 27 14:39:47 2009 +0200
 
     Important fix in IPAccess::Patches::ACL::acl=()
     
-    When initializing new access set using IPAccess::Set::Global constant the value of internal @acl member should be set to GlobalSet.instance (sweet variant of nil singleton) instead of global access set's reference. It's because we don't wan't to reveal global access set to the outside world to make it immune from any modification by objects that are using it. The only way to set the global ACL should be by using IPAccess::Set::Global constant.
+    When initializing new access set using IPAccess::Global constant the value of internal @acl member should be set to GlobalSet.instance (sweet variant of nil singleton) instead of global access set's reference. It's because we don't wan't to reveal global access set to the outside world to make it immune from any modification by objects that are using it. The only way to set the global ACL should be by using IPAccess::Global constant.
 
 commit 096d6cca83198b24479cc99d009ce1979c13b37c
 Author: Paweł Wilk <siefca@gnu.org>
@@ -350,7 +906,7 @@ commit d18244179034f16b14179ef7924640d89b5b9c16
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Sun Sep 27 13:17:07 2009 +0200
 
-    Improved catching socket objects in IPAccess::List.obj_to_cidr.
+    Improved catching socket objects in IPAccessList.obj_to_cidr.
 
 commit 1564bc08ce578e44a7e3d5e29c6d04f212aca29b
 Author: Paweł Wilk <siefca@gnu.org>
@@ -572,7 +1128,7 @@ commit eb94683a4b9d1f18b7012a576e960574eacc5d97
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Wed Jun 3 16:48:52 2009 +0200
 
-    IPAccess::List#denied and familiar now return hash with :IP and :Rule, specs updated accordingly.
+    IPAccessList#denied and familiar now return hash with :IP and :Rule, specs updated accordingly.
 
 commit 2cf05b5e343087ac63fc01a075cf77da53518ef2
 Author: Paweł Wilk <siefca@gnu.org>
@@ -590,7 +1146,7 @@ commit 1e87ae3101bacf33020f49133e77e7edfe27afbd
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Wed Jun 3 13:21:01 2009 +0200
 
-    Dependencies fixed, added IPAccess::List.clear! instead of prune!, updated examples.
+    Dependencies fixed, added IPAccessList.clear! instead of prune!, updated examples.
 
 commit cf96a34d56d77ef1d155b93b34267a9b518f95d4
 Author: Paweł Wilk <siefca@gnu.org>
@@ -677,7 +1233,7 @@ commit f6f6103ae06fd4131c0a53e1de9f0ee96ded3f7f
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Sat May 30 19:17:22 2009 +0200
 
-    IPAccess adapted to use new IPAccess::List objects.
+    IPAccess adapted to use new IPAccessList objects.
 
 commit a4a7eb7202554a7e7361bf4924a00e308bea171b
 Author: Paweł Wilk <siefca@gnu.org>
@@ -743,29 +1299,29 @@ commit e038f05d53dfbf741fa8f3b773e6236b717acc8b
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Sun May 24 16:59:32 2009 +0200
 
-    Documentation updated for special, symbolic access rules in IPAccess::List#obj_to_cidr.
+    Documentation updated for special, symbolic access rules in IPAccessList#obj_to_cidr.
 
 commit c21c7e31be60be24e29843329ec13b34bf3f6482
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Sun May 24 16:50:36 2009 +0200
 
-    Added special marker :grey which tags entries that belongs to both lists (white and black).
+    Added special marker :ashen which tags entries that belongs to both lists (white and black).
     
-    - Show method updated according to :grey internal marker (now it shows two rules),
-    - dump_flat_list, rule_exists_cidr, add!, denied_find_parent and denied_find_me are :grey aware,
+    - Show method updated according to :ashen internal marker (now it shows two rules),
+    - dump_flat_list, rule_exists_cidr, add!, denied_find_parent and denied_find_me are :ashen aware,
     - documentation updated.
 
 commit aab2316627e3c428991ab4df10ee08861496c480
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Sun May 24 11:25:23 2009 +0200
 
-    Serious fixes in IPAccess::List: access and rule validating methods are now immune to 0.0.0.0/0 entry.
+    Serious fixes in IPAccessList: access and rule validating methods are now immune to 0.0.0.0/0 entry.
 
 commit c03073e99d6a62b558dc29db83bbd239573207b2
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Sun May 24 02:49:15 2009 +0200
 
-    Serious modifications in IPAccess::List. Most of methods rewritten due do optimization.
+    Serious modifications in IPAccessList. Most of methods rewritten due do optimization.
 
 commit 32cae10bd0de41a9cfa455f820dbdddc2ef8d805
 Author: Paweł Wilk <siefca@gnu.org>
@@ -777,7 +1333,7 @@ commit 919912642a684992bec1693131da1c4815dc1b20
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Thu May 14 12:49:57 2009 +0200
 
-    Added method IPAccess::List#add! and updated documentation.
+    Added method IPAccessList#add! and updated documentation.
 
 commit 1f741e8e93690ac20c3448c0613ab1a8deddedd4
 Author: Paweł Wilk <siefca@gnu.org>

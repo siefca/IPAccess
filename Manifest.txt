@@ -1,6 +1,7 @@
 .rspec
 .yardopts
 ChangeLog
+LGPL-LICENSE
 Manifest.txt
 README.md
 Rakefile
