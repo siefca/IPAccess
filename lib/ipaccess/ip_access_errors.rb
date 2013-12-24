@@ -80,9 +80,9 @@ class IPAccessDenied < SecurityError
   attr_reader :socket
   
   # Access set that was used to check access.
-  
+
   attr_reader :acl
-  
+
   # Creates new object. First argument should be
   # a NetAddr::CIDR object containing address
   # of denied connection. Second argument should

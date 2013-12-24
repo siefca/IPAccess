@@ -39,22 +39,22 @@ require 'ipaccess/patches/generic'
 # class has acl member, which is an IPAccess::Set object.
 
 module IPAccess::Patches
-    
+
   ###################################################################
   # Socket class with IP access control.
   # It uses input and output access lists.
   # Default access list for management operations is output.
-  
+
   module Socket
-    
+
     include IPAccess::Patches::ACL
 
     def self.included(base)
-      
+
       marker = (base.name =~ /IPAccess/) ? base.superclass : base
       return if marker.instance_variable_defined?(:@uses_ipaccess)    
       base.instance_variable_set(:@uses_ipaccess, true)
-      
+
       base.class_eval do
 
         orig_initialize         = self.instance_method :initialize
@@ -64,17 +64,16 @@ module IPAccess::Patches
         orig_recvfrom           = self.instance_method :recvfrom
         orig_recvfrom_nonblock  = self.instance_method :recvfrom_nonblock
         orig_sysaccept          = self.instance_method :sysaccept
-        
+
         define_method :__ipacall__initialize do |block, *args|
-          @opened_on_deny = false
-          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = !!args.reject! { |x| x.is_a?(Symbol) && x == :opened_on_deny }
           args.pop if args.last.nil?
           self.acl = valid_acl?(args.last) ? args.pop : :global
           @useables = IPAccess::ObjectsReferences
           orig_initialize.bind(self).call(*args, &block)
           return self
         end
-        
+
         # block passing wrapper for Ruby 1.8
         def initialize(*args, &block)
           __ipacall__initialize(block, *args)
@@ -112,7 +111,7 @@ module IPAccess::Patches
           end
           return ret
         end
-        
+
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           return nil if self.closed?
@@ -141,23 +140,23 @@ module IPAccess::Patches
           end
           return ret
         end
-        
+
         # This method returns default access list indicator
         # used by protected object; in this case it's +:output+.
         define_method :default_list do
           :output
         end
-        
+
         define_method :useables do
           @useables
         end
-                        
+             
       end # base.class_eval
-      
+
     end # self.included
-        
+ 
   end # module Socket
-  
+
   ###################################################################
   # UDPSocket class with IP access control.
   # It uses input and output access lists.
@@ -168,38 +167,38 @@ module IPAccess::Patches
     include IPAccess::Patches::ACL
 
     def self.included(base)
-      
+
       marker = (base.name =~ /IPAccess/) ? base.superclass : base
       return if marker.instance_variable_defined?(:@uses_ipaccess)    
       base.instance_variable_set(:@uses_ipaccess, true)
-      
+
       base.class_eval do
-        
+
         orig_initialize         = self.instance_method :initialize
         orig_connect            = self.instance_method :connect
         orig_send               = self.instance_method :send
         orig_recvfrom           = self.instance_method :recvfrom
         orig_recvfrom_nonblock  = self.instance_method :recvfrom_nonblock
-        
+
         define_method :__ipacall__initialize do |block, *args|
           self.acl = valid_acl?(args.last) ? args.pop : :global
           @opened_on_deny = true
           orig_initialize.bind(self).call(*args, &block)
           return self
         end
-        
+
         # block passing wrapper for Ruby 1.8
         def initialize(*args, &block)
           __ipacall__initialize(block, *args)
         end
-        
+
         # connect on steroids.
         define_method :connect do |*args|
           peer_ip = self.class.getaddress(args.shift)
           real_acl.output.check_sockaddr(peer_ip, self)
           return orig_connect.bind(self).call(peer_ip, *args)
         end
-        
+
         # send on steroids.
         define_method :send do |*args|
           hostname = args[2]
@@ -231,31 +230,31 @@ module IPAccess::Patches
           end
           return ret
         end
-        
+
         # This method returns default access list indicator
         # used by protected object; in this case it's +:input+.
         define_method :default_list do
           :intput
         end
-        
+
         # this kind of socket is not connection-oriented.
         define_method :connection_close do
           return nil
         end
-        
+
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           return nil if self.closed?
           real_acl.output.check_socket(self, self) { try_terminate }
           return nil
         end
-        
+
       end # base.class_eval
 
     end # self.included
 
   end # module UDPSocket
-  
+
   ###################################################################
   # SOCKSSocket class with IP access control.
   # It uses output access lists.
@@ -265,19 +264,18 @@ module IPAccess::Patches
     include IPAccess::Patches::ACL
 
     def self.included(base)
-      
+
       marker = (base.name =~ /IPAccess/) ? base.superclass : base
       return if marker.instance_variable_defined?(:@uses_ipaccess)    
       base.instance_variable_set(:@uses_ipaccess, true)
-      
+
       base.class_eval do
-    
+
         orig_initialize       = self.instance_method :initialize
-        
+
         # initialize on steroids.
         define_method :__pacall__initialize do |block, *args|
-          @opened_on_deny = false
-          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = !!args.reject! { |x| x.is_a?(Symbol) && x == :opened_on_deny }
           args.pop if args.last.nil?
           self.acl = valid_acl?(args.last) ? args.pop : :global
           args[0] = self.class.getaddress(args[0])
@@ -291,25 +289,25 @@ module IPAccess::Patches
           @useables = IPAccess::ObjectsReferences
           return self
         end
-        
+
         # block passing wrapper for Ruby 1.8
         def initialize(*args, &block)
           __ipacall__initialize(block, *args)
         end
-        
+
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           return nil if self.closed?
           real_acl.output.check_socket(self, self) { try_terminate }
           return nil
         end
-        
+
         # This method returns default access list indicator
         # used by protected object; in this case it's +:output+.
         define_method :default_list do
           :output
         end
-                
+
       end # base.class_eval
 
     end # self.included
@@ -319,25 +317,24 @@ module IPAccess::Patches
   ###################################################################
   # TCPSocket class with IP access control.
   # It uses output access lists.
-  
+
   module TCPSocket
 
     include IPAccess::Patches::ACL
 
     def self.included(base)
-      
+
       marker = (base.name =~ /IPAccess/) ? base.superclass : base
       return if marker.instance_variable_defined?(:@uses_ipaccess)    
       base.instance_variable_set(:@uses_ipaccess, true)
-      
+
       base.class_eval do
-    
+
         orig_initialize       = self.instance_method :initialize
-        
+
         # initialize on steroids.
         define_method :__ipacall__initialize do |block, *args|
-          @opened_on_deny = false
-          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = !!args.reject! { |x| x === :opened_on_deny }
           args.pop if args.last.nil?
           self.acl = valid_acl?(args.last) ? args.pop : :global
           args[0] = self.class.getaddress(args[0])
@@ -351,66 +348,65 @@ module IPAccess::Patches
           end
           return self
         end
-        
+
         # block passing wrapper for Ruby 1.8
         def initialize(*args, &block)
           __ipacall__initialize(block, *args)
         end
-        
+
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           return nil if self.closed?
           real_acl.output.check_socket(self, self) { try_terminate }
           return nil
         end
-        
+
         # This method returns default access list indicator
         # used by protected object; in this case it's +:output+.
         define_method :default_list do
           :output
         end
-        
+
       end # base.class_eval
 
     end # self.included
 
   end # module TCPSocket
-  
+
   ###################################################################
   # TCPServer class with IP access control.
   # It uses input access lists.
-  
+
   module TCPServer
 
     include IPAccess::Patches::ACL
 
     def self.included(base)
-      
+
       marker = (base.name =~ /IPAccess/) ? base.superclass : base
       return if marker.instance_variable_defined?(:@uses_ipaccess)    
       base.instance_variable_set(:@uses_ipaccess, true)
-      
+
       base.class_eval do
-    
+
         orig_initialize       = self.instance_method :initialize
         orig_accept           = self.instance_method :accept
         orig_accept_nonblock  = self.instance_method :accept_nonblock
         orig_sysaccept        = self.instance_method :sysaccept
-        
+
         # initialize on steroids.
         define_method :__ipacall__initialize do |block, *args|
-          @opened_on_deny = false
-          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = !!args.reject! { |x| x.is_a?(Symbol) && x == :opened_on_deny }
           args.pop if args.last.nil?
           self.acl = valid_acl?(args.last) ? args.pop : :global
           return orig_initialize.bind(self).call(*args, &block)
         end
-        
+
         # block passing wrapper for Ruby 1.8
         def initialize(*args, &block)
           __ipacall__initialize(block, *args)
         end
-                
+
         # accept on steroids.
         define_method :accept do |*args|
           r = orig_accept.bind(self).call(*args)
@@ -424,33 +420,33 @@ module IPAccess::Patches
           real_acl.input.check_socket(r, r) { try_terminate_subsocket(r) }
           return r
         end
-        
+
         # sysaccept on steroids.
         define_method :sysaccept do |*args|
           r = orig_sysaccept.bind(self).call(*args)
           real_acl.input.check_fd(r, r) { try_terminate_subsocket(::Socket.for_fd(r)) }
           return r
         end
-        
+
         # this hook will be called each time @acl is reassigned
         define_method :acl_recheck do
           return nil if self.closed?
           real_acl.output.check_socket(self, self) { try_terminate }
           return nil
         end
-        
+
         # This method returns default access list indicator
         # used by protected object; in this case it's +:input+.
         define_method :default_list do
           :input
         end
-        
+
       end # base.class_eval
 
     end # self.included
 
   end # module TCPServer
-  
+
   ###################################################################
   # Helper methods for easy checking and arming sockets.
 
@@ -472,7 +468,7 @@ module IPAccess::Patches
       end
     end
     private :real_socket
-    
+
     # This method is used to safely
     # re-raise an eventual exception
     # and add current object's reference
@@ -503,13 +499,13 @@ module IPAccess::Patches
       end
     end
     private :take_care
-    
+
     # This method tries to arm socket object.
     # If a wanted access set and an object's access
     # set is no different then acl_recheck is called
     # by force. It sets armed socket's +opened_on_deny+
     # flag to +true+.
-    
+
     def try_arm_socket(obj, initial_acl=nil)
       late_sock = real_socket(obj)
       unless late_sock.nil?
@@ -523,7 +519,7 @@ module IPAccess::Patches
       return obj
     end
     private :try_arm_socket
-    
+
     # This method tries to arm socket object and then
     # tries to set up correct ACL for it. If the ACL
     # had changed then it assumes that underlying routines
@@ -547,7 +543,9 @@ module IPAccess::Patches
           initial_acl = real_acl if initial_acl.nil?
           IPAccess.arm(late_sock, acl, :opened_on_deny) unless late_sock.respond_to?(:acl)
           if late_sock.acl != initial_acl
+            p "dla #{initial_acl}"
             late_sock.acl = initial_acl
+            p late_sock.acl
           else
             late_sock.acl_recheck
           end
@@ -579,7 +577,7 @@ module IPAccess::Patches
     private :try_check_in_socket_acl
 
   end # module ACL
-    
+
 end # module IPAccess::Patches
 
 # :startdoc:

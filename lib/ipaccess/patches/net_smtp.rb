@@ -56,8 +56,7 @@ module IPAccess::Patches::Net
             
             # overwrite SMTP.start()
             define_method :__ipacall__start do |block, address, *args|
-              late_on_deny = nil
-              args.delete_if { |x| late_on_deny = x if (x.is_a?(Symbol) && x == :opened_on_deny) }
+              late_on_deny = ( !!args.reject! { |x| x.is_a?(Symbol) && x == :opened_on_deny } ? :opened_on_deny : nil )
               args.pop if args.last.nil?
               late_acl = IPAccess.valid_acl?(args.last) ? args.smtp : :global
               port, helo, user, secret, authtype = *args
@@ -79,8 +78,7 @@ module IPAccess::Patches::Net
         
         # initialize on steroids.
         define_method  :initialize do |addr, *args|
-          @opened_on_deny = false
-          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = !!args.reject! { |x| x.is_a?(Symbol) && x == :opened_on_deny }
           args.pop if args.last.nil?
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           obj = orig_initialize.bind(self).call(addr, *args)

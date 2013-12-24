@@ -39,27 +39,26 @@ module IPAccess::Patches::Net
   # It uses output access lists.
   
   module HTTP
-    
+
     include IPAccess::Patches::ACL
-    
+
     def self.included(base)
-      
+
       marker = (base.name =~ /IPAccess/) ? base.superclass : base
       return if marker.instance_variable_defined?(:@uses_ipaccess)    
       base.instance_variable_set(:@uses_ipaccess, true)
-      
+
       base.class_eval do
         
         # CLASS METHODS
         unless (base.name.nil? && base.class.name == "Class")
           (class << self; self; end).class_eval do
-            
+
             alias :__ipac__orig_new :new
-            
+
             # overload HTTP.new() since it's not usual.
         	  define_method :new do |address, *args|
-        	    late_opened_on_deny = false
-        	    args.delete_if { |x| late_opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+        	    late_opened_on_deny = !!args.reject! { |x| x.is_a?(Symbol) && x == :opened_on_deny }
         	    args.pop if args.last.nil?
               late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
               obj = __ipac__orig_new(address, *args)
@@ -70,8 +69,7 @@ module IPAccess::Patches::Net
             
             # overwrite HTTP.start()
             define_method :__ipacall__start do |block, address, *args|
-              late_on_deny = nil
-        	    args.delete_if { |x| late_on_deny = x if (x.is_a?(Symbol) && x == :opened_on_deny) }
+              late_on_deny = ( !!args.reject! { |x| x.is_a?(Symbol) && x == :opened_on_deny } ? :opened_on_deny : nil )
               args.pop if args.last.nil?
               acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
               port, p_addr, p_port, p_user, p_pass = *args
@@ -85,8 +83,7 @@ module IPAccess::Patches::Net
 
             # overwrite HTTP.get_response()
         	  define_method :__ipacall__get_response do |block, uri_or_host, *args|
-        	    late_on_deny = nil
-        	    args.delete_if { |x| late_on_deny = x if (x.is_a?(Symbol) && x == :opened_on_deny) }
+        	    late_on_deny = ( !!args.reject! { |x| x.is_a?(Symbol) && x == :opened_on_deny } ? :opened_on_deny : nil )
         	    args.pop if args.last.nil?
         	    late_acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
         	    path, port = *args
@@ -118,8 +115,7 @@ module IPAccess::Patches::Net
         
         # initialize on steroids.
         define_method  :__ipacall__initialize do |block, *args|
-          @opened_on_deny = false
-          args.delete_if { |x| @opened_on_deny = true if (x.is_a?(Symbol) && x == :opened_on_deny) }
+          @opened_on_deny = !!args.reject! { |x| x.is_a?(Symbol) && x == :opened_on_deny }
           args.pop if args.last.nil?
           self.acl = IPAccess.valid_acl?(args.last) ? args.pop : :global
           orig_initialize.bind(self).call(*args, &block)

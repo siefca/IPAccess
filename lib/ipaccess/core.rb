@@ -14,132 +14,89 @@ require 'ipaccess/patches/netaddr'
 require 'ipaccess/ip_access_list'
 require 'ipaccess/ip_access_set'
 
-# This module contains classes that are
-# used to control IP access. There are
-# three major components you may need:
+# This module contains classes that are used to control IP access.
+# There are three major components you may want to use:
 # 
 # === IPAccess::List class
 # 
-# This class lets you create IP
-# access list with blacklisted
-# and whitelisted elements. It
-# also has methods for checking
-# whether given IP matches the
-# list.
+# This class lets you create IP access list with blacklisted
+# and whitelisted elements. It also has methods for checking
+# whether given IP matches the list.
 # 
 # === IPAccess::Set class
 # 
-# This class contains two
-# objects that are instances
-# of IPAccess::List class.
-# It allows you to create so
-# called access set. The access
-# set contains members named
-# +input+ and +output+. All methods
-# that validate IP access do it
-# against one of the lists. Input
-# access list is for incomming
-# and output for outgoing IP traffic.
-# In case of connection-oriented
-# sockets and other network objects
-# the convention is to use output access
-# list to validate connections that
-# we initiate. The incomming traffic
-# in that model means the connections
-# initiated by a remote peer.
+# This class contains two objects that are instances
+# of IPAccess::List class.  It allows you to create so
+# called access set. The access set contains members named
+# +input+ and +output+. All methods that validate IP access do it
+# against one of the lists. Input access list is for incomming
+# and output for outgoing IP traffic. In case of connection-oriented
+# sockets and other network objects the convention is to use output access
+# list to validate connections that we initiate. The incomming traffic
+# in that model means the connections initiated by a remote peer.
 # 
 # === Patching engine
 # 
-# IPAccess was initialy considered as a
-# set of classes that you may use
-# in your own programs to control
-# IP access. That means your own classes
-# used for communication should use
-# access lists or sets before making any
+# IPAccess was initialy considered as a set of classes that you may use
+# in your own programs to control IP access. That means your own classes
+# used for communication should use access lists or sets before making any
 # real connections or sending any datagrams.
 # 
-# Fortunately there are many network classes,
-# including sockets, that Ruby ships with.
-# It would be waste of resources to not modify
-# them to support IP access control and automagically
-# throw exceptions when access should be denied.
+# Fortunately there are many network classes, including sockets, that Ruby ships with.
+# It would be waste of resources to not modify them to support IP access control
+# and automagically throw exceptions when access should be denied.
 # 
 # And here the special module method called +IPAccess.arm+
-# comes in. It lets you patch most of Ruby's
-# networking classes and objects. Besides
-# equipping them in IPAccess::Set instance
-# it also adds some methods for doing quick
+# comes in. It lets you patch most of Ruby's networking classes and objects. Besides
+# equipping them in IPAccess::Set instance it also adds some methods for doing quick
 # checks and changes in access lists.
 # 
-# The patching engine can arm network classes and
-# single network objects. It is not loaded by default
-# since you may not want extra code attached to a
-# program that uses access lists or sets with
-# own access checking code.
+# The patching engine can arm network classes and single network objects.
+# It is not loaded by default since you may not want extra code attached to a
+# program that uses access lists or sets with own access checking code.
 # 
 # === Variants of popular classes
 # 
-# Sometimes you want to write a code that
-# uses standard Ruby's network objects
-# but you find it dirty to alter classes or objects.
-# In that case you may want to use static variants
-# of Ruby's network classes that are not patches
+# Sometimes you want to write a code that uses standard Ruby's network objects
+# but you find it dirty to alter classes or objects. In that case you may
+# want to use static variants of Ruby's network classes that are not patches
 # but derived classes.
 # 
 # === Exceptions
 # 
-# When you are dealing with patched (armed) versions
-# of classes and objects or when you are using
-# special variants of popular network classes, you have
-# to rely on exceptions as the only way for
-# access checking methods to tell your program
-# that an event (like access denied) happened.
+# When you are dealing with patched (armed) versions of classes and objects
+# or when you are using special variants of popular network classes, you have
+# to rely on exceptions as the only way for access checking methods to tell
+# your program that an event (like access denied) happened.
 # 
-# Note that when exception is thrown
-# the communication session is closed in case
-# of connection-oriented network objects.
-# You may change it by switching +opened_on_deny+
-# attribute to +true+.
+# Note that when exception is thrown the communication session is closed in case
+# of connection-oriented network objects. You may change it by setting
+# +opened_on_deny+ attribute to +true+.
 # 
-# See IPAccess::Set#check_in to know more
-# about tracking original network object
-# that caused exception to happend. Note
-# that in case of armed versions of network
-# classes (or access-contolled variants)
-# an information about original network
-# object stored within an exception will be set to
-# +nil+ if access had been denied before
-# object was initialized. This shouldn't
-# happend often, since access checks are lazy
-# (they are performed only when connection
-# is going to be made).
+# See IPAccess::Set#check_in to know more about tracking original network object
+# that caused exception to happend. Note that in case of armed versions of network
+# classes (or access-contolled variants) an information about original network
+# object stored within an exception will be set to +nil+ if access had been denied before
+# object was initialized. This shouldn't happend often, since access checks are lazy
+# (they are performed only when connection is going to be made).
 # 
-# See IPAccessDenied for more information
-# about what you can do with exceptions.
+# See IPAccessDenied for more information about what you can do with exceptions.
 # 
 # === Sockets in armed network objects
 # 
-# Specialized Ruby's network classes,
-# such as Net::HTTP or Net::Telnet
-# and their variants created by this library,
-# make use of socket objects. For example
-# Net::HTTP class uses TCPSocket instance to
-# create TCP connection. When versions
-# of these <tt>Net::</tt> objects with
-# enabled access control are used then
-# the internal routines of IPAccess
-# will also try to patch underlying sockets and assign
-# to them the same access set that is used by main
-# object. It is done to avoid access leaks.
-# However, such armed internal sockets will have
-# +opened_on_deny+ flag switched on since
-# closing session (and an eventual connection)
-# should be settled by main object.
+# Specialized Ruby's network classes, such as Net::HTTP or Net::Telnet
+# and their variants created by this library, make use of socket objects.
+# For example Net::HTTP class uses TCPSocket instance to
+# create TCP connection. When versions of these <tt>Net::</tt> objects with
+# enabled access control are used then the internal routines of IPAccess
+# will also try to patch underlying sockets and assign to them the same
+# access set that is used by main object. It is done to avoid access leaks.
+# However, such armed internal sockets will have +opened_on_deny+ flag switched on
+# since closing session (and an eventual connection) should be settled by main object.
 # 
 # === Ordination of elements
 # 
-# To properly understand what are the most important
-# structures mentioned above it's worth
+# To properly understand what are the most important structures mentioned above it's worth
 # to look at the diagram:
 # 
 # link:images/ipaccess_view.png
@@ -224,9 +181,10 @@ module IPAccess
 
   # This method converts names to NetAddr::CIDR objects. It returns an array of CIDR objects.
   # 
-  # Allowed input are strings (DNS names or IP addresses optionally with masks), numbers (IP addresses representation),
-  # IPSocket objects, URI objects, IPAddr objects, Net::HTTP objects, IPAddrList objects, NetAddr::CIDR objects,
-  # NetAddr::Tree objects, IPAccess::List objects, symbols, objects that contain file descriptors bound to sockets
+  # Allowed input are strings (DNS names or IP addresses optionally with masks),
+  # numbers (IP addresses representation), IPSocket objects, URI objects, IPAddr objects,
+  # Net::HTTP objects, IPAddrList objects, NetAddr::CIDR objects, NetAddr::Tree objects,
+  # IPAccess::List objects, symbols, objects that contain file descriptors bound to sockets
   # (including OpenSSL sockets) and arrays of these.
   #
   # In case of resolving the IPv6 link-local addresses
@@ -236,10 +194,10 @@ module IPAccess
   # exception is raised.
   #
   # When an argument called +:include_origins+ is present then the method will attach
-  # original converted objects to results as the +:Origin+ tag of CIDR objects (<tt>tag[:Origin]</tt>).
-  # This rule applies only to single objects or objects inside of arrays or sets.
-  # Objects that are kind of NetAddr::CIDR, IPAccess::Set, NetAddr::Tree and arrays will
-  # never be set as originators.
+  # original converted objects to results as the +:Origin+ tag of CIDR objects
+  # (<tt>tag[:Origin]</tt>). This rule applies only to single objects or objects
+  # inside of arrays or sets. Objects that are kind of NetAddr::CIDR, IPAccess::Set,
+  # NetAddr::Tree and arrays will never be set as originators.
   # 
   # ==== Examples
   # 
@@ -344,15 +302,13 @@ module IPAccess
   
   def self.to_cidrs(*addresses)
     obj = addresses.flatten
-    include_origins = false
-    obj.delete_if { |x| include_origins = true if (x.is_a?(Symbol) && x == :include_origins) }
-    
+    include_origins = !!obj.reject!{ |x| x.is_a?(Symbol) && x == :include_origins }
     if obj.size == 1
       obj = obj.first
     else
       ary = []
       obj.each do |o|
-        ary += include_origins ? to_cidrs(o, :include_origins) : to_cidrs(o)
+        ary += ( include_origins ? to_cidrs(o, :include_origins) : to_cidrs(o) )
       end
       ary.flatten!
       return ary
@@ -476,7 +432,7 @@ module IPAccess
                    :reserved,
                    :multicast ]
       else
-        raise ArgumentError, "provided symbol is unknown: #{obj.to_s}"
+        raise ArgumentError, "Provided symbol is unknown: #{obj.to_s}"
       end
       
       unless r_args.nil?
