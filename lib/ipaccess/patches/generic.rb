@@ -178,7 +178,7 @@ module IPAccess
       raise ArgumentError, "Cannot enable IP access control for class #{klass_name}"
     end
     klass.__send__(:include, patch_klass)
-    singleton_obj.__send__(:__ipa_singleton_hook, acl, cod) unless singleton_obj.nil?
+    singleton_obj.__send__(:__ipa_singleton_hook, acl, cod) unless singleton_obj.nil?  # early initial check
     return klass
   end
 

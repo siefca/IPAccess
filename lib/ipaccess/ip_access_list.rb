@@ -368,15 +368,15 @@ module IPAccess
     # You should avoid passing hostnames as arguments since
     # DNS is not reliable and responses may change with time,
     # which may cause security flaws.
-    
+
     def blacklist(*addresses)
       addresses.empty? ? self.to_a(:black) : add!(:black, *addresses)
     end
-    
+
     alias_method :add_black,  :blacklist
     alias_method :deny,       :blacklist
     alias_method :block,      :blacklist
-    
+
     # This works the same way as blacklist but allows
     # you to store a reason.
     

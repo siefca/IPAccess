@@ -8,26 +8,10 @@
 # of Ruby socket handling classes equipped
 # with IP access control.
 #
-#--
-# 
-# Copyright (C) 2009 by Paweł Wilk. All Rights Reserved.
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either: 1) the GNU Lesser General Public License
-# as published by the Free Software Foundation; either version 3 of the
-# License, or (at your option) any later version; or 2) Ruby's License.
-# 
-# See the file COPYING for complete licensing information.
-#
-# 
-# See ipaccess/ghost_doc/ghost_doc.rb for documentation of this classes.
-# 
-#++
 
 require 'socket'
 require 'ipaccess/ip_access_set'
 require 'ipaccess/patches/sockets'
-
 
 class IPAccess::Socket < Socket
   include IPAccess::Patches::Socket
@@ -50,4 +34,3 @@ end
 class IPAccess::TCPServer < TCPServer
   include IPAccess::Patches::TCPServer
 end
-
