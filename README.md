@@ -40,20 +40,22 @@ classes that use IPAccess::Set instances to control access of the real TCP/IP tr
 
 ## Synopsis
 
-	# load patched sockets
-	require 'ipaccess/socket'
+```ruby
+# load patched sockets
+require 'ipaccess/socket'
 
-	# assume IP given by untrusted user
-	ip_from_user = '192.168.5.5'
+# assume IP given by untrusted user
+ip_from_user = '192.168.5.5'
 
-	# create new access set
-	acl = IPAccess::Set.new
-	
-	# blacklist private and local subnets
-	acl.output.block :private, :local
-	
-	# create TCP socket with IP access control
-	socket = IPAccess::TCPSocket(ip_from_user, 80, acl)
+# create new access set
+acl = IPAccess::Set.new
+
+# blacklist private and local subnets
+acl.output.block :private, :local
+
+# create TCP socket with IP access control
+socket = IPAccess::TCPSocket(ip_from_user, 80, acl)
+```
 
 ## Requirements
 
