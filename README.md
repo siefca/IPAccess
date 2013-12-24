@@ -6,6 +6,7 @@
 
 * https://rubygems.org/gems/ipaccess
 * https://github.com/siefca/ipaccess
+* http://rubydoc.info/gems/ipaccess/
 * pw@gnu.org
 
 ## Description
@@ -19,8 +20,8 @@ shipped with this library.
 ## Features
 
 * Maintaining IP access lists based on rules; see [IPAccess::List](http://rubydoc.info/gems/ipaccess/IPAccess/List).
-* Grouping input/output access lists into sets; [IPAccess::Set](http://rubydoc.info/gems/ipaccess/IPAccess/Set).
-* Automating access checks and raising exceptions; [IPAccess::Set](http://rubydoc.info/gems/ipaccess/IPAccess/Set#check_in).
+* Grouping input/output access lists into sets; see [IPAccess::Set](http://rubydoc.info/gems/ipaccess/IPAccess/Set).
+* Automating access checks and raising exceptions; see [IPAccess::Set](http://rubydoc.info/gems/ipaccess/IPAccess/Set#check_in).
 * Many formats of IP addresses accepted; see [IPAccess.to_cidrs](http://rubydoc.info/gems/ipaccess/IPAccess#to_cidrs-class_method).
 * Variants of socket handling classes with IP access control; see [IPAccess::Socket](http://rubydoc.info/gems/ipaccess/IPAccess/Socket) and [IPAccess::Net](http://rubydoc.info/gems/ipaccess/IPAccess/Net).
 * Methods for patching native socket handling classes; see [IPAccess.arm](http://rubydoc.info/gems/ipaccess/IPAccess#arm-class_method).
@@ -41,6 +42,24 @@ you code them to do that. However, this library also provides special variants o
 classes that use IPAccess::Set instances to control access of the real TCP/IP traffic in an easy way.
 
 ## Synopsis
+
+Total control:
+
+```ruby
+require 'ipaccess/net/http'
+require 'open-uri'
+
+# Add host's IP by to black list of global output access set
+IPAccess::Set::Global.output.blacklist 'example.org'
+
+# Arm all future sockets used by Net::HTTP
+IPAccess.arm Net::HTTP
+
+# Open URI
+open 'http://example.org/'
+```
+
+Access management for specific socket objects:
 
 ```ruby
 # load patched sockets
@@ -82,7 +101,7 @@ socket = IPAccess::TCPSocket(ip_from_user, 80, acl)
 
 ## More information
 
-See IPAccess module's documentation for more information.
+See IPAccess module's [documentation](http://rubydoc.info/gems/ipaccess/) for more information.
 
 ## License
 
