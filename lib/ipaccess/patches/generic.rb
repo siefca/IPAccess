@@ -173,7 +173,7 @@ module IPAccess
     end
     begin
       patch_klass = IPAccess::Patches
-      klass_name.split('::').each { |k| patch_klass = patch_klass.const_get(k) }
+      klass_name.split('::').each { |k| patch_klass = patch_klass.const_get(k, false) }
     rescue NameError
       raise ArgumentError, "Cannot enable IP access control for class #{klass_name}"
     end
