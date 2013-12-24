@@ -434,10 +434,10 @@ module IPAccess
       end
       return socket
     end
-    
+
     # This method checks access for a sockaddr.
     # It works the same way as check_socket but tests sockaddr structures.
-    
+
     def check_sockaddr(sockaddr, originator=nil) # :yields: address, rule, list, sockaddr, orig
       return sockaddr if self.empty?
       begin

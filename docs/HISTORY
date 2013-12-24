@@ -1,3 +1,14 @@
+=== 1.2.2 / 2013-12-24 (Mortal Compat)
+
+* 1 major enhancement
+
+  * Ruby 2.0 compatible release with bugfixes
+
+* 2 bugfixes
+
+  * documentation format changed to YARD
+  * fixed ACL initialization bugs
+
 === 1.0.1 / 2009-06-07 (Mother in Law)
 
 * 1 major enhancement

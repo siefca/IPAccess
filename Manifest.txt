@@ -24,6 +24,7 @@ docs/yard-tpl/default/fulldoc/html/css/common.css
 examples/ftp.rb
 examples/http.rb
 examples/imap.rb
+examples/open-uri.rb
 examples/pop.rb
 examples/smtp.rb
 examples/tcp_server.rb

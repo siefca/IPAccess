@@ -1,3 +1,63 @@
+commit 0455565763981f2b130bf21c741f829d19a576a0
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Dec 24 14:37:37 2013 +0100
+
+    Added open-uri example
+
+commit 1217456efe2d3265cbd19646342afef0619722dd
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Dec 24 14:37:18 2013 +0100
+
+    Strict constant checks during arming
+
+commit 80735314da159427ab4aa46504600af7bf1f8961
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Dec 24 14:36:34 2013 +0100
+
+    Cosmetics
+
+commit 3124c5884e51a270f19550efd55be5dde1ec5652
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Dec 24 11:56:18 2013 +0100
+
+    Fixed bug that caused global sets to be ignored when arming some singletons
+
+commit 00881459874a15d2c92fb372a325cf1a5aed154e
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Dec 24 11:55:32 2013 +0100
+
+    Cosmetics
+
+commit 408f9c1d21be1a4471cb4177ea55d9e20ccc6a33
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Dec 24 11:53:13 2013 +0100
+
+    Version bump
+
+commit 5246b7f48cb1ac0bdecd2cf76b13e823806cd577
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 22:48:21 2013 +0100
+
+    Documentation fixes
+
+commit 4f91169decac556abef26bf373f7b69bb2855e5f
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 22:34:40 2013 +0100
+
+    Manifest.txt regenerated
+
+commit c338d3600b23442f961eda0cee528f57770291c0
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 22:33:57 2013 +0100
+
+    Moved main module from lib/ipaccess.rb to lib/ipaccess/core.rb
+
+commit 197d9b13036990763a1b3d51c9ec76c0870cf91c
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Dec 23 22:33:31 2013 +0100
+
+    Documentation updated
+
 commit 1abc7037ac85d2bf56dd5f8fa22450ef158fefd7
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Mon Dec 23 13:02:16 2013 +0100
