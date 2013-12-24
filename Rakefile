@@ -30,7 +30,7 @@ Hoe.plugin :gemspec
 
 Hoe.spec 'ipaccess' do
   developer           "Paweł Wilk", "pw@gnu.org"
-  self.version         =  "1.2.0"
+  self.version         =  "1.2.2"
   self.rubyforge_name  = 'ipaccess'
   self.summary         = 'IP Access Control for Ruby'
   self.description     = 'This library allows you to control IP access for sockets and other objects'
