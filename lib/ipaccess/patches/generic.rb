@@ -274,7 +274,7 @@ module IPAccess
         else
           raise ArgumentError, "Bad access list"
         end
-        unless (new_acl.nil? || prev_acl.object_id == new_acl.object_id)
+        unless (new_acl === false || prev_acl.object_id == new_acl.object_id)
           @acl = new_acl
           self.acl_recheck if self.respond_to?(:acl_recheck)
         end
