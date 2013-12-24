@@ -1,5 +1,7 @@
 # IP Access Control for Ruby
 
+[![Gem Version](https://badge.fury.io/rb/ipaccess.png)](http://badge.fury.io/rb/ipaccess)
+
 **ipaccess version `1.2`** (`Mortal Compat`)
 
 * https://rubygems.org/gems/ipaccess
