@@ -89,7 +89,7 @@ socket = IPAccess::TCPSocket(ip_from_user, 80, acl)
 ## Source code
 
 * https://github.com/siefca/IPAccess
-* <tt>git clone git://github.com/siefca/IPAccess.git</tt>
+* `git clone git://github.com/siefca/IPAccess.git`
 
 ## Gem
 
@@ -97,7 +97,7 @@ socket = IPAccess::TCPSocket(ip_from_user, 80, acl)
 
 ## Installation
 
-* <tt>gem install ipaccess</tt>
+* `gem install ipaccess`
 
 ## More information
 

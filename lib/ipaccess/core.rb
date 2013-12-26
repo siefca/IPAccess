@@ -99,7 +99,7 @@ require 'ipaccess/ip_access_set'
 # To properly understand what are the most important structures mentioned above it's worth
 # to look at the diagram:
 # 
-# link:https://raw.github.com/siefca/IPAccess/master/docs/images/ipaccess_view.png
+# {include:file:docs/img_view.md}
 #  
 # == Usage
 # 
@@ -175,7 +175,7 @@ require 'ipaccess/ip_access_set'
 # between the IPAccess::TCPSocket class
 # and other classes from this module:
 # 
-# link:https://raw.github.com/siefca/IPAccess/master/docs/images/ipaccess_relations.png
+# {include:file:docs/img_relations.md}
 
 module IPAccess
 

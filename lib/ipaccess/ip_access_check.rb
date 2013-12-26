@@ -212,7 +212,7 @@ module IPAccess
       removed = super(*addresses)
       return removed
     end
-    
+
     # This method helps with setting up
     # a proper originator for an object
     # that is checked against access set.
@@ -247,14 +247,14 @@ module IPAccess
     # how it works you may
     # look at the workflow diagram:
     # 
-    # link:https://raw.github.com/siefca/IPAccess/master/docs/images/ipaccess_setup_origin.png
-    #
+    # {include:file:docs/img_setup_origin.md}
+    # 
     # To predict the logic in an easy way
     # you may also find the input/output states
     # table useful:
     # 
-    # link:https://raw.github.com/siefca/IPAccess/master/docs/images/ipaccess_setup_origin_tab.png
-    #
+    # {include:file:docs/img_setup_origin_tab.md}
+    # 
     # After calling this method you may find
     # a reference to two original objects.
     # First in a +cidr+'s tag and second
@@ -266,7 +266,7 @@ module IPAccess
     # used to fetch IP from (e.g. TCPSocket).
     # 
     # This method returns the originator or +nil+.
-    
+
     def setup_originator(cidr, orig=nil, net_obj=nil)
       if orig.nil?
         if (cidr.respond_to?(:tag) && !cidr.tag[:Originator].nil?)
@@ -285,7 +285,7 @@ module IPAccess
       
       return orig
     end
-    private :setup_originator
+    protected :setup_originator
     
     # Raises default exception including important informations like
     # remote IP address, rule that IP matched to, used access list
@@ -382,7 +382,7 @@ module IPAccess
     # In order to understand this method's logic
     # properly you may look at the diagram:
     # 
-    # link:https://raw.github.com/siefca/IPAccess/master/docs/images/ipaccess_ac_for_args.png
+    # {include:file:docs/img_ac_for_args.md}
     
     def check(*addresses) # :yields: address, rule, list, addresses, originator
       return addresses if self.empty?
@@ -411,8 +411,8 @@ module IPAccess
     # In order to understand this method's logic
     # properly you may look at the diagram:
     # 
-    # link:https://raw.github.com/siefca/IPAccess/master/docs/images/ipaccess_ac_for_socket.png
-    
+    # {include:file:docs/img_ac_for_socket.md}
+
     def check_socket(socket, originator=nil) # :yields: address, rule, list, socket, originator
       if (self.empty? || !socket.respond_to?(:getpeername))
         return socket

@@ -1,3 +1,15 @@
+commit 32b176f52c9a7aa3caf2375215c4ffa6030d5c45
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Dec 26 03:35:07 2013 +0100
+
+    Gemspec regenerated
+
+commit bfe69f65bb505335b02cc6362096e10c263d3a8b
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Dec 26 03:34:34 2013 +0100
+
+    Image links in documentation changed to remote GitHub assets
+
 commit 8f6b9754d2a95558cc2a32f4c2dd0b4d82be7a8a
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Thu Dec 26 03:28:53 2013 +0100

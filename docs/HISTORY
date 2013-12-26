@@ -1,3 +1,10 @@
+=== 1.2.4 / 2013-12-26 (Mortal Compat)
+
+* 2 major enhancements
+
+  * Added 2 flags to play nice with proxy in Net::HTTP patch: `:check_only_proxy` and `+check_only_real`
+  * Added pre-connect access check in Net::HTTP patch
+
 === 1.2.2 / 2013-12-24 (Mortal Compat)
 
 * 1 major enhancement
@@ -6,8 +13,8 @@
 
 * 2 bugfixes
 
-  * documentation format changed to YARD
-  * fixed ACL initialization bugs
+  * Documentation format changed to YARD
+  * Fixed ACL initialization bugs
 
 === 1.0.1 / 2009-06-07 (Mother in Law)
 
