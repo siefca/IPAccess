@@ -1,3 +1,21 @@
+commit f1f6c413953b4948d7ae464ed9f4f51e77fcbb36
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Dec 26 21:57:40 2013 +0100
+
+    Added diagram docs to .yardopts
+
+commit 9255fe14f97d836580f924c12eaffb9182cffd9e
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Dec 26 13:44:56 2013 +0100
+
+    Release 1.2.4
+
+commit 4a75d6261a2f991666822d5b0cf629fc028915ee
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Dec 26 13:44:05 2013 +0100
+
+    Static gemspec updated
+
 commit 825334e1db04b93b9d13210ac75df8e2fdc24d62
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Thu Dec 26 13:43:15 2013 +0100

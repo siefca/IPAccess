@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
-# stub: ipaccess 1.2.4.20131226134446 ruby lib
+# stub: ipaccess 1.2.5.20131226215645 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "ipaccess"
-  s.version = "1.2.4.20131226134446"
+  s.version = "1.2.5.20131226215645"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Pawe\u{142} Wilk"]

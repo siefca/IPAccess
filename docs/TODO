@@ -1,5 +1,125 @@
 == IPAccess
 
+
+
+- need to be callable like x[:input] or x[:output] which allows more generic access to lists
+- make it an array-like!
+
+== new logic
+
+- universal bus for storing objects
+
+0. bus belongs to a list
+1. bus contains object id-s of sockets
+2. each socket object contains a list of useables inside
+3. useables is a collection of references to objects that are using sockets
+4. useables are added just after socket has been created
+5. useables are present only when some socket caused the exception (otherwise we whould count on an originator)
+
+adding useables:
+
+when arming, add a useable if object is a socket
+
+
+adding to bus:
+
+socket is added to bus when armed (be aware of inpu/output lists!)
+
+removing from bus:
+
+finalizer
+
+
+changing the acl of high-level object:
+
+if the acl is really changed:
+
+if the list is really changed:
+
+ - for all previous lists (input and output) do:
+   - take a bus and for each socket
+     - remove useable (self) from socket 
+   - remove socket from thet bus if there are no useables in a socket
+
+ - for all new lists (input and output) do:
+   - take a bus
+   - add useable to a socket's useables
+   - add socket to a bus
+
+rechecking all during access list manipulation
+
+in context: list
+for each socket on a bus
+  call access checking method ipcheck_socket passing a list and an exception (input or output)
+  
+
+
+
+
+
+exception:
+
+useables		-	all object's id-s that are using it
+originator		-	an object that had been using it when exception happened (by re-raising an exception)
+socket			- socket object that caused the exception to happened (may be nil)
+
+
+
+
+
+- sprawdzic ile razy sie wola przeszukiwanie przy nowym obiekcie, czy nie za wiele razy
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- Where to register in a bus? In initializer or during patching (ipa_singleton_hook) and acl changing method
+- what about duplicates in case of auto-armed sockets in higher-level objects? some option that prevents it
+- when adding to a bus store originator!!!!!!!!! (requires acl= overload and supercall since different sockets are in network classes)
+
+
+- gdy wyjatek rzuci socket podczas uzytkowania obiektu wysokiej klasy to co zamknie obiekt wysokiej klasy?
+  - try_terminate zlapane gdzies tam w opakowaniu albo rezygnujemy z automagicznego zamykania
+
+jak gniazdo sie zarejestruje na szynie z parentem?
+ - przy try_arm_and_check_socket w self.acl=
+
+a jak zmieni sie przyporzadkowanie, gdy ktos da: ftp.acl = inny
+ - to musimy przepisac duzo bo acl to jakies listy!!!! te listy zmienia sie w stosunku do obiektu i do jego obiektow gniazd
+   najpierw dodac do nowych
+   - co dodac?
+     - zarejestrowac obiekt macierzysty i jego gniazda
+     - gdzie? w busach nowego acl
+       - a jesli juz tam cos jest? czy sie nie skasuje? nie powinno. idy sa unikatowe.
+
+   poetm wyrypac ze starych
+   - a jak acl jest shared i jeszcze w nim siedzi obiekt inny ktorego gniazdo jest wspolne?
+     - zbadac to potem
+ - potem sprawdzamy wszystkie sockety ZWIAZANE Z OBIEKTEM na ktorym ACL sie zmienia i ew. cal
+ 
+
+a jak zmieni sie cos w external acl-u?
+ - to sprawdzamy wszystkie sockety W OGOLE i ew. call
+
+
+
+
+- JUST-SOCKETS approach??? YES
+
 - add examples with blocks
 - check all overloaded class methods that take blocks for bugs
 
@@ -9,7 +129,8 @@
 
 == Documentation
 
-- rewrite docs for patches to use proxy methods!!!
+- rewrite docs and examples for patches to use proxy methods like .blacklist !!!
+- write a manual how to arm you own objects in an easy way (like include IPAccess::Patches::ACL)
 - add a doco with an example of a block that disables throwing an exception but closes connection and does stuff
 - insert hints in documentation: acl.output.blacklist before object is created and obj.blacklist when it exists as a good example!
 - add IPAccess::Net ghost-doc
