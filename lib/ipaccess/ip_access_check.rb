@@ -247,13 +247,13 @@ module IPAccess
     # how it works you may
     # look at the workflow diagram:
     # 
-    # link:images/ipaccess_setup_origin.png
+    # link:https://raw.github.com/siefca/IPAccess/master/docs/images/ipaccess_setup_origin.png
     #
     # To predict the logic in an easy way
     # you may also find the input/output states
     # table useful:
     # 
-    # link:images/ipaccess_setup_origin_tab.png
+    # link:https://raw.github.com/siefca/IPAccess/master/docs/images/ipaccess_setup_origin_tab.png
     #
     # After calling this method you may find
     # a reference to two original objects.
@@ -382,7 +382,7 @@ module IPAccess
     # In order to understand this method's logic
     # properly you may look at the diagram:
     # 
-    # link:images/ipaccess_ac_for_args.png
+    # link:https://raw.github.com/siefca/IPAccess/master/docs/images/ipaccess_ac_for_args.png
     
     def check(*addresses) # :yields: address, rule, list, addresses, originator
       return addresses if self.empty?
@@ -411,7 +411,7 @@ module IPAccess
     # In order to understand this method's logic
     # properly you may look at the diagram:
     # 
-    # link:images/ipaccess_ac_for_socket.png
+    # link:https://raw.github.com/siefca/IPAccess/master/docs/images/ipaccess_ac_for_socket.png
     
     def check_socket(socket, originator=nil) # :yields: address, rule, list, socket, originator
       if (self.empty? || !socket.respond_to?(:getpeername))

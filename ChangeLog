@@ -1,3 +1,51 @@
+commit 8f6b9754d2a95558cc2a32f4c2dd0b4d82be7a8a
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Dec 26 03:28:53 2013 +0100
+
+    Version bump
+
+commit f349435979ef92105fd559ca4f40078bb1919c67
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Dec 26 03:28:40 2013 +0100
+
+    Open-uri example updated
+
+commit 46e0836b6dc9a7dc12095ada8be7856352b88cba
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Dec 26 03:28:29 2013 +0100
+
+    Net::HTTP#connect wrapped in IPAccess::Patches::Net::HTTP
+
+commit 27b0545884c616d141220c5817837fb3359911f5
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Dec 26 03:02:20 2013 +0100
+
+    Open-uri example simplified
+
+commit abcfd75caed6c0768b9ed01803633577855f9400
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Thu Dec 26 02:58:34 2013 +0100
+
+    Required Ruby version is now 1.9.2
+
+commit cb4774148d7e1e16f9162589c39525bc13113708
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Dec 24 15:00:44 2013 +0100
+
+    Readme updated
+
+commit d026e34e862153c93e69562e72ef6bd2ab6434b9
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Dec 24 14:50:20 2013 +0100
+
+    Added Badge to Readme
+
+commit 7f969e0bd5c6170d356f74427377c0f0254d389f
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Tue Dec 24 14:46:28 2013 +0100
+
+    Readme updated
+
 commit 1583d574540f53806e2e77ae0e6d336307b3fc60
 Author: Paweł Wilk <siefca@gnu.org>
 Date:   Tue Dec 24 14:43:08 2013 +0100
