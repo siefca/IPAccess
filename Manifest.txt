@@ -19,6 +19,12 @@ docs/images/ipaccess_relations.png
 docs/images/ipaccess_setup_origin.png
 docs/images/ipaccess_setup_origin_tab.png
 docs/images/ipaccess_view.png
+docs/img_ac_for_args.md
+docs/img_ac_for_socket.md
+docs/img_relations.md
+docs/img_setup_origin.md
+docs/img_setup_origin_tab.md
+docs/img_view.md
 docs/rdoc.css
 docs/yard-tpl/default/fulldoc/html/css/common.css
 examples/ftp.rb
