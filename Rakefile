@@ -41,6 +41,8 @@ Hoe.spec 'ipaccess' do
   self.readme_file     = 'README.md'
   self.history_file    = 'docs/HISTORY'
 
+  require_ruby_version '>= 1.9.2'
+
   extra_deps          << ["netaddr",">= 1.5.0"]
   extra_dev_deps      << ['rspec',            '>= 2.6.0']     <<
                          ['yard',             '>= 0.8.2']     <<
