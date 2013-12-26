@@ -228,19 +228,26 @@ class IPAccess::Net::HTTP
   def acl_recheck
     # Real code hidden.
   end
-  
-  # :call-seq:
-  #   new(address)<br />
-  #   new(address, acl) <br />
-  #   new(address, port, acl)
-  # 
+
   # Creates a new object for the specified address.
   # This method does not open the TCP connection.
   # It optionally sets an access set given as the
   # last parameter. If parameter is not given it
   # sets ACL to IPAccess::Set.Global.
-  
-  def initialize
+  # 
+  # Flags are symbols that control behavior of IPAccess:
+  # 
+  #   * +:opened_on_deny+ causes blocking method to leave a socket open when access is denied and a socket was re-checked
+  #   * +:check_only_proxy+ causes access checks to be applied only to a proxy server address if a proxy is in use
+  #   * +:check_only_real+ causes access check to be applied only to a destination address (and not to proxy server) if a proxy is in use
+  # 
+  # @overload new(address)
+  # @overload new(address, acl)
+  # @overload new(address, port, acl)
+  # @overload new(address, acl, *flags)
+  # @overload new(address, port, acl, *flags)
+
+  def initialize(address)
     # Real code hidden.
   end
 
